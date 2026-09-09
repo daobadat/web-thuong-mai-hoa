@@ -1,0 +1,10 @@
+{
+  "description": "This e-commerce platform specializes in flower sales for the Korean community in Vietnam, offering bilingual support, online ordering, and delivery management.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
