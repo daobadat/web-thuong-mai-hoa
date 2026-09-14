@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hoa Tươi — Admin Panel Quản Lý</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebarBg: '#2C1A2E',
+            sidebarActive: '#8B4A5C',
+            sidebarHover: '#7A3D4F',
+            appBg: '#F5F3F0',
+            cardBorder: '#EDE5DF',
+            textDark: '#2C1A2E',
+            textMuted: '#7A6870',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F5F3F0] text-[#2C1A2E] font-sans antialiased min-h-screen">
+
+  <div class="flex min-h-screen">
+    <!-- ── SIDEBAR ──────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="flex flex-col bg-[#2C1A2E] text-white transition-all duration-300 w-56 min-h-screen flex-shrink-0">
+      <!-- Logo Header -->
+      <div class="flex items-center gap-2 px-4 py-5 border-b border-white/10" id="sidebar-logo-box">
+        <span class="text-2xl flex-shrink-0">🌸</span>
+        <div id="sidebar-brand-text">
+          <div class="font-serif text-base text-white leading-tight">Hoa Tươi</div>
+          <div class="text-[10px] text-white/50">Admin Panel</div>
+        </div>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="flex-1 py-4 space-y-1 px-2" id="sidebar-nav">
+        <button onclick="setAdminPage('dashboard')" id="nav-btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors bg-[#8B4A5C] text-white">
+          <span class="text-base flex-shrink-0">◉</span>
+          <span class="font-medium nav-text">Tổng quan</span>
+        </button>
+        <button onclick="setAdminPage('orders')" id="nav-btn-orders" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white">
+          <span class="text-base flex-shrink-0">📦</span>
+          <span class="font-medium nav-text">Đơn hàng</span>
+        </button>
+        <button onclick="setAdminPage('products')" id="nav-btn-products" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white">
+          <span class="text-base flex-shrink-0">🌸</span>
+          <span class="font-medium nav-text">Sản phẩm</span>
+        </button>
+        <button onclick="setAdminPage('customers')" id="nav-btn-customers" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white">
+          <span class="text-base flex-shrink-0">👤</span>
+          <span class="font-medium nav-text">Khách hàng</span>
+        </button>
+        <button onclick="setAdminPage('analytics')" id="nav-btn-analytics" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white">
+          <span class="text-base flex-shrink-0">📊</span>
+          <span class="font-medium nav-text">Thống kê</span>
+        </button>
+        <button onclick="setAdminPage('settings')" id="nav-btn-settings" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white">
+          <span class="text-base flex-shrink-0">⚙️</span>
+          <span class="font-medium nav-text">Cài đặt</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="p-3 border-t border-white/10">
+        <button onclick="toggleSidebarCollapse()" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors text-sm" id="btn-collapse">
+          <span id="collapse-icon">←</span>
+          <span class="nav-text">Thu gọn</span>
+        </button>
+        <a href="index.html" class="mt-1 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors text-sm">
+          <span>🛒</span>
+          <span class="nav-text">Trang bán hàng</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT AREA ────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-auto">
+      <div class="p-6" id="admin-main-view">
+        <!-- Views rendered by JS -->
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ── APPLICATION JAVASCRIPT ─────────────────────────────────────────────── -->
+  <script>
+    // ─── DATA & CONSTANTS ─────────────────────────────────────────────────────
+    let currentPage = 'dashboard'
+    let isSidebarCollapsed = false
+
+    const STATUS_CONFIG = {
+      new: { label: 'Đơn mới', cls: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500' },
+      confirmed: { label: 'Đã xác nhận', cls: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500' },
+      preparing: { label: 'Đang chuẩn bị', cls: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
+      delivering: { label: 'Đang giao', cls: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
+      done: { label: 'Hoàn thành', cls: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
+      cancelled: { label: 'Đã huỷ', cls: 'bg-red-100 text-red-600', dot: 'bg-red-500' },
+    }
+
+    const STATUS_FLOW = {
+      new: 'confirmed', confirmed: 'preparing', preparing: 'delivering', delivering: 'done', done: null, cancelled: null
+    }
+
+    // Mock Data
+    let ORDERS = [
+      { id: '#ORD-2841', customer: 'Kim Jiyeon', phone: '0901 234 111', address: '24 Xuân Thủy, Cầu Giấy', city: 'Hà Nội', products: [{ name: 'Bó Hoa Hồng Phấn Premium', qty: 1, price: 850000 }], total: 850000, status: 'delivering', payment: 'Chuyển khoản', paymentStatus: 'paid', date: '17/08/2026', time: '10:24', deliveryTime: '12:00–17:00', note: '', message: '생일 축하해요! 항상 행복하게' },
+      { id: '#ORD-2840', customer: 'Park Sanghoon', phone: '0902 345 222', address: '18 Đặng Thai Mai, Tây Hồ', city: 'Hà Nội', products: [{ name: 'Kệ Hoa Khai Trương', qty: 1, price: 1800000 }], total: 1800000, status: 'confirmed', payment: 'Chuyển khoản', paymentStatus: 'paid', date: '17/08/2026', time: '09:55', deliveryTime: '08:00–12:00', note: 'Giao trước 11h', message: '개업을 진심으로 축하드립니다' },
+      { id: '#ORD-2839', customer: 'Choi Minji', phone: '0903 456 333', address: '88 Lê Lợi, Q.1', city: 'TP.HCM', products: [{ name: 'Hộp Hoa Mix Pastel', qty: 2, price: 650000 }], total: 1300000, status: 'done', payment: 'Momo', paymentStatus: 'paid', date: '17/08/2026', time: '08:30', deliveryTime: '08:00–12:00', note: '', message: '감사합니다' },
+      { id: '#ORD-2838', customer: 'Lee Donghyun', phone: '0904 567 444', address: '56 Nguyễn Văn Linh, Q.7', city: 'TP.HCM', products: [{ name: 'Hộp Quà Hoa Doanh Nghiệp', qty: 3, price: 1200000 }], total: 3600000, status: 'done', payment: 'Chuyển khoản', paymentStatus: 'paid', date: '16/08/2026', time: '15:20', deliveryTime: '17:00–21:00', note: 'In logo Samsung', message: '' },
+      { id: '#ORD-2837', customer: 'Jung Yoonji', phone: '0905 678 555', address: '12 Hàng Bông, Hoàn Kiếm', city: 'Hà Nội', products: [{ name: 'Bó Hoa Trắng Tinh Khôi', qty: 1, price: 720000 }], total: 720000, status: 'cancelled', payment: 'Tiền mặt', paymentStatus: 'unpaid', date: '16/08/2026', time: '07:15', deliveryTime: '08:00–12:00', note: '', message: '' },
+      { id: '#ORD-2836', customer: 'Kwon Jisoo', phone: '0906 789 666', address: '33 Trần Hưng Đạo, Q.1', city: 'TP.HCM', products: [{ name: 'Bó Hoa Hướng Dương', qty: 2, price: 450000 }, { name: 'Hộp Hoa Mix Pastel', qty: 1, price: 650000 }], total: 1550000, status: 'preparing', payment: 'ZaloPay', paymentStatus: 'paid', date: '17/08/2026', time: '11:00', deliveryTime: '17:00–21:00', note: '', message: '사랑해요 ♥' },
+      { id: '#ORD-2835', customer: 'Han Seojun', phone: '0907 890 777', address: '7 Nguyễn Chí Thanh, Đống Đa', city: 'Hà Nội', products: [{ name: 'Kệ Hoa Mừng Sinh Nhật', qty: 1, price: 950000 }], total: 950000, status: 'new', payment: 'Momo', paymentStatus: 'unpaid', date: '17/08/2026', time: '11:45', deliveryTime: '17:00–21:00', note: 'Cần giao đúng giờ', message: '생일 축하합니다!' },
+    ]
+
+    let PRODUCTS = [
+      { id: 1, nameVi: 'Bó Hoa Hồng Phấn Premium', nameKo: '프리미엄 핑크 장미 꽃다발', category: 'Bó hoa', price: 850000, originalPrice: 1050000, stock: 12, sold: 48, img: 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop', badge: 'popular', active: true },
+      { id: 2, nameVi: 'Hộp Hoa Mix Pastel', nameKo: '파스텔 믹스 꽃 박스', category: 'Hộp hoa', price: 650000, stock: 8, sold: 31, img: 'https://images.unsplash.com/photo-1644248423441-bc7c5dcebeb6?w=200&h=200&fit=crop', badge: 'new', active: true },
+      { id: 3, nameVi: 'Kệ Hoa Khai Trương', nameKo: '개업 화환', category: 'Kệ hoa', price: 1800000, stock: 5, sold: 22, img: 'https://images.unsplash.com/photo-1760618511409-9d80f26e36f4?w=200&h=200&fit=crop', badge: 'popular', active: true },
+      { id: 4, nameVi: 'Giỏ Hoa Cúc Vàng', nameKo: '노란 국화 꽃 바구니', category: 'Giỏ hoa', price: 520000, stock: 15, sold: 19, img: 'https://images.unsplash.com/photo-1689061732262-2f8a68fa99cb?w=200&h=200&fit=crop', active: true },
+      { id: 5, nameVi: 'Bó Hoa Trắng Tinh Khôi', nameKo: '순백 웨딩 꽃다발', category: 'Bó hoa', price: 720000, stock: 6, sold: 27, img: 'https://images.unsplash.com/photo-1652346072098-cfc2e94d30e7?w=200&h=200&fit=crop', badge: 'new', active: true },
+      { id: 6, nameVi: 'Hộp Quà Hoa Doanh Nghiệp', nameKo: '기업용 꽃 선물 세트', category: 'Hộp hoa', price: 1200000, originalPrice: 1500000, stock: 10, sold: 15, img: 'https://images.unsplash.com/photo-1667010723263-8ad9a8f5f6c6?w=200&h=200&fit=crop', badge: 'sale', active: true },
+      { id: 7, nameVi: 'Bó Hoa Hướng Dương', nameKo: '해바라기 꽃다발', category: 'Bó hoa', price: 450000, stock: 20, sold: 36, img: 'https://images.unsplash.com/photo-1644248422980-8e0eb75a1557?w=200&h=200&fit=crop', active: true },
+      { id: 8, nameVi: 'Kệ Hoa Mừng Sinh Nhật', nameKo: '생일 화환', category: 'Kệ hoa', price: 950000, stock: 4, sold: 11, img: 'https://images.unsplash.com/photo-1652346107876-58d7354ce9b8?w=200&h=200&fit=crop', badge: 'popular', active: false },
+    ]
+
+    let CUSTOMERS = [
+      { id: 1, name: 'Kim Jiyeon', phone: '0901 234 111', email: 'jiyeon.kim@gmail.com', city: 'Hà Nội', orders: 7, totalSpent: 5250000, lastOrder: '17/08/2026', lang: 'ko' },
+      { id: 2, name: 'Park Sanghoon', phone: '0902 345 222', email: 'sanghoon@naver.com', city: 'Hà Nội', orders: 4, totalSpent: 6800000, lastOrder: '17/08/2026', lang: 'ko' },
+      { id: 3, name: 'Choi Minji', phone: '0903 456 333', email: 'minji.choi@kakao.com', city: 'TP.HCM', orders: 12, totalSpent: 9100000, lastOrder: '17/08/2026', lang: 'ko' },
+      { id: 4, name: 'Lee Donghyun', phone: '0904 567 444', email: 'lee.donghyun@samsung.com', city: 'TP.HCM', orders: 3, totalSpent: 5400000, lastOrder: '16/08/2026', lang: 'ko' },
+      { id: 5, name: 'Jung Yoonji', phone: '0905 678 555', email: 'yoonji.jung@gmail.com', city: 'Hà Nội', orders: 2, totalSpent: 1470000, lastOrder: '16/08/2026', lang: 'ko' },
+      { id: 6, name: 'Trần Lan Anh', phone: '0912 111 222', email: 'lananh@gmail.com', city: 'Hà Nội', orders: 5, totalSpent: 3200000, lastOrder: '15/08/2026', lang: 'vi' },
+      { id: 7, name: 'Kwon Jisoo', phone: '0906 789 666', email: 'jisoo.kwon@daum.net', city: 'TP.HCM', orders: 9, totalSpent: 7650000, lastOrder: '17/08/2026', lang: 'ko' },
+    ]
+
+    // Orders page state
+    let orderStatusFilter = 'all'
+    let orderSearch = ''
+    let selectedOrder = null
+
+    // Products page state
+    let productEditId = null
+    let showAddProductForm = false
+
+    // Customer search state
+    let customerSearch = ''
+
+    // Helper
+    const fmt = (n) => new Intl.NumberFormat('vi-VN').format(n)
+
+    function renderStatusChip(status) {
+      const s = STATUS_CONFIG[status] || STATUS_CONFIG.new
+      return `<span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${s.cls}"><span class="w-1.5 h-1.5 rounded-full ${s.dot}"></span>${s.label}</span>`
+    }
+
+    // ─── SIDEBAR COLLAPSE TOGGLE ─────────────────────────────────────────────
+    function toggleSidebarCollapse() {
+      isSidebarCollapsed = !isSidebarCollapsed
+      const sidebar = document.getElementById('sidebar')
+      const texts = document.querySelectorAll('.nav-text')
+      const brandText = document.getElementById('sidebar-brand-text')
+      const icon = document.getElementById('collapse-icon')
+
+      if (isSidebarCollapsed) {
+        sidebar.className = 'flex flex-col bg-[#2C1A2E] text-white transition-all duration-300 w-16 min-h-screen flex-shrink-0'
+        texts.forEach(t => t.classList.add('hidden'))
+        brandText.classList.add('hidden')
+        icon.textContent = '→'
+      } else {
+        sidebar.className = 'flex flex-col bg-[#2C1A2E] text-white transition-all duration-300 w-56 min-h-screen flex-shrink-0'
+        texts.forEach(t => t.classList.remove('hidden'))
+        brandText.classList.remove('hidden')
+        icon.textContent = '←'
+      }
+    }
+
+    // ─── NAV SWITCHER ────────────────────────────────────────────────────────
+    function setAdminPage(pg) {
+      currentPage = pg
+      const pages = ['dashboard', 'orders', 'products', 'customers', 'analytics', 'settings']
+      pages.forEach(p => {
+        const btn = document.getElementById(`nav-btn-${p}`)
+        if (p === pg) {
+          btn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors bg-[#8B4A5C] text-white'
+        } else {
+          btn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white'
+        }
+      })
+
+      renderAdminPage()
+    }
+
+    function renderAdminPage() {
+      const main = document.getElementById('admin-main-view')
+      if (currentPage === 'dashboard') renderDashboard(main)
+      else if (currentPage === 'orders') renderOrders(main)
+      else if (currentPage === 'products') renderProducts(main)
+      else if (currentPage === 'customers') renderCustomers(main)
+      else if (currentPage === 'analytics') renderAnalytics(main)
+      else if (currentPage === 'settings') renderSettings(main)
+    }
+
+    // ─── VIEW 1: DASHBOARD ───────────────────────────────────────────────────
+    function renderDashboard(container) {
+      const todayOrders = ORDERS.filter(o => o.date === '17/08/2026')
+      const todayRevenue = todayOrders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0)
+      const newOrders = ORDERS.filter(o => o.status === 'new')
+      const deliveringOrders = ORDERS.filter(o => o.status === 'delivering')
+      const unpaidOrders = ORDERS.filter(o => o.paymentStatus === 'unpaid' && o.status !== 'cancelled')
+      const lowStock = PRODUCTS.filter(p => p.stock <= 5)
+
+      const actionQueue = [
+        { label: 'Đơn mới chờ xác nhận', count: newOrders.length, icon: '🆕', cls: 'bg-purple-50 text-purple-700 border-purple-100' },
+        { label: 'Đơn đang trên đường giao', count: deliveringOrders.length, icon: '🚚', cls: 'bg-orange-50 text-orange-700 border-orange-100' },
+        { label: 'Đơn chưa thanh toán', count: unpaidOrders.length, icon: '💳', cls: 'bg-red-50 text-red-600 border-red-100' },
+        { label: 'Sản phẩm sắp hết hàng', count: lowStock.length, icon: '⚠️', cls: 'bg-amber-50 text-amber-700 border-amber-100' },
+      ]
+
+      const SLOTS = ['08:00–12:00', '12:00–17:00', '17:00–21:00']
+      const schedule = SLOTS.map(slot => ({
+        slot,
+        orders: todayOrders.filter(o => o.deliveryTime === slot && o.status !== 'cancelled'),
+      }))
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 class="font-serif text-3xl text-[#2C1A2E]">Tổng quan</h1>
+              <p class="text-sm text-[#7A6870] mt-1">Trung tâm điều hành · Thứ Hai, 17 tháng 8 năm 2026</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-100">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Cập nhật thời gian thực
+            </span>
+          </div>
+
+          <!-- Snapshot -->
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="rounded-2xl p-5 bg-[#8B4A5C] text-white">
+              <div class="flex justify-between items-start">
+                <div class="text-xs font-medium opacity-70 mb-1">Doanh thu hôm nay</div>
+                <span class="text-xl">💰</span>
+              </div>
+              <div class="font-serif text-3xl leading-none mt-1">${fmt(todayRevenue)}đ</div>
+              <div class="text-xs opacity-60 mt-1">${todayOrders.length} đơn trong ngày</div>
+            </div>
+
+            <div class="rounded-2xl p-5 bg-[#8B4A5C] text-white">
+              <div class="flex justify-between items-start">
+                <div class="text-xs font-medium opacity-70 mb-1">Đơn cần giao hôm nay</div>
+                <span class="text-xl">📋</span>
+              </div>
+              <div class="font-serif text-3xl leading-none mt-1">${todayOrders.filter(o => o.status !== 'cancelled' && o.status !== 'done').length}</div>
+              <div class="text-xs opacity-60 mt-1">Đang trong quy trình</div>
+            </div>
+
+            <div class="rounded-2xl p-5 bg-[#8B4A5C] text-white">
+              <div class="flex justify-between items-start">
+                <div class="text-xs font-medium opacity-70 mb-1">Đã hoàn thành hôm nay</div>
+                <span class="text-xl">✅</span>
+              </div>
+              <div class="font-serif text-3xl leading-none mt-1">${todayOrders.filter(o => o.status === 'done').length}</div>
+              <div class="text-xs opacity-60 mt-1">Giao thành công</div>
+            </div>
+          </div>
+
+          <!-- Action Queue -->
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-medium text-[#2C1A2E]">Việc cần xử lý ngay</h3>
+              <button onclick="setAdminPage('orders')" class="text-xs text-[#8B4A5C] hover:underline">Tới đơn hàng →</button>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              ${actionQueue.map(a => `
+                <button onclick="setAdminPage('${a.label.includes('hàng') ? 'products' : 'orders'}')" class="text-left rounded-xl p-4 border transition-transform hover:-translate-y-0.5 ${a.cls}">
+                  <div class="flex items-center justify-between">
+                    <span class="text-lg">${a.icon}</span>
+                    <span class="font-serif text-2xl leading-none">${a.count}</span>
+                  </div>
+                  <div class="text-xs font-medium mt-2 leading-snug">${a.label}</div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Delivery Schedule -->
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-medium text-[#2C1A2E]">🕐 Lịch giao hàng hôm nay</h3>
+              <span class="text-xs text-[#7A6870]">${todayOrders.filter(o => o.status !== 'cancelled').length} đơn theo khung giờ</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              ${schedule.map(s => `
+                <div class="rounded-xl border border-[#EDE5DF] bg-[#FAF7F2] p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-[#2C1A2E]">${s.slot}</span>
+                    <span class="text-xs font-semibold text-[#8B4A5C] bg-white rounded-full px-2 py-0.5 border border-[#EDE5DF]">${s.orders.length} đơn</span>
+                  </div>
+                  <div class="space-y-2">
+                    ${s.orders.length === 0 ? '<p class="text-xs text-[#7A6870] py-2 text-center">Chưa có đơn</p>' : s.orders.map(o => `
+                      <button onclick="setAdminPage('orders')" class="w-full flex items-center justify-between gap-2 bg-white rounded-lg px-2.5 py-2 border border-[#EDE5DF] hover:border-[#8B4A5C] transition-colors text-left">
+                        <div class="min-w-0">
+                          <div class="text-xs font-medium text-[#2C1A2E] truncate">${o.customer}</div>
+                          <div class="text-[10px] text-[#7A6870]">${o.city}</div>
+                        </div>
+                        ${renderStatusChip(o.status)}
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Grid: Recent Orders & Low Stock -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-medium text-[#2C1A2E]">Đơn hàng gần đây</h3>
+                <button onclick="setAdminPage('orders')" class="text-xs text-[#8B4A5C] hover:underline">Xem tất cả →</button>
+              </div>
+              <div class="space-y-3">
+                ${ORDERS.slice(0, 5).map(o => `
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-[#F3ECE7] flex items-center justify-center text-sm font-serif text-[#8B4A5C]">
+                        ${o.customer[0]}
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-[#2C1A2E]">${o.customer}</div>
+                        <div class="text-xs text-[#7A6870]">${o.id} · ${o.time}</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-medium text-[#2C1A2E]">${fmt(o.total)}đ</div>
+                      ${renderStatusChip(o.status)}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-medium text-[#2C1A2E]">⚠️ Cảnh báo tồn kho</h3>
+                <button onclick="setAdminPage('products')" class="text-xs text-[#8B4A5C] hover:underline">Quản lý →</button>
+              </div>
+              <div class="space-y-3">
+                ${lowStock.map(p => `
+                  <div class="flex items-center gap-3">
+                    <img src="${p.img}" alt="${p.nameVi}" class="w-10 h-10 rounded-lg object-cover bg-[#F3ECE7]" />
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-[#2C1A2E] line-clamp-1">${p.nameVi}</div>
+                      <div class="text-xs text-[#7A6870]">${p.category}</div>
+                    </div>
+                    <span class="text-xs font-semibold px-2 py-1 rounded-full ${p.stock === 0 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-700'}">
+                      ${p.stock === 0 ? 'Hết hàng' : `Còn ${p.stock}`}
+                    </span>
+                  </div>
+                `).join('')}
+                ${lowStock.length === 0 ? '<p class="text-sm text-[#7A6870] py-4 text-center">Tất cả sản phẩm còn hàng ✓</p>' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    // ─── VIEW 2: ORDERS PAGE ──────────────────────────────────────────────────
+    function renderOrders(container) {
+      const filtered = ORDERS.filter(o => {
+        const matchStatus = orderStatusFilter === 'all' || o.status === orderStatusFilter
+        const q = orderSearch.toLowerCase()
+        return matchStatus && (!q || o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q))
+      })
+
+      const statusButtons = ['all', 'new', 'confirmed', 'preparing', 'delivering', 'done', 'cancelled']
+
+      let detailPanelHtml = ''
+      if (selectedOrder) {
+        const o = selectedOrder
+        detailPanelHtml = `
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 space-y-4 h-fit sticky top-6">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-mono text-sm text-[#8B4A5C] font-bold">${o.id}</div>
+                <div class="font-medium text-[#2C1A2E] mt-0.5">${o.customer}</div>
+              </div>
+              <button onclick="selectAdminOrder(null)" class="text-[#7A6870] hover:text-[#2C1A2E] text-xl">✕</button>
+            </div>
+            ${renderStatusChip(o.status)}
+            <div class="space-y-2 text-sm">
+              <div class="flex gap-2"><span class="text-[#7A6870] flex-shrink-0 w-28">📞 SĐT</span><span class="text-[#2C1A2E] font-medium">${o.phone}</span></div>
+              <div class="flex gap-2"><span class="text-[#7A6870] flex-shrink-0 w-28">📍 Địa chỉ</span><span class="text-[#2C1A2E] font-medium">${o.address}, ${o.city}</span></div>
+              <div class="flex gap-2"><span class="text-[#7A6870] flex-shrink-0 w-28">📅 Ngày</span><span class="text-[#2C1A2E] font-medium">${o.date} · ${o.time}</span></div>
+              <div class="flex gap-2"><span class="text-[#7A6870] flex-shrink-0 w-28">🕐 Khung giờ</span><span class="text-[#2C1A2E] font-medium">${o.deliveryTime}</span></div>
+              <div class="flex gap-2"><span class="text-[#7A6870] flex-shrink-0 w-28">💳 Thanh toán</span><span class="text-[#2C1A2E] font-medium">${o.payment}</span></div>
+            </div>
+            <div class="border-t border-[#EDE5DF] pt-3">
+              <div class="text-xs text-[#7A6870] mb-2">Sản phẩm</div>
+              ${o.products.map(p => `
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="text-[#2C1A2E]">${p.name} ×${p.qty}</span>
+                  <span class="font-medium">${fmt(p.price * p.qty)}đ</span>
+                </div>
+              `).join('')}
+              <div class="flex justify-between font-semibold text-[#2C1A2E] border-t border-[#EDE5DF] pt-2 mt-2">
+                <span>Tổng cộng</span>
+                <span class="text-[#8B4A5C] font-serif">${fmt(o.total)}đ</span>
+              </div>
+            </div>
+            ${o.message ? `<div class="bg-[#FAF7F2] rounded-xl p-3 text-sm italic text-[#7A6870] border border-[#EDE5DF]">💌 "${o.message}"</div>` : ''}
+            ${o.note ? `<div class="text-xs text-orange-700 bg-orange-50 rounded-xl p-3">⚠️ ${o.note}</div>` : ''}
+            <div class="grid grid-cols-2 gap-2 pt-2">
+              ${STATUS_FLOW[o.status] ? `<button onclick="advanceOrderStatus('${o.id}')" class="py-2 bg-[#8B4A5C] text-white text-sm rounded-xl hover:bg-[#7A3D4F]">Tiến trình →</button>` : ''}
+              ${o.status !== 'cancelled' && o.status !== 'done' ? `<button onclick="cancelAdminOrder('${o.id}')" class="py-2 border border-red-200 text-red-600 text-sm rounded-xl hover:bg-red-50">Huỷ đơn</button>` : ''}
+            </div>
+          </div>
+        `
+      } else {
+        detailPanelHtml = `
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 flex items-center justify-center text-[#7A6870] text-sm h-40">
+            Chọn đơn hàng để xem chi tiết
+          </div>
+        `
+      }
+
+      container.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex flex-col sm:flex-row justify-between gap-4">
+            <div>
+              <h1 class="font-serif text-3xl text-[#2C1A2E]">Đơn hàng</h1>
+              <p class="text-sm text-[#7A6870] mt-0.5">${ORDERS.length} đơn hàng · 17/08/2026</p>
+            </div>
+            <div class="relative max-w-xs">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6870]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" placeholder="Tìm tên, mã đơn..." value="${orderSearch}" oninput="setOrderSearch(this.value)" class="pl-9 pr-4 py-2.5 w-full bg-white border border-[#DDD4CC] rounded-xl text-sm focus:outline-none focus:border-[#8B4A5C]" />
+            </div>
+          </div>
+
+          <!-- Status Filters Chips -->
+          <div class="flex gap-2 flex-wrap">
+            ${statusButtons.map(s => `
+              <button onclick="setOrderStatusFilter('${s}')" class="px-3 py-1.5 text-xs rounded-full border transition-colors font-medium ${orderStatusFilter === s ? 'bg-[#2C1A2E] text-white border-[#2C1A2E]' : 'border-[#DDD4CC] text-[#7A6870] hover:border-[#8B4A5C]'}">
+                ${s === 'all' ? `Tất cả (${ORDERS.length})` : STATUS_CONFIG[s].label}
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+            <!-- Table Column -->
+            <div class="xl:col-span-2 bg-white rounded-2xl border border-[#EDE5DF] overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead class="bg-[#F3ECE7]">
+                    <tr>
+                      <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Mã đơn</th>
+                      <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Khách hàng</th>
+                      <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Sản phẩm</th>
+                      <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Tổng tiền</th>
+                      <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Thanh toán</th>
+                      <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Trạng thái</th>
+                      <th class="px-4 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#EDE5DF]">
+                    ${filtered.map(o => `
+                      <tr onclick="selectAdminOrder('${o.id}')" class="hover:bg-[#FAF7F2] cursor-pointer transition-colors ${selectedOrder?.id === o.id ? 'bg-[#FAF7F2]' : ''}">
+                        <td class="px-4 py-3 font-mono text-xs text-[#8B4A5C] font-semibold">${o.id}</td>
+                        <td class="px-4 py-3">
+                          <div class="font-medium whitespace-nowrap">${o.customer}</div>
+                          <div class="text-xs text-[#7A6870]">${o.phone}</div>
+                        </td>
+                        <td class="px-4 py-3 text-[#7A6870] text-xs max-w-[160px] truncate">${o.products.map(p => p.name).join(', ')}</td>
+                        <td class="px-4 py-3 font-medium whitespace-nowrap">${fmt(o.total)}đ</td>
+                        <td class="px-4 py-3">
+                          <span class="text-xs px-2 py-0.5 rounded-full font-medium ${o.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}">
+                            ${o.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT'}
+                          </span>
+                        </td>
+                        <td class="px-4 py-3">${renderStatusChip(o.status)}</td>
+                        <td class="px-4 py-3">
+                          ${STATUS_FLOW[o.status] ? `<button onclick="event.stopPropagation(); advanceOrderStatus('${o.id}')" class="text-xs px-2.5 py-1 bg-[#8B4A5C] text-white rounded-lg hover:bg-[#7A3D4F]">Tiếp →</button>` : ''}
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Detail Column -->
+            <div>${detailPanelHtml}</div>
+          </div>
+        </div>
+      `
+    }
+
+    function setOrderStatusFilter(s) {
+      orderStatusFilter = s
+      renderAdminPage()
+    }
+
+    function setOrderSearch(q) {
+      orderSearch = q
+      renderAdminPage()
+    }
+
+    function selectAdminOrder(id) {
+      selectedOrder = id ? ORDERS.find(o => o.id === id) || null : null
+      renderAdminPage()
+    }
+
+    function advanceOrderStatus(id) {
+      const o = ORDERS.find(x => x.id === id)
+      if (o && STATUS_FLOW[o.status]) {
+        o.status = STATUS_FLOW[o.status]
+        renderAdminPage()
+      }
+    }
+
+    function cancelAdminOrder(id) {
+      const o = ORDERS.find(x => x.id === id)
+      if (o) {
+        o.status = 'cancelled'
+        renderAdminPage()
+      }
+    }
+
+    // ─── VIEW 3: PRODUCTS PAGE ────────────────────────────────────────────────
+    function renderProducts(container) {
+      container.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="font-serif text-3xl text-[#2C1A2E]">Sản phẩm</h1>
+              <p class="text-sm text-[#7A6870] mt-0.5">${PRODUCTS.length} sản phẩm · ${PRODUCTS.filter(p => p.active).length} đang bán</p>
+            </div>
+            <button onclick="toggleAddProductForm()" class="flex items-center gap-2 px-4 py-2.5 bg-[#8B4A5C] text-white text-sm font-medium rounded-xl hover:bg-[#7A3D4F] transition-colors">
+              <span>+</span> Thêm sản phẩm
+            </button>
+          </div>
+
+          ${showAddProductForm ? `
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <h3 class="font-medium text-[#2C1A2E] mb-4">Thêm sản phẩm mới</h3>
+              <form onsubmit="submitNewProduct(event)" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="text-xs font-medium text-[#7A6870] uppercase tracking-wide">Tên (tiếng Việt)</label>
+                  <input id="add-p-namevi" required type="text" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#8B4A5C]" />
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-[#7A6870] uppercase tracking-wide">Tên (tiếng Hàn)</label>
+                  <input id="add-p-nameko" type="text" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#8B4A5C]" />
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-[#7A6870] uppercase tracking-wide">Giá (VND)</label>
+                  <input id="add-p-price" required type="number" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#8B4A5C]" />
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-[#7A6870] uppercase tracking-wide">Tồn kho</label>
+                  <input id="add-p-stock" required type="number" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#8B4A5C]" />
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-[#7A6870] uppercase tracking-wide">URL ảnh</label>
+                  <input id="add-p-img" type="text" placeholder="https://..." class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#8B4A5C]" />
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-[#7A6870] uppercase tracking-wide">Danh mục</label>
+                  <select id="add-p-cat" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#8B4A5C] bg-white">
+                    <option>Bó hoa</option>
+                    <option>Hộp hoa</option>
+                    <option>Giỏ hoa</option>
+                    <option>Kệ hoa</option>
+                  </select>
+                </div>
+                <div class="col-span-2 md:col-span-3 flex gap-3 mt-2">
+                  <button type="submit" class="px-5 py-2 bg-[#8B4A5C] text-white text-sm rounded-xl hover:bg-[#7A3D4F]">Thêm</button>
+                  <button type="button" onclick="toggleAddProductForm()" class="px-5 py-2 border border-[#DDD4CC] text-sm rounded-xl hover:bg-[#F3ECE7]">Huỷ</button>
+                </div>
+              </form>
+            </div>
+          ` : ''}
+
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-[#F3ECE7]">
+                  <tr>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Sản phẩm</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Danh mục</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Giá bán</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Tồn kho</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Đã bán</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Trạng thái</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#EDE5DF]">
+                  ${PRODUCTS.map(p => `
+                    <tr class="hover:bg-[#FAF7F2] transition-colors">
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                          <img src="${p.img}" alt="${p.nameVi}" class="w-10 h-10 rounded-lg object-cover bg-[#F3ECE7] flex-shrink-0" />
+                          <div>
+                            ${productEditId === p.id ? `
+                              <input value="${p.nameVi}" onblur="saveProductEdit(${p.id}, 'nameVi', this.value)" class="text-sm border-b border-[#8B4A5C] focus:outline-none w-full" />
+                            ` : `
+                              <div class="font-medium text-[#2C1A2E] line-clamp-1">${p.nameVi}</div>
+                            `}
+                            <div class="text-xs text-[#7A6870] line-clamp-1">${p.nameKo}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-[#7A6870] whitespace-nowrap">${p.category}</td>
+                      <td class="px-4 py-3">
+                        ${productEditId === p.id ? `
+                          <input type="number" value="${p.price}" onblur="saveProductEdit(${p.id}, 'price', Number(this.value))" class="w-24 text-sm border-b border-[#8B4A5C] focus:outline-none" />
+                        ` : `
+                          <span class="font-medium text-[#8B4A5C] font-serif">${fmt(p.price)}đ</span>
+                        `}
+                      </td>
+                      <td class="px-4 py-3">
+                        ${productEditId === p.id ? `
+                          <input type="number" value="${p.stock}" onblur="saveProductEdit(${p.id}, 'stock', Number(this.value))" class="w-16 text-sm border-b border-[#8B4A5C] focus:outline-none" />
+                        ` : `
+                          <span class="font-medium ${p.stock <= 5 ? 'text-red-600' : 'text-[#2C1A2E]'}">${p.stock}</span>
+                        `}
+                      </td>
+                      <td class="px-4 py-3 text-[#7A6870]">${p.sold}</td>
+                      <td class="px-4 py-3">
+                        <button onclick="toggleProductActive(${p.id})" class="relative w-10 h-5 rounded-full transition-colors ${p.active ? 'bg-[#7A9E7E]' : 'bg-[#DDD4CC]'}">
+                          <span class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${p.active ? 'left-5' : 'left-0.5'}"></span>
+                        </button>
+                      </td>
+                      <td class="px-4 py-3">
+                        <button onclick="toggleProductEdit(${p.id})" class="text-xs px-2.5 py-1 border border-[#DDD4CC] rounded-lg hover:border-[#8B4A5C]">
+                          ${productEditId === p.id ? 'Xong' : 'Sửa'}
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    function toggleAddProductForm() {
+      showAddProductForm = !showAddProductForm
+      renderAdminPage()
+    }
+
+    function submitNewProduct(e) {
+      e.preventDefault()
+      const nameVi = document.getElementById('add-p-namevi').value
+      const nameKo = document.getElementById('add-p-nameko').value
+      const price = Number(document.getElementById('add-p-price').value)
+      const stock = Number(document.getElementById('add-p-stock').value)
+      const img = document.getElementById('add-p-img').value || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop'
+      const category = document.getElementById('add-p-cat').value
+
+      const id = Math.max(...PRODUCTS.map(p => p.id)) + 1
+      PRODUCTS.push({ id, nameVi, nameKo, category, price, stock, sold: 0, img, active: true })
+
+      showAddProductForm = false
+      renderAdminPage()
+    }
+
+    function toggleProductActive(id) {
+      const p = PRODUCTS.find(x => x.id === id)
+      if (p) { p.active = !p.active; renderAdminPage(); }
+    }
+
+    function toggleProductEdit(id) {
+      productEditId = productEditId === id ? null : id
+      renderAdminPage()
+    }
+
+    function saveProductEdit(id, field, value) {
+      const p = PRODUCTS.find(x => x.id === id)
+      if (p) { p[field] = value; }
+    }
+
+    // ─── VIEW 4: CUSTOMERS PAGE ───────────────────────────────────────────────
+    function renderCustomers(container) {
+      const filtered = CUSTOMERS.filter(c => {
+        const q = customerSearch.toLowerCase()
+        return !q || c.name.toLowerCase().includes(q) || c.phone.includes(q)
+      })
+
+      container.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex flex-col sm:flex-row justify-between gap-4">
+            <div>
+              <h1 class="font-serif text-3xl text-[#2C1A2E]">Khách hàng</h1>
+              <p class="text-sm text-[#7A6870] mt-0.5">${CUSTOMERS.length} khách · ${CUSTOMERS.filter(c => c.lang === 'ko').length} người Hàn</p>
+            </div>
+            <div class="relative max-w-xs">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6870]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" placeholder="Tìm khách hàng..." value="${customerSearch}" oninput="setCustomerSearch(this.value)" class="pl-9 pr-4 py-2.5 w-full bg-white border border-[#DDD4CC] rounded-xl text-sm focus:outline-none focus:border-[#8B4A5C]" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="rounded-2xl p-4 bg-[#2C1A2E] text-white">
+              <div class="text-xs opacity-70 mb-1">Tổng khách hàng</div>
+              <div class="font-serif text-2xl">${CUSTOMERS.length}</div>
+            </div>
+            <div class="rounded-2xl p-4 bg-blue-50 text-blue-700">
+              <div class="text-xs opacity-70 mb-1">Khách Hàn Quốc 🇰🇷</div>
+              <div class="font-serif text-2xl">${CUSTOMERS.filter(c => c.lang === 'ko').length}</div>
+            </div>
+            <div class="rounded-2xl p-4 bg-[#F3ECE7] text-[#2C1A2E]">
+              <div class="text-xs opacity-70 mb-1">Tổng doanh thu</div>
+              <div class="font-serif text-2xl">${fmt(CUSTOMERS.reduce((s, c) => s + c.totalSpent, 0))}đ</div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-[#F3ECE7]">
+                  <tr>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Khách hàng</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Liên hệ</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Thành phố</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Ngôn ngữ</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Số đơn</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Chi tiêu</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide">Đơn cuối</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#EDE5DF]">
+                  ${filtered.map(c => `
+                    <tr class="hover:bg-[#FAF7F2] transition-colors">
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                          <div class="w-9 h-9 rounded-full bg-[#F3ECE7] flex items-center justify-center text-sm font-serif text-[#8B4A5C] flex-shrink-0">
+                            ${c.name[0]}
+                          </div>
+                          <span class="font-medium text-[#2C1A2E] whitespace-nowrap">${c.name}</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="text-[#2C1A2E]">${c.phone}</div>
+                        <div class="text-xs text-[#7A6870]">${c.email}</div>
+                      </td>
+                      <td class="px-4 py-3 text-[#7A6870] whitespace-nowrap">${c.city}</td>
+                      <td class="px-4 py-3">
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium ${c.lang === 'ko' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}">
+                          ${c.lang === 'ko' ? '🇰🇷 한국어' : '🇻🇳 Tiếng Việt'}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-[#2C1A2E]">${c.orders}</td>
+                      <td class="px-4 py-3 font-serif text-[#8B4A5C] whitespace-nowrap">${fmt(c.totalSpent)}đ</td>
+                      <td class="px-4 py-3 text-[#7A6870] whitespace-nowrap">${c.lastOrder}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    function setCustomerSearch(q) {
+      customerSearch = q
+      renderAdminPage()
+    }
+
+    // ─── VIEW 5: ANALYTICS PAGE ───────────────────────────────────────────────
+    function renderAnalytics(container) {
+      const monthData = [
+        { month: 'T3', rev: 42000000, orders: 51 },
+        { month: 'T4', rev: 58000000, orders: 69 },
+        { month: 'T5', rev: 51000000, orders: 62 },
+        { month: 'T6', rev: 73000000, orders: 88 },
+        { month: 'T7', rev: 69000000, orders: 81 },
+        { month: 'T8', rev: 39150000, orders: 46 },
+      ]
+      const maxRev = Math.max(...monthData.map(d => d.rev))
+      const topProducts = [...PRODUCTS].sort((a, b) => b.sold - a.sold).slice(0, 5)
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div>
+            <h1 class="font-serif text-3xl text-[#2C1A2E]">Thống kê</h1>
+            <p class="text-sm text-[#7A6870] mt-0.5">Phân tích xu hướng & hiệu quả kinh doanh 6 tháng gần nhất</p>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <div class="text-xs text-[#7A6870] mb-1">Tổng doanh thu</div>
+              <div class="font-serif text-2xl text-[#2C1A2E]">${fmt(332150000)}đ</div>
+              <div class="text-xs mt-1 font-medium text-green-600">+18% so với kỳ trước</div>
+            </div>
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <div class="text-xs text-[#7A6870] mb-1">Tổng đơn hàng</div>
+              <div class="font-serif text-2xl text-[#2C1A2E]">397</div>
+              <div class="text-xs mt-1 font-medium text-green-600">+22% so với kỳ trước</div>
+            </div>
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <div class="text-xs text-[#7A6870] mb-1">Khách hàng mới</div>
+              <div class="font-serif text-2xl text-[#2C1A2E]">84</div>
+              <div class="text-xs mt-1 font-medium text-green-600">+9% so với kỳ trước</div>
+            </div>
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <div class="text-xs text-[#7A6870] mb-1">Tỷ lệ huỷ</div>
+              <div class="font-serif text-2xl text-[#2C1A2E]">3.2%</div>
+              <div class="text-xs mt-1 font-medium text-green-600">-0.8% so với kỳ trước</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Monthly Chart -->
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <h3 class="font-medium text-[#2C1A2E] mb-4">Doanh thu theo tháng (2026)</h3>
+              <div class="flex items-end gap-3 h-44">
+                ${monthData.map(d => `
+                  <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="text-xs text-[#7A6870]">${(d.rev / 1000000).toFixed(0)}M</div>
+                    <div class="w-full bg-gradient-to-t from-[#8B4A5C] to-[#C4818A] rounded-t-lg relative group" style="height: ${(d.rev / maxRev) * 100}%; min-height: 8px">
+                      <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#2C1A2E] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap">
+                        ${d.orders} đơn
+                      </div>
+                    </div>
+                    <div class="text-xs text-[#7A6870] font-medium">${d.month}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Top Products -->
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <h3 class="font-medium text-[#2C1A2E] mb-4">Sản phẩm bán chạy nhất</h3>
+              <div class="space-y-3">
+                ${topProducts.map((p, i) => `
+                  <div class="flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${i === 0 ? 'bg-amber-400 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-400 text-white' : 'bg-[#EDE5DF] text-[#7A6870]'}">${i + 1}</span>
+                    <img src="${p.img}" alt="${p.nameVi}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-medium text-[#2C1A2E] truncate">${p.nameVi}</div>
+                      <div class="w-full bg-[#EDE5DF] h-1.5 rounded-full mt-1">
+                        <div class="bg-[#8B4A5C] h-1.5 rounded-full" style="width: ${(p.sold / topProducts[0].sold) * 100}%"></div>
+                      </div>
+                    </div>
+                    <span class="text-sm font-semibold text-[#2C1A2E] flex-shrink-0">${p.sold}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <h3 class="font-medium text-[#2C1A2E] mb-4">Phân bố theo thành phố</h3>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between text-sm mb-1.5"><span class="font-medium text-[#2C1A2E]">Hà Nội</span><span class="text-[#7A6870]">38 đơn · 58%</span></div>
+                  <div class="h-3 bg-[#EDE5DF] rounded-full overflow-hidden"><div class="h-full bg-[#8B4A5C] rounded-full" style="width: 58%"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-sm mb-1.5"><span class="font-medium text-[#2C1A2E]">TP.HCM</span><span class="text-[#7A6870]">28 đơn · 42%</span></div>
+                  <div class="h-3 bg-[#EDE5DF] rounded-full overflow-hidden"><div class="h-full bg-[#8B4A5C] rounded-full" style="width: 42%"></div></div>
+                </div>
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-3 pt-4 border-t border-[#EDE5DF]">
+                <div class="text-center bg-[#FAF7F2] rounded-xl p-3">
+                  <div class="text-xs text-[#7A6870]">🇰🇷 Khách Hàn</div>
+                  <div class="font-serif text-2xl text-[#2C1A2E] mt-1">86%</div>
+                </div>
+                <div class="text-center bg-[#FAF7F2] rounded-xl p-3">
+                  <div class="text-xs text-[#7A6870]">🇻🇳 Khách Việt</div>
+                  <div class="font-serif text-2xl text-[#2C1A2E] mt-1">14%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+              <h3 class="font-medium text-[#2C1A2E] mb-4">Phương thức thanh toán</h3>
+              <div class="space-y-3">
+                ${[
+                  { name: 'Chuyển khoản', pct: 52, color: 'bg-[#8B4A5C]' },
+                  { name: 'Momo', pct: 24, color: 'bg-pink-400' },
+                  { name: 'ZaloPay', pct: 14, color: 'bg-blue-400' },
+                  { name: 'Tiền mặt', pct: 10, color: 'bg-[#7A9E7E]' },
+                ].map(m => `
+                  <div>
+                    <div class="flex justify-between text-sm mb-1"><span class="text-[#2C1A2E]">${m.name}</span><span class="font-medium">${m.pct}%</span></div>
+                    <div class="h-2 bg-[#EDE5DF] rounded-full overflow-hidden"><div class="h-full ${m.color} rounded-full" style="width: ${m.pct}%"></div></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    // ─── VIEW 6: SETTINGS PAGE ────────────────────────────────────────────────
+    function renderSettings(container) {
+      container.innerHTML = `
+        <div class="space-y-6 max-w-3xl">
+          <h1 class="font-serif text-3xl text-[#2C1A2E]">Cài đặt</h1>
+
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+            <h3 class="font-medium text-[#2C1A2E] mb-4">Thông tin cửa hàng</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Tên cửa hàng</label><input type="text" value="Hoa Tươi Việt Nam" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Số điện thoại</label><input type="tel" value="0901 234 567" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">KakaoTalk ID</label><input type="text" value="hoatuoivn" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Zalo</label><input type="text" value="0901234567" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div class="sm:col-span-2"><label class="text-xs font-medium text-[#7A6870] uppercase">Địa chỉ Hà Nội</label><input type="text" value="24 Xuân Thủy, Cầu Giấy, Hà Nội" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div class="sm:col-span-2"><label class="text-xs font-medium text-[#7A6870] uppercase">Địa chỉ TP.HCM</label><input type="text" value="88 Lê Lợi, Q.1, TP.HCM" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+            <h3 class="font-medium text-[#2C1A2E] mb-4">Giờ hoạt động & Vận chuyển</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Mở cửa</label><input type="time" value="07:00" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Đóng cửa</label><input type="time" value="21:00" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Phí ship HN</label><input type="number" value="30000" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div><label class="text-xs font-medium text-[#7A6870] uppercase">Phí ship HCM</label><input type="number" value="40000" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+              <div class="sm:col-span-2"><label class="text-xs font-medium text-[#7A6870] uppercase">Miễn phí ship từ</label><input type="number" value="800000" class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm bg-white" /></div>
+            </div>
+          </div>
+
+          <button onclick="alert('Đã lưu thay đổi!')" class="px-6 py-3 bg-[#8B4A5C] text-white font-medium rounded-xl hover:bg-[#7A3D4F] transition-colors">
+            Lưu thay đổi
+          </button>
+        </div>
+      `
+    }
+
+    // ─── INIT ─────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      setAdminPage('dashboard')
+    })
+  </script>
+</body>
+</html>

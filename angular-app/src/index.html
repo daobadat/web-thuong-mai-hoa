@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Hoa Tươi — Giao Hàng Trong Ngày · Hoa Đà Lạt (플라워 베트남)</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- RemixIcon -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            wine: {
+              DEFAULT: '#7A2838',
+              dark: '#5C2129',
+              light: '#F4EDE3',
+            },
+            cream: '#FBF6EF',
+            sand: '#F4EDE3',
+            muted: '#E4D9C8',
+            pinkAccent: '#D9A6A0',
+            greenAccent: '#5F6F52',
+          },
+          fontFamily: {
+            sans: ['Be Vietnam Pro', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            ko: ['Noto Serif KR', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans antialiased bg-[#FBF6EF] text-[#2B2A26] min-h-screen flex flex-col selection:bg-rose-200 selection:text-rose-900">
+  <app-root></app-root>
+</body>
+</html>

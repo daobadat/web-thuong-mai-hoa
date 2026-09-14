@@ -1,0 +1,35 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-rose-50/50">
+  <div class="bg-white max-w-md w-full p-8 rounded-3xl border border-rose-100 shadow-xl space-y-6">
+    <div class="text-center space-y-2">
+      <a routerLink="/" class="inline-flex items-center gap-2 mb-2">
+        <div class="w-10 h-10 rounded-2xl bg-[#7A2838] flex items-center justify-center text-white text-xl">🌸</div>
+        <span class="font-serif text-xl font-bold text-[#7A2838]">HOA TƯƠI</span>
+      </a>
+      <h1 class="text-2xl font-serif font-bold text-gray-900">Tạo Tài Khoản Mới</h1>
+      <p class="text-xs text-gray-500">Đăng ký để tích điểm thành viên và ưu đãi sinh nhật</p>
+    </div>
+
+    <form (submit)="onRegister($event)" class="space-y-4 text-sm">
+      <div>
+        <label class="block font-semibold text-gray-700 mb-1">Họ & Tên *</label>
+        <input type="text" [(ngModel)]="name" name="name" required placeholder="Nguyễn Văn A" class="w-full px-4 py-2.5 bg-rose-50/40 border border-rose-200 rounded-xl focus:outline-none">
+      </div>
+      <div>
+        <label class="block font-semibold text-gray-700 mb-1">Email *</label>
+        <input type="email" [(ngModel)]="email" name="email" required placeholder="nguyenvana@gmail.com" class="w-full px-4 py-2.5 bg-rose-50/40 border border-rose-200 rounded-xl focus:outline-none">
+      </div>
+      <div>
+        <label class="block font-semibold text-gray-700 mb-1">Mật Khẩu *</label>
+        <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-rose-50/40 border border-rose-200 rounded-xl focus:outline-none">
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-[#7A2838] hover:bg-[#5C2129] text-white font-bold rounded-xl shadow transition-all">
+        Đăng Ký Tài Khoản
+      </button>
+    </form>
+
+    <div class="text-center text-xs text-gray-500 pt-2 border-t border-rose-100">
+      Đã có tài khoản? <a routerLink="/auth/login" class="text-[#7A2838] font-bold hover:underline">Đăng nhập ngay</a>
+    </div>
+  </div>
+</div>

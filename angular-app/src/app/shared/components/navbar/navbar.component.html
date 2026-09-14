@@ -1,0 +1,102 @@
+<header class="sticky top-0 bg-[#7A2838] text-white shadow-md z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20 gap-4">
+
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center gap-3 shrink-0 group">
+        <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform duration-300 shadow">
+          🌸
+        </div>
+        <div>
+          <span class="font-serif text-2xl font-bold tracking-wide text-white block leading-tight">
+            {{ langService.t.brand }}
+          </span>
+          <span class="block text-[10px] text-rose-200 uppercase tracking-widest font-medium">
+            {{ langService.t.tagline }}
+          </span>
+        </div>
+      </a>
+
+      <!-- Search Bar -->
+      <div class="flex-1 max-w-lg hidden md:block">
+        <div class="relative flex items-center bg-white rounded-xl shadow-inner overflow-hidden border border-rose-100">
+          <input
+            #searchInput
+            type="text"
+            (keyup)="productService.searchQuery.set(searchInput.value)"
+            [placeholder]="langService.t.search"
+            class="w-full px-4 py-2.5 text-sm text-gray-800 focus:outline-none placeholder-gray-400"
+          />
+          <button
+            (click)="productService.searchQuery.set(searchInput.value)"
+            class="bg-[#5C2129] hover:bg-[#4A1A21] text-white px-5 py-2.5 transition-colors flex items-center justify-center"
+          >
+            <i class="ri-search-line text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 shrink-0">
+
+        <!-- Language Switcher -->
+        <div class="flex items-center bg-black/20 rounded-xl p-1 border border-white/10 text-xs font-bold">
+          <button
+            (click)="langService.setLang('vi')"
+            [class.bg-white]="langService.currentLang() === 'vi'"
+            [class.text-[#7A2838]]="langService.currentLang() === 'vi'"
+            [class.text-white]="langService.currentLang() !== 'vi'"
+            class="px-2.5 py-1 rounded-lg transition-all"
+          >
+            VN
+          </button>
+          <button
+            (click)="langService.setLang('ko')"
+            [class.bg-white]="langService.currentLang() === 'ko'"
+            [class.text-[#7A2838]]="langService.currentLang() === 'ko'"
+            [class.text-white]="langService.currentLang() !== 'ko'"
+            class="px-2.5 py-1 rounded-lg transition-all"
+          >
+            KR
+          </button>
+        </div>
+
+        <!-- Custom Bouquet Shortcut -->
+        <a
+          routerLink="/shop/custom"
+          class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-rose-500/30 hover:bg-rose-500/50 rounded-xl text-xs font-bold border border-rose-300/30 transition-all"
+        >
+          <i class="ri-palette-line text-sm"></i>
+          <span>Tự Bó Hoa</span>
+        </a>
+
+        <!-- Cart Icon Trigger -->
+        <button
+          (click)="cartService.toggleCart()"
+          class="relative p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all flex items-center justify-center"
+        >
+          <i class="ri-shopping-bag-3-line text-xl"></i>
+          <span
+            *ngIf="cartService.totalItems() > 0"
+            class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#7A2838] shadow"
+          >
+            {{ cartService.totalItems() }}
+          </span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Sub-Bar -->
+  <nav class="bg-[#5C2129] border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-6 overflow-x-auto py-2.5 text-xs font-medium text-rose-100">
+      <a routerLink="/" routerLinkActive="text-white font-bold underline" [routerLinkActiveOptions]="{exact: true}" class="hover:text-white transition-colors whitespace-nowrap">Trang chủ</a>
+      <a routerLink="/shop" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Sản phẩm</a>
+      <a routerLink="/shop/custom" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Thiết kế bó hoa</a>
+      <a routerLink="/cart/order-tracking" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Theo dõi đơn hàng</a>
+      <a routerLink="/cart" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Giỏ hàng</a>
+      <a routerLink="/cart/checkout" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Thanh toán</a>
+    </div>
+  </nav>
+</header>

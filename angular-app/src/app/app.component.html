@@ -1,0 +1,75 @@
+<app-announcement-bar></app-announcement-bar>
+<app-navbar></app-navbar>
+
+<div class="flex-1">
+  <router-outlet></router-outlet>
+</div>
+
+<app-footer></app-footer>
+
+<!-- Cart Side Drawer Overlay -->
+<div
+  *ngIf="cartService.isCartOpen()"
+  (click)="cartService.toggleCart()"
+  class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity"
+></div>
+
+<!-- Cart Side Drawer Panel -->
+<div
+  [class.translate-x-full]="!cartService.isCartOpen()"
+  class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform transition-transform duration-300 flex flex-col"
+>
+  <div class="p-4 bg-rose-50 border-b border-rose-100 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i class="ri-shopping-bag-3-fill text-[#7A2838] text-xl"></i>
+      <h3 class="font-bold text-gray-800 font-serif">Giỏ Hàng Của Bạn</h3>
+    </div>
+    <button (click)="cartService.toggleCart()" class="p-2 text-gray-400 hover:text-rose-600">
+      <i class="ri-close-line text-2xl"></i>
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-4 space-y-3">
+    <div *ngIf="cartService.cartItems().length === 0" class="text-center py-12 text-gray-400">
+      <i class="ri-shopping-bag-line text-5xl mb-2 block"></i>
+      <p>Giỏ hàng của bạn đang trống</p>
+    </div>
+
+    <div *ngFor="let item of cartService.cartItems()" class="flex items-center gap-3 p-3 bg-rose-50/50 rounded-xl border border-rose-100">
+      <img [src]="item.product.img" class="w-16 h-16 object-cover rounded-lg" [alt]="item.product.nameVi">
+      <div class="flex-1 min-w-0">
+        <h4 class="text-sm font-semibold text-gray-800 truncate">
+          {{ langService.currentLang() === 'ko' ? item.product.nameKo : item.product.nameVi }}
+        </h4>
+        <p class="text-xs text-[#7A2838] font-bold mt-1">
+          {{ item.product.price | currencyVnd:(langService.currentLang() === 'ko') }}
+        </p>
+        <div class="flex items-center gap-2 mt-2">
+          <button (click)="cartService.updateQty(item.product.id, -1)" class="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-xs text-gray-600 hover:bg-rose-100">-</button>
+          <span class="text-xs font-semibold px-2">{{ item.qty }}</span>
+          <button (click)="cartService.updateQty(item.product.id, 1)" class="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-xs text-gray-600 hover:bg-rose-100">+</button>
+        </div>
+      </div>
+      <button (click)="cartService.removeItem(item.product.id)" class="text-gray-400 hover:text-rose-600 p-1">
+        <i class="ri-delete-bin-line text-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="p-4 bg-white border-t border-rose-100 space-y-3">
+    <div class="flex items-center justify-between text-sm">
+      <span class="text-gray-600">Tạm tính:</span>
+      <span class="font-bold text-[#7A2838] text-lg">
+        {{ cartService.subtotal() | currencyVnd:(langService.currentLang() === 'ko') }}
+      </span>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <a routerLink="/cart" (click)="cartService.toggleCart()" class="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-[#7A2838] font-bold rounded-xl text-center text-sm transition-colors">
+        Xem Giỏ Hàng
+      </a>
+      <a routerLink="/checkout" (click)="cartService.toggleCart()" class="py-2.5 px-4 bg-[#7A2838] hover:bg-[#5C2129] text-white font-bold rounded-xl text-center text-sm shadow transition-colors">
+        Thanh Toán
+      </a>
+    </div>
+  </div>
+</div>
