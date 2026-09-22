@@ -1,0 +1,176 @@
+openapi: 3.0.0
+info:
+  title: Flower E-Commerce API Documentation
+  version: 1.0.0
+  description: Tài liệu chi tiết các API hệ thống bán hoa tươi (NodeJS-Core + Sequelize + MySQL)
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Đăng ký tài khoản người dùng
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, full_name]
+              properties:
+                email:
+                  type: string
+                  example: customer@gmail.com
+                password:
+                  type: string
+                  example: "123456"
+                full_name:
+                  type: string
+                  example: Nguyễn Văn Khách
+                phone:
+                  type: string
+                  example: "0903333333"
+      responses:
+        200:
+          description: Đăng ký thành công
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Đăng nhập tài khoản
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: customer@gmail.com
+                password:
+                  type: string
+                  example: "123456"
+      responses:
+        200:
+          description: Đăng nhập thành công, trả về JWT Token
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Lấy thông tin tài khoản đang đăng nhập
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Thông tin profile người dùng
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Lấy danh sách danh mục hoa tươi
+      parameters:
+        - name: lang
+          in: query
+          description: Ngôn ngữ (vi, en, ko)
+          schema:
+            type: string
+            default: vi
+      responses:
+        200:
+          description: Danh sách danh mục
+
+  /products:
+    get:
+      tags: [Products]
+      summary: Danh sách sản phẩm (Lọc, Tìm kiếm, Phân trang)
+      parameters:
+        - name: category_id
+          in: query
+          schema:
+            type: string
+        - name: occasion_id
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        200:
+          description: Danh sách sản phẩm phân trang
+
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Lấy giỏ hàng
+      parameters:
+        - name: x-session-id
+          in: header
+          description: Session ID của khách vãng lai
+          schema:
+            type: string
+      responses:
+        200:
+          description: Chi tiết giỏ hàng
+
+  /coupons/apply:
+    post:
+      tags: [Coupons]
+      summary: Áp dụng mã giảm giá
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, subtotal]
+              properties:
+                code:
+                  type: string
+                  example: WELCOME10
+                subtotal:
+                  type: number
+                  example: 500000
+      responses:
+        200:
+          description: Áp dụng mã thành công, trả về số tiền giảm
+
+  /orders/checkout:
+    post:
+      tags: [Orders]
+      summary: Đặt hàng (Checkout)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [recipient_name, recipient_phone, delivery_address]
+              properties:
+                recipient_name:
+                  type: string
+                recipient_phone:
+                  type: string
+                delivery_address:
+                  type: string
+                coupon_code:
+                  type: string
+                card_message:
+                  type: string
+      responses:
+        200:
+          description: Đặt hàng thành công

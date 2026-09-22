@@ -67,6 +67,26 @@ class WithLocale
         return this;
     }
 
+    isNumeric() {
+        this.withLocale = this.withLocale.isNumeric().withMessage(stringUtils.capitalize(this.field)+" must be number").bail()
+        return this;
+    }
+
+    isInt(options) {
+        this.withLocale = this.withLocale.isInt(options).withMessage(stringUtils.capitalize(this.field)+" must be an integer").bail()
+        return this;
+    }
+
+    isDecimal(options) {
+        this.withLocale = this.withLocale.isDecimal(options).withMessage(stringUtils.capitalize(this.field)+" must be a decimal").bail()
+        return this;
+    }
+
+    isBoolean() {
+        this.withLocale = this.withLocale.isBoolean().withMessage(stringUtils.capitalize(this.field)+" must be a boolean").bail()
+        return this;
+    }
+
     isIn(check, against) {
         this.withLocale = this.withLocale.isIn(check, against).withMessage(this.field + " must be in allowable range").bail();
         return this
@@ -75,7 +95,7 @@ class WithLocale
     get() {
         return this.withLocale
     }
-
 }
+
 
 module.exports = WithLocale

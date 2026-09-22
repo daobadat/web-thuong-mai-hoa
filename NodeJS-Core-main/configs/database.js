@@ -15,10 +15,10 @@ module.exports = {
     },
   },
   test: {
-    username: process.env.DATABASE_TEST_USERNAME,
-    password: process.env.DATABASE_TEST_PASSWORD,
-    database: process.env.DATABASE_TEST_NAME,
-    host: process.env.DATABASE_TEST_HOST || "127.0.0.1",
+    username: process.env.DATABASE_TEST_USERNAME || process.env.DATABASE_USERNAME || "root",
+    password: process.env.DATABASE_TEST_PASSWORD || process.env.DATABASE_PASSWORD || ".Dat123456789",
+    database: process.env.DATABASE_TEST_NAME || process.env.DATABASE_NAME || "flower_shop",
+    host: process.env.DATABASE_TEST_HOST || process.env.DATABASE_HOST || "127.0.0.1",
     port: process.env.DATABASE_TEST_PORT || 3306,
     dialect: "mysql",
     dialectOptions: {

@@ -1,7 +1,12 @@
-const middlewares = (middlewareArray) => {
-    return [
-        ...middlewareArray
-    ]
-}
+const authenticated = require("./authenticated");
+const role = require("./role");
 
-module.exports = middlewares
+const middlewares = (middlewareArray) => {
+  return [
+    ...middlewareArray
+  ];
+};
+
+module.exports = middlewares;
+module.exports.authenticated = authenticated;
+module.exports.role = role;

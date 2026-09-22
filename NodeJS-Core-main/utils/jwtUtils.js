@@ -30,4 +30,12 @@ module.exports = {
 
     return refresh_token;
   },
+  verify: (token) => {
+    try {
+      return jwt.verify(token, config.jwt.secret);
+    } catch (err) {
+      return null;
+    }
+  }
 };
+
