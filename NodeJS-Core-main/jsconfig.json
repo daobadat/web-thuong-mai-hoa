@@ -2,14 +2,16 @@
    "compilerOptions": {
       "baseUrl": ".",
       "moduleResolution": "Node",
+      "typeRoots": ["./node_modules/@types"],
+      "skipLibCheck": true,
       "paths": {
          "modules/*": ["./modules/*"],
          "middlewares/*": ["./middlewares/*"],
-         "config/*": ["./config/*"],
+         "config/*": ["./configs/*"],
          "database/*": ["./database/*"],
          "kernels/*": ["./kernels/*"],
          "models/*": ["./models/*"],
-         "utils/*": ["utils/*"]
+         "utils/*": ["./utils/*"]
       }
    },
    "include": ["./**/*"]

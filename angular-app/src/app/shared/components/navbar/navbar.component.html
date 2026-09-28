@@ -1,102 +1,165 @@
-<header class="sticky top-0 bg-[#7A2838] text-white shadow-md z-40">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-20 gap-4">
+<div class="bg-[#FBF6EF]">
+  <!-- ── Main header row (wine bg) ── -->
+  <div class="bg-[#6E2A34]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-[60px] flex items-center gap-3">
+
+      <!-- Mobile hamburger -->
+      <button (click)="menuOpen = !menuOpen" class="md:hidden p-1.5 rounded text-white/80 hover:text-white" aria-label="Menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="menuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'" />
+        </svg>
+      </button>
 
       <!-- Logo -->
-      <a routerLink="/" class="flex items-center gap-3 shrink-0 group">
-        <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform duration-300 shadow">
-          🌸
-        </div>
-        <div>
-          <span class="font-serif text-2xl font-bold tracking-wide text-white block leading-tight">
+      <a routerLink="/" class="flex items-center gap-2 shrink-0 group">
+        <span class="text-xl leading-none">🌸</span>
+        <div class="flex flex-col leading-none">
+          <span class="text-lg font-bold text-white leading-tight font-serif" [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
             {{ langService.t.brand }}
           </span>
-          <span class="block text-[10px] text-rose-200 uppercase tracking-widest font-medium">
+          <span class="text-[9px] text-white/60 tracking-widest uppercase hidden sm:block">
             {{ langService.t.tagline }}
           </span>
         </div>
       </a>
 
-      <!-- Search Bar -->
-      <div class="flex-1 max-w-lg hidden md:block">
-        <div class="relative flex items-center bg-white rounded-xl shadow-inner overflow-hidden border border-rose-100">
-          <input
-            #searchInput
-            type="text"
-            (keyup)="productService.searchQuery.set(searchInput.value)"
-            [placeholder]="langService.t.search"
-            class="w-full px-4 py-2.5 text-sm text-gray-800 focus:outline-none placeholder-gray-400"
-          />
-          <button
-            (click)="productService.searchQuery.set(searchInput.value)"
-            class="bg-[#5C2129] hover:bg-[#4A1A21] text-white px-5 py-2.5 transition-colors flex items-center justify-center"
-          >
-            <i class="ri-search-line text-lg"></i>
-          </button>
-        </div>
+      <!-- Search bar -->
+      <div class="flex-1 flex items-center bg-white rounded-lg overflow-hidden h-9 max-w-xl">
+        <input
+          #searchInput
+          type="text"
+          [placeholder]="langService.currentLang() === 'vi' ? 'Tìm kiếm hoa, dịp tặng...' : '꽃, 행사 검색...'"
+          (keyup.enter)="onSearch(searchInput.value)"
+          class="flex-1 px-4 py-0 text-sm text-[#2B2A26] focus:outline-none placeholder:text-[#B0A699] bg-transparent"
+        />
+        <button (click)="onSearch(searchInput.value)" class="px-3 h-full bg-[#5C2129] hover:bg-[#4A1A22] flex items-center justify-center transition-colors">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Actions -->
-      <div class="flex items-center gap-3 shrink-0">
+      <!-- Right icons -->
+      <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
+        <!-- Lang toggle -->
+        <button (click)="toggleLang()"
+          class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/15 transition-colors text-xs font-semibold">
+          <span>{{ langService.currentLang() === 'vi' ? '🇻🇳' : '🇰🇷' }}</span>
+          <span class="hidden md:inline">{{ langService.currentLang() === 'vi' ? 'VI' : 'KR' }}</span>
+          <span class="text-white/40 text-[10px]">⇆</span>
+          <span>{{ langService.currentLang() === 'vi' ? 'KR' : 'VI' }}</span>
+        </button>
 
-        <!-- Language Switcher -->
-        <div class="flex items-center bg-black/20 rounded-xl p-1 border border-white/10 text-xs font-bold">
-          <button
-            (click)="langService.setLang('vi')"
-            [class.bg-white]="langService.currentLang() === 'vi'"
-            [class.text-[#7A2838]]="langService.currentLang() === 'vi'"
-            [class.text-white]="langService.currentLang() !== 'vi'"
-            class="px-2.5 py-1 rounded-lg transition-all"
-          >
-            VN
-          </button>
-          <button
-            (click)="langService.setLang('ko')"
-            [class.bg-white]="langService.currentLang() === 'ko'"
-            [class.text-[#7A2838]]="langService.currentLang() === 'ko'"
-            [class.text-white]="langService.currentLang() !== 'ko'"
-            class="px-2.5 py-1 rounded-lg transition-all"
-          >
-            KR
-          </button>
-        </div>
-
-        <!-- Custom Bouquet Shortcut -->
-        <a
-          routerLink="/shop/custom"
-          class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-rose-500/30 hover:bg-rose-500/50 rounded-xl text-xs font-bold border border-rose-300/30 transition-all"
-        >
-          <i class="ri-palette-line text-sm"></i>
-          <span>Tự Bó Hoa</span>
-        </a>
-
-        <!-- Cart Icon Trigger -->
-        <button
-          (click)="cartService.toggleCart()"
-          class="relative p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all flex items-center justify-center"
-        >
-          <i class="ri-shopping-bag-3-line text-xl"></i>
-          <span
-            *ngIf="cartService.totalItems() > 0"
-            class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#7A2838] shadow"
-          >
+        <!-- Cart -->
+        <button (click)="cartService.toggleCart()" class="relative p-2 text-white/80 hover:text-white hover:bg-white/15 rounded-lg transition-colors" [attr.aria-label]="langService.currentLang() === 'vi' ? 'Giỏ hàng' : '장바구니'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <span *ngIf="cartService.totalItems() > 0" class="absolute -top-0.5 -right-0.5 bg-[#D9A6A0] text-[#2B2A26] text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold tabular-nums">
             {{ cartService.totalItems() }}
           </span>
         </button>
 
+        <!-- User / Login button -->
+        <div class="relative">
+          <button (click)="userOpen = !userOpen"
+            class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-[#6E2A34] text-sm font-bold rounded-lg hover:bg-[#F4EDE3] transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            {{ langService.currentLang() === 'vi' ? 'Đăng nhập' : '로그인' }}
+          </button>
+          <!-- Mobile user icon -->
+          <button (click)="userOpen = !userOpen" class="sm:hidden p-2 text-white/80 hover:text-white hover:bg-white/15 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </button>
+
+          <!-- User dropdown menu -->
+          <div *ngIf="userOpen" class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-[#E4D9C8] overflow-hidden z-50">
+            <div class="px-4 py-3 bg-[#FBF6EF] border-b border-[#E4D9C8]">
+              <p class="text-xs text-[#7A7163]">{{ langService.currentLang() === 'vi' ? 'Chào mừng bạn!' : '환영합니다!' }}</p>
+              <p class="text-sm font-bold text-[#2B2A26] mt-0.5 font-serif">
+                {{ langService.currentLang() === 'vi' ? 'Hoa Tươi' : '플라워 베트남' }}
+              </p>
+            </div>
+            <div class="py-1">
+              <a routerLink="/auth/login" (click)="userOpen = false" class="w-full text-left px-4 py-2.5 text-sm text-[#2B2A26] hover:bg-[#F4EDE3] hover:text-[#6E2A34] transition-colors flex items-center gap-2.5 font-medium cursor-pointer">
+                <svg class="w-4 h-4 text-[#5F6F52]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                {{ langService.currentLang() === 'vi' ? 'Đăng nhập' : '로그인' }}
+              </a>
+              <a routerLink="/auth/register" (click)="userOpen = false" class="w-full text-left px-4 py-2.5 text-sm text-[#2B2A26] hover:bg-[#F4EDE3] hover:text-[#6E2A34] transition-colors flex items-center gap-2.5 font-medium cursor-pointer">
+                <svg class="w-4 h-4 text-[#5F6F52]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                {{ langService.currentLang() === 'vi' ? 'Đăng ký' : '회원가입' }}
+              </a>
+            </div>
+            <div class="px-4 py-2.5 border-t border-[#E4D9C8]">
+              <p class="text-[10px] text-[#7A7163] leading-relaxed">
+                {{ langService.currentLang() === 'vi' ? 'Đăng ký để nhận ưu đãi & theo dõi đơn hàng.' : '회원가입 시 특별 혜택 제공.' }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Navigation Sub-Bar -->
-  <nav class="bg-[#5C2129] border-t border-white/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-6 overflow-x-auto py-2.5 text-xs font-medium text-rose-100">
-      <a routerLink="/" routerLinkActive="text-white font-bold underline" [routerLinkActiveOptions]="{exact: true}" class="hover:text-white transition-colors whitespace-nowrap">Trang chủ</a>
-      <a routerLink="/shop" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Sản phẩm</a>
-      <a routerLink="/shop/custom" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Thiết kế bó hoa</a>
-      <a routerLink="/cart/order-tracking" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Theo dõi đơn hàng</a>
-      <a routerLink="/cart" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Giỏ hàng</a>
-      <a routerLink="/cart/checkout" routerLinkActive="text-white font-bold underline" class="hover:text-white transition-colors whitespace-nowrap">Thanh toán</a>
+  <!-- ── Sub nav (occasion links) ── -->
+  <div class="hidden md:block bg-[#FBF6EF] border-b border-[#E4D9C8]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center overflow-x-auto">
+      <button *ngFor="let k of occasionKeys" (click)="filterOccasion(k)"
+        class="flex items-center gap-1.5 px-3.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide hover:text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors whitespace-nowrap relative group"
+        [class.text-[#6E2A34]]="productService.selectedOccasion() === k"
+        [class.text-[#2B2A26]]="productService.selectedOccasion() !== k">
+        <span class="text-sm">{{ getOccasionIcon(k) }}</span>
+        {{ getOccasionName(k) }}
+        <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6E2A34] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-200 rounded-full"></span>
+      </button>
+      <button (click)="filterOccasion('sale')"
+        class="flex items-center gap-1.5 px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-wide text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors whitespace-nowrap relative group">
+        🔥 {{ langService.t.navSale }}
+        <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6E2A34] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-200 rounded-full"></span>
+      </button>
+      <div class="flex-1"></div>
+      <a href="/admin"
+        class="flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-[#7A7163] hover:text-[#2B2A26] hover:bg-[#F0E8DC] rounded transition-colors whitespace-nowrap">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        {{ langService.currentLang() === 'vi' ? 'Quản lý' : '관리자' }}
+      </a>
     </div>
-  </nav>
-</header>
+  </div>
+
+  <!-- ── Mobile menu ── -->
+  <div *ngIf="menuOpen" class="md:hidden border-t border-[#E4D9C8] bg-[#FBF6EF] px-4 py-3 flex flex-col gap-1">
+    <button (click)="toggleLang()" class="text-sm text-left py-2 px-3 rounded-lg text-[#2B2A26] hover:bg-[#F4EDE3] font-medium">
+      {{ langService.currentLang() === 'vi' ? '🇻🇳 Tiếng Việt  →  🇰🇷 한국어' : '🇰🇷 한국어  →  🇻🇳 Tiếng Việt' }}
+    </button>
+    <div class="h-px bg-[#E4D9C8] my-1"></div>
+    <button *ngFor="let k of occasionKeys" (click)="filterOccasion(k); menuOpen = false"
+      class="text-sm text-left py-2 px-3 rounded-lg text-[#2B2A26] hover:bg-[#F4EDE3] transition-colors flex items-center gap-2.5">
+      <span>{{ getOccasionIcon(k) }}</span> {{ getOccasionName(k) }}
+    </button>
+    <button (click)="filterOccasion('sale'); menuOpen = false"
+      class="text-sm text-left py-2 px-3 rounded-lg text-[#6E2A34] font-bold hover:bg-[#F4EDE3] flex items-center gap-2">
+      🔥 {{ langService.t.navSale }}
+    </button>
+    <div class="h-px bg-[#E4D9C8] my-1"></div>
+    <a routerLink="/auth/login" (click)="menuOpen = false" class="text-sm text-left py-2 px-3 rounded-lg text-[#2B2A26] hover:bg-[#F4EDE3] font-medium block">
+      {{ langService.currentLang() === 'vi' ? '🔑 Đăng nhập' : '🔑 로그인' }}
+    </a>
+    <a routerLink="/auth/register" (click)="menuOpen = false" class="text-sm text-left py-2 px-3 rounded-lg text-[#2B2A26] hover:bg-[#F4EDE3] font-medium block">
+      {{ langService.currentLang() === 'vi' ? '✨ Đăng ký' : '✨ 회원가입' }}
+    </a>
+  </div>
+
+  <!-- Overlay to close dropdown -->
+  <div *ngIf="userOpen" class="fixed inset-0 z-40" (click)="userOpen = false"></div>
+</div>
