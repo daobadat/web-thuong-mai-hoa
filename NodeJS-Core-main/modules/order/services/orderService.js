@@ -1,4 +1,4 @@
-const { Order, OrderItem, OrderStatusHistory, Cart, CartItem, Product, ProductTranslation, ProductVariant, Coupon, sequelize } = require("models");
+const { Order, OrderItem, OrderStatusHistory, Cart, CartItem, Product, ProductTranslation, ProductVariant, Coupon, User, DeliveryTimeSlot, sequelize } = require("models");
 const notificationService = require("modules/notification/services/notificationService");
 
 const orderService = {
@@ -183,6 +183,45 @@ const orderService = {
     };
   },
 
+  listAllOrders: async (query = {}) => {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const whereClause = {};
+    if (query.status) whereClause.status = query.status;
+
+    const { count, rows } = await Order.findAndCountAll({
+      where: whereClause,
+      include: [
+        { model: OrderItem, as: "items" },
+        { model: User, as: "user", attributes: ["id", "full_name", "email", "phone"] },
+      ],
+      order: [["created_at", "DESC"]],
+      limit,
+      offset,
+    });
+
+    return {
+      total: count,
+      page,
+      limit,
+      totalPages: Math.ceil(count / limit),
+      orders: rows,
+    };
+  },
+
+  getDeliverySlots: async (query = {}) => {
+    const whereClause = {};
+    if (query.date) {
+      whereClause.delivery_date = query.date;
+    }
+    return await DeliveryTimeSlot.findAll({
+      where: whereClause,
+      order: [["delivery_date", "ASC"], ["slot_start", "ASC"]],
+    });
+  },
+
   getOrderById: async (orderId, userId = null) => {
     const whereClause = { id: orderId };
     if (userId) whereClause.user_id = userId;
@@ -247,4 +286,5 @@ const orderService = {
 };
 
 module.exports = orderService;
+
 

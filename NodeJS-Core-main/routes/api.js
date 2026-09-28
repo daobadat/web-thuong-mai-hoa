@@ -1,7 +1,7 @@
 require("express-router-group");
 const express = require("express");
 const middlewares = require("kernels/middlewares");
-const { authenticated, role } = require("kernels/middlewares");
+const { authenticated, optionalAuthenticated, role } = require("kernels/middlewares");
 const { validate } = require("kernels/validations");
 
 // ===== Controllers =====
@@ -128,9 +128,9 @@ router.group("/coupons", (router) => {
 });
 
 // =====================================================================
-// CART ROUTES - /cart
+// CART ROUTES - /cart (tự động phân biệt Guest qua x-session-id & User qua JWT)
 // =====================================================================
-router.group("/cart", (router) => {
+router.group("/cart", middlewares([optionalAuthenticated]), (router) => {
   router.get("/", cartController.index);
   router.post("/add", validate([cartValidation.addItem]), cartController.addItem);
   router.put("/items/:itemId", validate([cartValidation.updateItem]), cartController.updateItem);
@@ -141,9 +141,13 @@ router.group("/cart", (router) => {
 // ORDER ROUTES - /orders (yêu cầu đăng nhập)
 // =====================================================================
 router.group("/orders", middlewares([authenticated]), (router) => {
+  // Admin / Staff: Danh sách toàn bộ đơn hàng
+  router.get("/", middlewares([role("admin", "staff")]), orderController.index);
+  // User: Đặt hàng, Xem danh sách đơn hàng cá nhân, Xem chi tiết đơn
   router.post("/checkout", validate([orderValidation.checkout]), orderController.checkout);
   router.get("/my-orders", orderController.userOrders);
   router.get("/:id", orderController.show);
+  // Admin / Staff: Cập nhật trạng thái đơn hàng
   router.put(
     "/:id/status",
     middlewares([role("admin", "staff")]),
@@ -151,6 +155,11 @@ router.group("/orders", middlewares([authenticated]), (router) => {
     orderController.updateStatus
   );
 });
+
+// =====================================================================
+// DELIVERY SLOTS ROUTES - /delivery-slots (dành cho checkout chọn khung giờ)
+// =====================================================================
+router.get("/delivery-slots", orderController.getDeliverySlots);
 
 // =====================================================================
 // WISHLIST ROUTES - /wishlist (yêu cầu đăng nhập)
@@ -172,3 +181,4 @@ router.group("/notifications", middlewares([authenticated]), (router) => {
 });
 
 module.exports = router;
+

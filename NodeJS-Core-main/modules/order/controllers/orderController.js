@@ -13,6 +13,15 @@ const orderController = {
     }
   },
 
+  index: async (req, res) => {
+    try {
+      const orders = await orderService.listAllOrders(req.query);
+      return responseUtils.ok(res, orders);
+    } catch (err) {
+      return responseUtils.error(res, err.message);
+    }
+  },
+
   userOrders: async (req, res) => {
     try {
       const userId = req.user.userId;
@@ -25,7 +34,7 @@ const orderController = {
 
   show: async (req, res) => {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.role === "admin" || req.user.role === "staff" ? null : req.user.userId;
       const order = await orderService.getOrderById(req.params.id, userId);
       if (!order) return responseUtils.notFound(res);
       return responseUtils.ok(res, order);
@@ -49,6 +58,16 @@ const orderController = {
       return responseUtils.error(res, err.message);
     }
   },
+
+  getDeliverySlots: async (req, res) => {
+    try {
+      const slots = await orderService.getDeliverySlots(req.query);
+      return responseUtils.ok(res, slots);
+    } catch (err) {
+      return responseUtils.error(res, err.message);
+    }
+  },
 };
 
 module.exports = orderController;
+
