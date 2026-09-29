@@ -1,0 +1,149 @@
+<div class="space-y-5">
+  <div class="flex flex-col sm:flex-row justify-between gap-4">
+    <div>
+      <h1 class="font-serif text-3xl text-[#2C1A2E]">Đơn hàng</h1>
+      <p class="text-sm text-[#7A6870] mt-0.5">{{ orders.length }} đơn hàng · 17/08/2026</p>
+    </div>
+    <div class="relative max-w-xs">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6870]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+      <input type="text" placeholder="Tìm tên, mã đơn..." [(ngModel)]="search"
+             class="pl-9 pr-4 py-2.5 w-full bg-white border border-[#DDD4CC] rounded-xl text-sm focus:outline-none focus:border-[#8B4A5C]" />
+    </div>
+  </div>
+
+  <div class="flex gap-2 flex-wrap">
+    <button *ngFor="let s of statusKeys" (click)="setStatusFilter(s)"
+            class="px-3 py-1.5 text-xs rounded-full border transition-colors font-medium"
+            [ngClass]="statusFilter === s ? 'bg-[#2C1A2E] text-white border-[#2C1A2E]' : 'border-[#DDD4CC] text-[#7A6870] hover:border-[#8B4A5C]'">
+      {{ s === 'all' ? 'Tất cả (' + orders.length + ')' : statusConfig[s].label }}
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <div class="xl:col-span-2 bg-white rounded-2xl border border-[#EDE5DF] overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-[#F3ECE7]">
+            <tr>
+              <th *ngFor="let h of ['Mã đơn', 'Khách hàng', 'Sản phẩm', 'Tổng tiền', 'Thanh toán', 'Trạng thái', '']"
+                  class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+                {{ h }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#EDE5DF]">
+            <tr *ngFor="let o of filteredOrders"
+                (click)="selectOrder(o)"
+                class="hover:bg-[#FAF7F2] cursor-pointer transition-colors"
+                [ngClass]="selected?.id === o.id ? 'bg-[#FAF7F2]' : ''">
+              <td class="px-4 py-3 font-mono text-xs text-[#8B4A5C] font-semibold">{{ o.id }}</td>
+              <td class="px-4 py-3">
+                <div class="font-medium whitespace-nowrap">{{ o.customer }}</div>
+                <div class="text-xs text-[#7A6870]">{{ o.phone }}</div>
+              </td>
+              <td class="px-4 py-3 text-[#7A6870] text-xs max-w-[160px] truncate">
+                <!-- Using ng-container and *ngFor for joining products conceptually, but easier to use a method or inline -->
+                <ng-container *ngFor="let p of o.products; let last = last">{{ p.name }}{{ !last ? ', ' : '' }}</ng-container>
+              </td>
+              <td class="px-4 py-3 font-medium whitespace-nowrap">{{ fmt(o.total) }}đ</td>
+              <td class="px-4 py-3">
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                      [ngClass]="o.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'">
+                  {{ o.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT' }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full" [ngClass]="statusConfig[o.status].cls">
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="statusConfig[o.status].dot"></span>
+                  {{ statusConfig[o.status].label }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <button *ngIf="STATUS_FLOW[o.status]"
+                        (click)="$event.stopPropagation(); updateStatus(o.id, STATUS_FLOW[o.status])"
+                        class="text-xs px-2.5 py-1 bg-[#8B4A5C] text-white rounded-lg hover:bg-[#7A3D4F] whitespace-nowrap">
+                  Tiếp →
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="selected" class="bg-white rounded-2xl border border-[#EDE5DF] p-5 space-y-4 h-fit sticky top-6">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="font-mono text-sm text-[#8B4A5C] font-bold">{{ selected.id }}</div>
+          <div class="font-medium text-[#2C1A2E] mt-0.5">{{ selected.customer }}</div>
+        </div>
+        <button (click)="closeSelected()" class="text-[#7A6870] hover:text-[#2C1A2E] text-xl">×</button>
+      </div>
+      
+      <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full" [ngClass]="statusConfig[selected.status].cls">
+        <span class="w-1.5 h-1.5 rounded-full" [ngClass]="statusConfig[selected.status].dot"></span>
+        {{ statusConfig[selected.status].label }}
+      </span>
+
+      <div class="space-y-2 text-sm">
+        <div class="flex gap-2">
+          <span class="text-[#7A6870] flex-shrink-0 w-28">📞 SĐT</span>
+          <span class="text-[#2C1A2E] font-medium">{{ selected.phone }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="text-[#7A6870] flex-shrink-0 w-28">📍 Địa chỉ</span>
+          <span class="text-[#2C1A2E] font-medium">{{ selected.address }}, {{ selected.city }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="text-[#7A6870] flex-shrink-0 w-28">📅 Ngày</span>
+          <span class="text-[#2C1A2E] font-medium">{{ selected.date }} · {{ selected.time }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="text-[#7A6870] flex-shrink-0 w-28">🕐 Khung giờ</span>
+          <span class="text-[#2C1A2E] font-medium">{{ selected.deliveryTime }}</span>
+        </div>
+        <div class="flex gap-2">
+          <span class="text-[#7A6870] flex-shrink-0 w-28">💳 Thanh toán</span>
+          <span class="text-[#2C1A2E] font-medium">{{ selected.payment }}</span>
+        </div>
+      </div>
+
+      <div class="border-t border-[#EDE5DF] pt-3">
+        <div class="text-xs text-[#7A6870] mb-2">Sản phẩm</div>
+        <div *ngFor="let p of selected.products" class="flex justify-between text-sm mb-1">
+          <span class="text-[#2C1A2E]">{{ p.name }} ×{{ p.qty }}</span>
+          <span class="font-medium">{{ fmt(p.price * p.qty) }}đ</span>
+        </div>
+        <div class="flex justify-between font-semibold text-[#2C1A2E] border-t border-[#EDE5DF] pt-2 mt-2">
+          <span>Tổng cộng</span>
+          <span class="text-[#8B4A5C] font-serif">{{ fmt(selected.total) }}đ</span>
+        </div>
+      </div>
+
+      <div *ngIf="selected.message" class="bg-[#FAF7F2] rounded-xl p-3 text-sm italic text-[#7A6870] border border-[#EDE5DF]">
+        💌 "{{ selected.message }}"
+      </div>
+
+      <div *ngIf="selected.note" class="text-xs text-orange-700 bg-orange-50 rounded-xl p-3">
+        ⚠️ {{ selected.note }}
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button *ngIf="STATUS_FLOW[selected.status]"
+                (click)="updateStatus(selected.id, STATUS_FLOW[selected.status])"
+                class="py-2 bg-[#8B4A5C] text-white text-sm rounded-xl hover:bg-[#7A3D4F] transition-colors">
+          Tiến trình →
+        </button>
+        <button *ngIf="selected.status !== 'cancelled' && selected.status !== 'done'"
+                (click)="cancelOrder(selected.id)"
+                class="py-2 border border-red-200 text-red-600 text-sm rounded-xl hover:bg-red-50 transition-colors">
+          Huỷ đơn
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="!selected" class="bg-white rounded-2xl border border-[#EDE5DF] p-5 flex items-center justify-center text-[#7A6870] text-sm h-40">
+      Chọn đơn hàng để xem chi tiết
+    </div>
+  </div>
+</div>

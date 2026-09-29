@@ -1,0 +1,70 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-serif text-3xl text-[#2C1A2E]">Thống kê</h1>
+    <p class="text-sm text-[#7A6870] mt-0.5">Phân tích xu hướng & hiệu quả kinh doanh 6 tháng gần nhất</p>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div *ngFor="let s of stats" class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+      <div class="text-xs text-[#7A6870] mb-1">{{ s.label }}</div>
+      <div class="font-serif text-2xl text-[#2C1A2E]">{{ s.value }}</div>
+      <div class="text-xs mt-1 font-medium" [ngClass]="s.up ? 'text-green-600' : 'text-red-500'">
+        {{ s.change }} so với kỳ trước
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Monthly revenue -->
+    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+      <h3 class="font-medium text-[#2C1A2E] mb-4">Doanh thu theo tháng (2026)</h3>
+      <div class="flex items-end gap-3 h-44">
+        <div *ngFor="let d of monthData" class="flex-1 flex flex-col items-center gap-1">
+          <div class="text-xs text-[#7A6870]">{{ (d.rev / 1000000).toFixed(0) }}M</div>
+          <div class="w-full bg-gradient-to-t from-[#8B4A5C] to-[#C07E8E] rounded-t-lg transition-all hover:opacity-80"
+               [style.height]="(d.rev / maxRev * 100) + '%'"></div>
+          <div class="text-xs font-medium text-[#2C1A2E] mt-1">{{ d.month }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top selling products -->
+    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+      <h3 class="font-medium text-[#2C1A2E] mb-4">Sản phẩm bán chạy nhất</h3>
+      <div class="space-y-4">
+        <div *ngFor="let p of topProducts; let i = index" class="flex items-center gap-3">
+          <span class="text-lg font-serif font-bold w-4 text-center"
+                [ngClass]="i === 0 ? 'text-[#D4AF37]' : i === 1 ? 'text-[#C0C0C0]' : i === 2 ? 'text-[#CD7F32]' : 'text-[#7A6870]'">
+            {{ i + 1 }}
+          </span>
+          <img [src]="p.img" [alt]="p.nameVi" class="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-[#2C1A2E] truncate">{{ p.nameVi }}</div>
+            <div class="w-full bg-[#EDE5DF] h-1.5 rounded-full mt-1">
+              <div class="bg-[#8B4A5C] h-1.5 rounded-full" [style.width]="(p.sold / topProducts[0].sold * 100) + '%'"></div>
+            </div>
+          </div>
+          <span class="text-sm font-semibold text-[#2C1A2E] flex-shrink-0">{{ p.sold }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- City breakdown -->
+    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+      <h3 class="font-medium text-[#2C1A2E] mb-4">Phân bố theo thành phố</h3>
+      <div class="space-y-4">
+        <div *ngFor="let c of cityData" class="flex items-center gap-4">
+          <div class="w-16 text-sm font-medium text-[#2C1A2E]">{{ c.name }}</div>
+          <div class="flex-1 h-3 bg-[#EDE5DF] rounded-full overflow-hidden">
+            <div class="h-full bg-[#8B4A5C]" [style.width]="c.pct + '%'"></div>
+          </div>
+          <div class="w-12 text-right">
+            <div class="text-sm font-bold text-[#2C1A2E]">{{ c.pct }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

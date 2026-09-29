@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { LangService } from '../../../core/services/lang.service';
 import { CartService } from '../../../core/services/cart.service';
 import { ProductService } from '../../../core/services/product.service';
+import { AuthApiService } from '../../../core/services/auth-api.service';
 import { OccasionKey } from '../../../core/models';
 import { OCC, OCCASION_KEYS, OCC_ICONS } from '../../../core/data/products';
 
@@ -16,6 +17,7 @@ export class NavbarComponent {
   langService = inject(LangService);
   cartService = inject(CartService);
   productService = inject(ProductService);
+  authApi = inject(AuthApiService);
   router = inject(Router);
 
   menuOpen = false;
@@ -47,4 +49,11 @@ export class NavbarComponent {
     this.productService.searchQuery.set(query);
     this.router.navigate(['/shop']);
   }
+
+  logout() {
+    this.authApi.logout();
+    this.userOpen = false;
+    this.router.navigate(['/']);
+  }
 }
+

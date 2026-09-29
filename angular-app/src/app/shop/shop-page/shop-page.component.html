@@ -1,93 +1,288 @@
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-      <h1 class="text-3xl font-serif font-bold text-gray-900">{{ langService.t.shopTitle }}</h1>
-      <p class="text-xs text-gray-500 mt-1">Khám phá các bộ sưu tập hoa tươi mới cắt cành</p>
-    </div>
-
-    <div class="flex items-center gap-2 overflow-x-auto pb-2">
-      <button
-        (click)="setOccasion('all')"
-        [ngClass]="productService.selectedOccasion() === 'all' ? 'bg-wine text-white' : 'bg-white text-gray-700'"
-        class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-rose-100 transition-all whitespace-nowrap"
-      >
-        {{ langService.t.filterAll }}
-      </button>
-      <button
-        (click)="setOccasion('sale')"
-        [ngClass]="productService.selectedOccasion() === 'sale' ? 'bg-wine text-white' : 'bg-white text-gray-700'"
-        class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-rose-100 transition-all whitespace-nowrap"
-      >
-        🔥 {{ langService.t.navSale }}
-      </button>
-      <button
-        *ngFor="let k of occasions"
-        (click)="setOccasion(k)"
-        [ngClass]="productService.selectedOccasion() === k ? 'bg-wine text-white' : 'bg-white text-gray-700'"
-        class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-rose-100 transition-all whitespace-nowrap"
-      >
-        {{ getOccasionTitle(k) }}
-      </button>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-4 border-b border-rose-100 pb-4 text-xs font-bold">
-    <button
-      (click)="setCategory('all')"
-      [ngClass]="productService.selectedCategory() === 'all' ? 'text-wine border-b-2 border-wine' : 'text-gray-500'"
-      class="pb-2 hover:text-gray-900"
-    >
-      {{ langService.t.filterAll }}
-    </button>
-    <button
-      *ngFor="let cat of ['bouquet', 'box', 'basket', 'stand']"
-      (click)="setCategory(cat)"
-      [ngClass]="productService.selectedCategory() === cat ? 'text-wine border-b-2 border-wine' : 'text-gray-500'"
-      class="pb-2 hover:text-gray-900"
-    >
-      {{ getCategoryName(cat) }}
-    </button>
-  </div>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-    <div
-      *ngFor="let p of productService.filteredProducts()"
-      class="bg-white rounded-2xl overflow-hidden border border-rose-100 shadow-sm hover:shadow-xl transition-all flex flex-col group"
-    >
-      <div class="relative overflow-hidden aspect-[4/5]">
-        <img [src]="p.img" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" [alt]="p.nameVi">
-        <span *ngIf="p.isNew" class="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-          {{ langService.t.badge.new }}
+<div class="bg-[#FEFCFA] min-h-screen">
+  <!-- Filter Drawer Overlay -->
+  <div *ngIf="filterOpen" class="fixed inset-0 z-[90] flex">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" (click)="filterOpen = false"></div>
+    <div class="relative w-72 bg-white h-full shadow-2xl flex flex-col overflow-hidden">
+      <!-- Drawer header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-[#E4D9C8]">
+        <span class="text-xs font-bold tracking-widest text-[#2B2A26] uppercase">
+          {{ langService.currentLang() === 'vi' ? 'Bộ lọc' : '필터' }}
         </span>
-        <span *ngIf="p.isPopular" class="absolute top-3 left-3 bg-wine text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-          {{ langService.t.badge.popular }}
+        <button (click)="filterOpen = false" class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#F5EFE8] transition-colors text-[#7A7163]">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-6 py-5 space-y-7">
+        <!-- Price -->
+        <div>
+          <p class="text-[11px] font-bold tracking-widest text-[#2B2A26] uppercase mb-3">
+            {{ langService.currentLang() === 'vi' ? 'Giá sản phẩm' : '가격' }}
+          </p>
+          <div class="space-y-2.5">
+            <label *ngFor="let r of productService.PRICE_RANGES" class="flex items-center gap-3 cursor-pointer group">
+              <span 
+                class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0"
+                [ngClass]="productService.priceFilters().includes(r.key) ? 'bg-[#6E2A34] border-[#6E2A34]' : 'border-[#C4B8A8] group-hover:border-[#6E2A34]'"
+                (click)="togglePrice(r.key)">
+                <svg *ngIf="productService.priceFilters().includes(r.key)" width="9" height="7" viewBox="0 0 9 7" fill="none">
+                  <path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="text-sm text-[#4A4540] group-hover:text-[#6E2A34] transition-colors" (click)="togglePrice(r.key)">
+                {{ r.label }}
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Occasions -->
+        <div>
+          <p class="text-[11px] font-bold tracking-widest text-[#2B2A26] uppercase mb-3">
+            {{ langService.currentLang() === 'vi' ? 'Dịp' : '행사' }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button (click)="setOccasion('all')"
+              class="px-3 py-1.5 text-xs rounded-full border transition-colors"
+              [ngClass]="productService.selectedOccasion() === 'all' ? 'bg-[#6E2A34] text-white border-[#6E2A34]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#6E2A34]'">
+              {{ langService.t.filterAll }}
+            </button>
+            <button *ngFor="let k of occasions" (click)="setOccasion(k)"
+              class="px-3 py-1.5 text-xs rounded-full border transition-colors"
+              [ngClass]="productService.selectedOccasion() === k ? 'bg-[#6E2A34] text-white border-[#6E2A34]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#6E2A34]'">
+              {{ getOccasionTitle(k) }}
+            </button>
+            <button (click)="setOccasion('sale')"
+              class="px-3 py-1.5 text-xs rounded-full border transition-colors"
+              [ngClass]="productService.selectedOccasion() === 'sale' ? 'bg-[#6E2A34] text-white border-[#6E2A34]' : 'border-[#E4D9C8] text-[#6E2A34] hover:border-[#6E2A34]'">
+              {{ langService.t.navSale }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div>
+          <p class="text-[11px] font-bold tracking-widest text-[#2B2A26] uppercase mb-3">
+            {{ langService.currentLang() === 'vi' ? 'Loại hoa' : '종류' }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button (click)="setCategory('all')"
+              class="px-3 py-1.5 text-xs rounded-full border transition-colors"
+              [ngClass]="productService.selectedCategory() === 'all' ? 'bg-[#2B2A26] text-white border-[#2B2A26]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#2B2A26]'">
+              {{ langService.t.filterAll }}
+            </button>
+            <button *ngFor="let cat of ['bouquet', 'box', 'basket', 'stand']" (click)="setCategory(cat)"
+              class="px-3 py-1.5 text-xs rounded-full border transition-colors"
+              [ngClass]="productService.selectedCategory() === cat ? 'bg-[#2B2A26] text-white border-[#2B2A26]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#2B2A26]'">
+              {{ getCategoryName(cat) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Color -->
+        <div>
+          <p class="text-[11px] font-bold tracking-widest text-[#2B2A26] uppercase mb-3">
+            {{ langService.currentLang() === 'vi' ? 'Màu sắc' : '색상' }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button *ngFor="let c of COLORS" (click)="setColor(c.key)"
+              [title]="langService.currentLang() === 'vi' ? c.label : c.labelKo"
+              class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-full border transition-colors"
+              [ngClass]="productService.colorFilter() === c.key ? 'border-[#6E2A34] bg-[#FBF0F0]' : 'border-[#E4D9C8] hover:border-[#6E2A34]'">
+              <span class="w-3.5 h-3.5 rounded-full flex-shrink-0 border border-white/60 shadow-sm"
+                [style.background]="c.hex"></span>
+              <span class="text-[#4A4540]">{{ langService.currentLang() === 'vi' ? c.label : c.labelKo }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div *ngIf="hasActiveFilters" class="px-6 py-4 border-t border-[#E4D9C8]">
+        <button (click)="resetFilters()"
+          class="w-full py-2.5 text-xs font-semibold text-[#6E2A34] border border-[#6E2A34] rounded-full hover:bg-[#6E2A34] hover:text-white transition-colors">
+          {{ langService.currentLang() === 'vi' ? 'Xóa tất cả bộ lọc' : '필터 초기화' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-[#7A7163] mb-6">
+      <a routerLink="/" class="hover:text-[#6E2A34] transition-colors font-medium">
+        {{ langService.currentLang() === 'vi' ? 'Trang chủ' : '홈' }}
+      </a>
+      <ng-container *ngIf="productService.selectedOccasion() !== 'all'">
+        <span class="text-[#C4B8A8]">»</span>
+        <span class="font-bold text-[#2B2A26]">{{ productService.getOccasionInfo(productService.selectedOccasion())?.[langService.currentLang()]?.title || getOccasionTitle(productService.selectedOccasion()) }}</span>
+      </ng-container>
+    </nav>
+
+    <!-- Category header + description -->
+    <div *ngIf="productService.selectedOccasion() !== 'all'" class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-[#2B2A26] mb-1 inline-block relative pb-2"
+          [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
+        {{ productService.getOccasionInfo(productService.selectedOccasion())?.[langService.currentLang()]?.title || getOccasionTitle(productService.selectedOccasion()) }}
+        <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6E2A34] rounded-full"></span>
+      </h1>
+      <div class="mt-5 bg-white border border-[#E4D9C8] rounded-xl p-5 space-y-2">
+        <p *ngFor="let d of productService.getOccasionInfo(productService.selectedOccasion())?.[langService.currentLang()]?.desc" 
+           class="text-sm text-[#4A4540] leading-relaxed">{{ d }}</p>
+      </div>
+    </div>
+
+    <h1 *ngIf="productService.selectedOccasion() === 'all'" class="text-4xl text-[#2B2A26] mb-6"
+        [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
+      {{ langService.t.shopTitle }}
+    </h1>
+
+    <!-- Toolbar row: filter button | show count switcher | sort -->
+    <div class="flex items-center gap-3 mb-6 border-t border-b border-[#E4D9C8] py-3">
+      <!-- Filter button -->
+      <button (click)="filterOpen = true"
+        class="flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded transition-colors"
+        [ngClass]="hasActiveFilters ? 'border-[#6E2A34] text-[#6E2A34] bg-[#FBF0F0]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#6E2A34] hover:text-[#6E2A34]'">
+        <svg width="15" height="12" viewBox="0 0 15 12" fill="none" class="flex-shrink-0">
+          <path d="M0 1h15M3 6h9M6 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        {{ langService.currentLang() === 'vi' ? 'Bộ lọc' : '필터' }}
+        <span *ngIf="hasActiveFilters" class="w-4 h-4 rounded-full bg-[#6E2A34] text-white text-[10px] flex items-center justify-center font-bold">
+          {{ productService.priceFilters().length + (productService.colorFilter() ? 1 : 0) + (productService.selectedCategory() !== 'all' ? 1 : 0) }}
+        </span>
+      </button>
+
+      <span class="text-[#C4B8A8] text-sm">|</span>
+
+      <!-- Page size switcher -->
+      <div class="flex items-center gap-1 text-sm text-[#7A7163]">
+        <span class="mr-1">{{ langService.currentLang() === 'vi' ? 'Hiển thị:' : '표시:' }}</span>
+        <span class="flex items-center">
+          <button (click)="setPageSize(12)" class="px-1 transition-colors" [class.font-bold]="pageSize === 12" [class.text-[#2B2A26]]="pageSize === 12">12</button>
+          <span class="text-[#C4B8A8] mx-0.5">/</span>
+        </span>
+        <span class="flex items-center">
+          <button (click)="setPageSize(24)" class="px-1 transition-colors" [class.font-bold]="pageSize === 24" [class.text-[#2B2A26]]="pageSize === 24">24</button>
+          <span class="text-[#C4B8A8] mx-0.5">/</span>
+        </span>
+        <span class="flex items-center">
+          <button (click)="setPageSize(36)" class="px-1 transition-colors" [class.font-bold]="pageSize === 36" [class.text-[#2B2A26]]="pageSize === 36">36</button>
         </span>
       </div>
-      <div class="p-5 flex flex-col flex-1">
-        <a [routerLink]="['/shop/product', p.id]" class="font-bold text-gray-900 hover:text-wine font-serif text-base line-clamp-1">
-          {{ langService.currentLang() === 'ko' ? p.nameKo : p.nameVi }}
-        </a>
-        <p class="text-xs text-gray-500 mt-1 line-clamp-2">
-          {{ langService.currentLang() === 'ko' ? p.descKo : p.descVi }}
-        </p>
-        <div class="mt-auto pt-4 flex items-center justify-between">
-          <div>
-            <span class="text-wine font-bold text-lg">
+
+      <!-- Result count -->
+      <p class="hidden sm:block text-xs text-[#7A7163] ml-1">
+        ({{ displayedProducts.length }} / {{ productService.filteredProducts().length }} {{ langService.currentLang() === 'vi' ? 'kết quả' : '개' }})
+      </p>
+
+      <!-- Sort — pushed right -->
+      <div class="ml-auto flex items-center gap-2">
+        <span class="text-sm text-[#7A7163] hidden sm:inline">{{ langService.currentLang() === 'vi' ? 'Sắp xếp' : '정렬' }}</span>
+        <select (change)="changeSort($event)" [value]="productService.sortOption()"
+          class="text-sm border border-[#E4D9C8] rounded px-3 py-2 bg-white text-[#2B2A26] focus:outline-none focus:border-[#6E2A34] transition-colors cursor-pointer">
+          <option value="popular">{{ langService.currentLang() === 'vi' ? 'Phổ biến' : '인기순' }}</option>
+          <option value="rating">{{ langService.currentLang() === 'vi' ? 'Xếp hạng' : '평점순' }}</option>
+          <option value="new">{{ langService.currentLang() === 'vi' ? 'Mới nhất' : '최신순' }}</option>
+          <option value="price-asc">{{ langService.currentLang() === 'vi' ? 'Giá thấp → cao' : '가격 낮은 순' }}</option>
+          <option value="price-desc">{{ langService.currentLang() === 'vi' ? 'Giá cao → thấp' : '가격 높은 순' }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="displayedProducts.length === 0" class="text-center py-24">
+      <p class="text-[#7A7163] mb-3">{{ langService.currentLang() === 'vi' ? 'Không tìm thấy sản phẩm phù hợp.' : '해당하는 상품이 없습니다.' }}</p>
+      <button (click)="resetFilters()" class="text-sm text-[#6E2A34] underline underline-offset-2">
+        {{ langService.t.filterAll }}
+      </button>
+    </div>
+
+    <!-- Product Grid -->
+    <div *ngIf="displayedProducts.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div
+        *ngFor="let p of displayedProducts"
+        class="group bg-white rounded-xl overflow-hidden border border-[#E4D9C8] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
+      >
+        <!-- Image -->
+        <div class="relative overflow-hidden bg-[#F4EDE3] aspect-[3/4]">
+          <img
+            [src]="p.img"
+            [alt]="p.nameVi"
+            [routerLink]="['/shop/product', p.id]"
+            class="w-full h-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+          <!-- Discount badge -->
+          <span *ngIf="p.originalPrice" class="absolute top-2 left-2 bg-[#6E2A34] text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight">
+            -{{ (1 - p.price / p.originalPrice) * 100 | number:'1.0-0' }}%
+          </span>
+          <!-- New badge -->
+          <span *ngIf="p.isNew && !p.originalPrice" class="absolute top-2 left-2 bg-[#5F6F52] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full leading-tight">
+            {{ langService.t.badge.new }}
+          </span>
+          <!-- Popular badge -->
+          <span *ngIf="p.isPopular && !p.originalPrice && !p.isNew" class="absolute top-2 left-2 bg-[#D9A6A0] text-[#2B2A26] text-[10px] font-semibold px-2 py-0.5 rounded-full leading-tight">
+            {{ langService.t.badge.popular }}
+          </span>
+          <!-- Out of stock -->
+          <div *ngIf="p.stock === 0" class="absolute inset-0 bg-[#FBF6EF]/70 flex items-center justify-center pointer-events-none">
+            <span class="bg-[#2B2A26] text-white text-xs font-medium px-3 py-1.5 rounded-full">{{ langService.t.outOfStock }}</span>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="p-3 flex flex-col gap-2 flex-1">
+          <h3
+            [routerLink]="['/shop/product', p.id]"
+            class="text-[13px] font-medium text-[#2B2A26] text-center leading-snug line-clamp-2 cursor-pointer hover:text-[#6E2A34] transition-colors"
+          >
+            {{ langService.currentLang() === 'ko' ? p.nameKo : p.nameVi }}
+          </h3>
+          <div class="text-center">
+            <span class="text-base font-semibold text-[#6E2A34] tabular-nums" [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
               {{ p.price | currencyVnd:(langService.currentLang() === 'ko') }}
             </span>
-            <span *ngIf="p.originalPrice" class="block text-xs text-gray-400 line-through">
+            <span *ngIf="p.originalPrice" class="ml-1.5 text-xs text-[#7A7163] line-through tabular-nums block sm:inline mt-1 sm:mt-0">
               {{ p.originalPrice | currencyVnd:(langService.currentLang() === 'ko') }}
             </span>
           </div>
-          <button
-            (click)="cartService.addToCart(p)"
-            class="px-4 py-2 bg-rose-50 hover:bg-wine text-wine hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
-          >
-            <i class="ri-shopping-bag-line"></i>
-            <span>{{ langService.t.addCart }}</span>
-          </button>
+          <div class="mt-auto pt-2">
+            <button
+              [disabled]="p.stock === 0"
+              (click)="cartService.addToCart(p)"
+              class="w-full py-2.5 bg-[#F5EFE8] text-[#6E2A34] text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-[#6E2A34] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ langService.t.addCart }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="flex items-center justify-center gap-1.5 mt-10">
+      <button (click)="goPage(currentPage - 1)" [disabled]="currentPage === 1"
+        class="w-9 h-9 flex items-center justify-center rounded border border-[#E4D9C8] text-[#7A7163] hover:border-[#6E2A34] hover:text-[#6E2A34] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+        <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+
+      <ng-container *ngFor="let p of pageNumbers">
+        <!-- Simplified pagination rendering -->
+        <button *ngIf="p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)"
+          (click)="goPage(p)"
+          class="w-9 h-9 flex items-center justify-center rounded text-sm font-medium border transition-colors"
+          [ngClass]="currentPage === p ? 'bg-[#6E2A34] text-white border-[#6E2A34]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#6E2A34] hover:text-[#6E2A34]'">
+          {{ p }}
+        </button>
+        <span *ngIf="(p === currentPage - 3 && p !== 1) || (p === currentPage + 3 && p !== totalPages)" class="w-9 h-9 flex items-center justify-center text-[#C4B8A8] text-sm">…</span>
+      </ng-container>
+
+      <button (click)="goPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+        class="w-9 h-9 flex items-center justify-center rounded border border-[#E4D9C8] text-[#7A7163] hover:border-[#6E2A34] hover:text-[#6E2A34] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+        <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+    </div>
+
   </div>
-</main>
+</div>
