@@ -2,6 +2,9 @@ import { Component, inject } from '@angular/core';
 import { LangService } from '../../core/services/lang.service';
 import { CartService } from '../../core/services/cart.service';
 import { Product } from '../../core/models';
+import { Router } from '@angular/router';
+import { AuthApiService } from '../../core/services/auth-api.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-cart-page',
@@ -12,6 +15,9 @@ import { Product } from '../../core/models';
 export class CartPageComponent {
   langService = inject(LangService);
   cartService = inject(CartService);
+  authService = inject(AuthApiService);
+  toastService = inject(ToastService);
+  router = inject(Router);
 
   couponCode = '';
   discountAmount = 0;
@@ -77,5 +83,14 @@ export class CartPageComponent {
     if (item) {
       this.cartService.updateItemNote(productId, note);
     }
+  }
+
+  proceedToCheckout() {
+    if (!this.authService.isLoggedIn()) {
+      this.toastService.show(this.vi ? 'Xin hãy đăng nhập để đặt hoa' : '꽃을 주문하려면 로그인해 주세요');
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/cart/checkout' } });
+      return;
+    }
+    this.router.navigate(['/cart/checkout']);
   }
 }

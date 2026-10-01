@@ -181,9 +181,9 @@
             </div>
 
             <!-- Checkout CTA -->
-            <a routerLink="/cart/checkout" class="block text-center w-full py-4 mt-2 bg-[#6E2A34] text-white font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-[#5C2129] shadow-md transition-transform active:scale-[0.98]">
+            <button (click)="proceedToCheckout()" class="block text-center w-full py-4 mt-2 bg-[#6E2A34] text-white font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-[#5C2129] shadow-md transition-transform active:scale-[0.98]">
               {{ vi ? 'Tiến hành thanh toán →' : '결제하기 →' }}
-            </a>
+            </button>
 
             <!-- Trust Badges -->
             <div class="pt-3 grid grid-cols-3 gap-2 text-center border-t border-[#E4D9C8] mt-4">

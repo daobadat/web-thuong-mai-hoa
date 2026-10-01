@@ -81,9 +81,9 @@
         <a routerLink="/cart" (click)="cartService.toggleCart()" class="py-2.5 px-4 bg-[#F4EDE3] hover:bg-[#E4D9C8] text-[#6E2A34] font-bold rounded-xl text-center text-sm transition-colors">
           {{ langService.currentLang() === 'vi' ? 'Xem Giỏ Hàng' : '장바구니 보기' }}
         </a>
-        <a routerLink="/cart/checkout" (click)="cartService.toggleCart()" class="py-2.5 px-4 bg-[#6E2A34] hover:bg-[#5C2129] text-white font-bold rounded-xl text-center text-sm shadow transition-colors">
+        <button (click)="proceedToCheckout()" class="py-2.5 px-4 bg-[#6E2A34] hover:bg-[#5C2129] text-white font-bold rounded-xl text-center text-sm shadow transition-colors w-full">
           {{ langService.currentLang() === 'vi' ? 'Thanh Toán' : '결제하기' }}
-        </a>
+        </button>
       </div>
     </div>
   </div>

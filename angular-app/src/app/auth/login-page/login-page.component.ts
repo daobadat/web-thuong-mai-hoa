@@ -1,15 +1,15 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthApiService } from '../../core/services/auth-api.service';
-
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.css'],
   standalone: false
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit {
   router = inject(Router);
+  route = inject(ActivatedRoute);
   authApi = inject(AuthApiService);
 
   email = '';
@@ -17,6 +17,11 @@ export class LoginPageComponent {
   showPassword = false;
   loading = false;
   errorMsg = '';
+  returnUrl = '/';
+
+  ngOnInit() {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+  }
 
   onLogin(e: Event) {
     e.preventDefault();
@@ -29,7 +34,11 @@ export class LoginPageComponent {
     this.authApi.login(this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/']);
+        if (this.authApi.isAdmin()) {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigateByUrl(this.returnUrl);
+        }
       },
       error: (err) => {
         this.loading = false;
