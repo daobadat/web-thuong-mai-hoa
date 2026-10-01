@@ -5,13 +5,15 @@ import { CurrencyVndPipe } from './pipes/currency-vnd.pipe';
 import { AnnouncementBarComponent } from './components/announcement-bar/announcement-bar.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { ToastComponent } from './components/toast/toast.component';
 
 @NgModule({
   declarations: [
     CurrencyVndPipe,
     AnnouncementBarComponent,
     NavbarComponent,
-    FooterComponent
+    FooterComponent,
+    ToastComponent
   ],
   imports: [
     CommonModule,
@@ -23,7 +25,8 @@ import { FooterComponent } from './components/footer/footer.component';
     CurrencyVndPipe,
     AnnouncementBarComponent,
     NavbarComponent,
-    FooterComponent
+    FooterComponent,
+    ToastComponent
   ]
 })
 export class SharedModule { }

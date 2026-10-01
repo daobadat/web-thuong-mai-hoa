@@ -1,78 +1,206 @@
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-  <div class="flex items-center justify-between">
-    <h1 class="text-3xl font-serif font-bold text-gray-900">{{ langService.t.cart.title }}</h1>
-    <a routerLink="/shop" class="text-xs font-bold text-[#7A2838] hover:underline flex items-center gap-1">
-      ← Tiếp tục chọn hoa
-    </a>
-  </div>
-
-  <div *ngIf="cartService.cartItems().length === 0" class="bg-white p-12 rounded-3xl border border-rose-100 text-center space-y-4">
-    <i class="ri-shopping-bag-line text-6xl text-rose-300 block"></i>
-    <p class="text-gray-500 text-sm font-medium">{{ langService.t.cart.empty }}</p>
-    <a routerLink="/shop" class="inline-block px-6 py-3 bg-[#7A2838] text-white font-bold rounded-2xl text-xs shadow">
-      {{ langService.t.cart.emptyAction }}
-    </a>
-  </div>
-
-  <div *ngIf="cartService.cartItems().length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <div class="lg:col-span-8 bg-white p-6 rounded-3xl border border-rose-100 shadow-sm space-y-4">
-      <div *ngFor="let item of cartService.cartItems()" class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-rose-50/40 rounded-2xl border border-rose-100 gap-4">
-        <div class="flex items-center gap-4">
-          <img [src]="item.product.img" class="w-20 h-20 object-cover rounded-xl" [alt]="item.product.nameVi">
-          <div>
-            <h3 class="font-bold text-gray-900 font-serif text-base">
-              {{ langService.currentLang() === 'ko' ? item.product.nameKo : item.product.nameVi }}
-            </h3>
-            <p class="text-xs text-[#7A2838] font-bold mt-0.5">
-              {{ item.product.price | currencyVnd:(langService.currentLang() === 'ko') }}
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between sm:justify-end gap-6">
-          <div class="flex items-center border border-rose-200 rounded-xl bg-white p-1">
-            <button (click)="cartService.updateQty(item.product.id, -1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-rose-50 rounded-lg font-bold">-</button>
-            <span class="w-10 text-center text-sm font-bold">{{ item.qty }}</span>
-            <button (click)="cartService.updateQty(item.product.id, 1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-rose-50 rounded-lg font-bold">+</button>
-          </div>
-          <span class="font-bold text-gray-900 text-base">
-            {{ (item.product.price * item.qty) | currencyVnd:(langService.currentLang() === 'ko') }}
-          </span>
-          <button (click)="cartService.removeItem(item.product.id)" class="text-gray-400 hover:text-rose-600 p-2">
-            <i class="ri-delete-bin-line text-xl"></i>
-          </button>
-        </div>
+<main class="min-h-screen bg-[#FEFCFA] py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl text-[#2B2A26] font-display-vi">
+          {{ vi ? 'Giỏ hàng' : '장바구니' }}
+        </h1>
+        <p class="text-sm text-[#7A7163] mt-1">
+          {{ vi ? cartService.cartItems().length + ' sản phẩm trong giỏ hàng' : '장바구니에 ' + cartService.cartItems().length + '개 상품' }}
+        </p>
       </div>
+      <a routerLink="/shop" class="hidden sm:flex items-center gap-1.5 text-sm text-[#7A7163] hover:text-[#6E2A34]">
+        ← {{ vi ? 'Tiếp tục mua sắm' : '쇼핑 계속하기' }}
+      </a>
     </div>
 
-    <div class="lg:col-span-4 space-y-6">
-      <div class="bg-white p-6 rounded-3xl border border-rose-100 shadow-sm space-y-6">
-        <h3 class="font-bold text-gray-900 font-serif text-lg border-b border-rose-100 pb-3">
-          {{ langService.t.orderSummary }}
-        </h3>
+    <!-- Empty State -->
+    <div *ngIf="cartService.cartItems().length === 0" class="py-16 text-center max-w-sm mx-auto">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-[#F4EDE3] flex items-center justify-center">
+        <svg class="w-10 h-10 text-[#D9A6A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl text-[#2B2A26] mb-2 font-display-vi">
+        {{ vi ? 'Giỏ hàng trống' : '장바구니가 비어있어요' }}
+      </h2>
+      <p class="text-[#7A7163] text-sm mb-8 leading-relaxed">
+        {{ vi ? 'Chưa có sản phẩm nào trong giỏ hàng. Hãy chọn những bó hoa đẹp nhất!' : '아직 장바구니에 상품이 없습니다. 예쁜 꽃을 골라보세요!' }}
+      </p>
+      <a routerLink="/shop" class="inline-block px-8 py-3 bg-[#6E2A34] text-white font-bold text-sm uppercase tracking-wide rounded-full hover:bg-[#5C2129]">
+        {{ vi ? 'Khám phá cửa hàng' : '쇼핑 계속하기' }}
+      </a>
+    </div>
 
-        <div class="space-y-3 text-sm">
-          <div class="flex justify-between text-gray-600">
-            <span>Tạm tính</span>
-            <span class="font-semibold text-gray-900">
-              {{ cartService.subtotal() | currencyVnd:(langService.currentLang() === 'ko') }}
-            </span>
+    <!-- Cart Content Grid -->
+    <div *ngIf="cartService.cartItems().length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <!-- Left: Cart Table / Cards -->
+      <div class="lg:col-span-2">
+        <!-- Desktop Table -->
+        <div class="hidden sm:block bg-white rounded-2xl border border-[#E4D9C8] overflow-hidden">
+          <div class="grid grid-cols-[80px_1fr_100px_120px_110px] gap-0 border-b border-[#E4D9C8] bg-[#F4EDE3]">
+            <div class="py-3 px-4 text-xs font-bold text-[#7A7163] uppercase tracking-wider text-center">{{ vi ? 'Ảnh' : '이미지' }}</div>
+            <div class="py-3 px-4 text-xs font-bold text-[#7A7163] uppercase tracking-wider">{{ vi ? 'Sản phẩm' : '상품' }}</div>
+            <div class="py-3 px-4 text-xs font-bold text-[#7A7163] uppercase tracking-wider text-center">{{ vi ? 'Số lượng' : '수량' }}</div>
+            <div class="py-3 px-4 text-xs font-bold text-[#7A7163] uppercase tracking-wider text-right">{{ vi ? 'Đơn giá' : '단가' }}</div>
+            <div class="py-3 px-4 text-xs font-bold text-[#7A7163] uppercase tracking-wider text-right">{{ vi ? 'Tổng' : '총액' }}</div>
           </div>
-          <div class="flex justify-between text-gray-600">
-            <span>Phí vận chuyển</span>
-            <span class="font-semibold text-emerald-600">Miễn phí</span>
-          </div>
-          <div class="flex justify-between text-base font-bold text-gray-900 border-t border-rose-100 pt-3">
-            <span>{{ langService.t.cart.total }}</span>
-            <span class="text-2xl font-serif text-[#7A2838]">
-              {{ cartService.subtotal() | currencyVnd:(langService.currentLang() === 'ko') }}
-            </span>
+          
+          <div>
+            <div *ngFor="let item of cartService.cartItems()" class="grid grid-cols-[80px_1fr_100px_120px_110px] gap-0 border-b border-[#E4D9C8] items-start p-4 hover:bg-[#FEFCFA] transition-colors group">
+              <div class="px-2">
+                <img [src]="item.product.img" [alt]="item.product.nameVi" class="w-16 h-16 object-cover rounded-xl border border-[#E4D9C8]" />
+              </div>
+              <div class="px-4">
+                <a [routerLink]="['/shop/product', item.product.id]" class="font-bold text-[#2B2A26] hover:text-[#6E2A34] line-clamp-2">
+                  {{ getProductName(item.product) }}
+                </a>
+                <input type="text" [ngModel]="item.note" (ngModelChange)="updateNote(item.product.id, $event)" [placeholder]="vi ? 'Ghi chú cho bó hoa này...' : '메모...'" class="mt-2 w-full text-xs text-[#7A7163] bg-[#F4EDE3]/50 border border-[#E4D9C8] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#6E2A34]">
+              </div>
+              <div class="px-2 flex justify-center mt-1">
+                <div class="flex items-center border border-[#E4D9C8] rounded-lg bg-white overflow-hidden shadow-sm h-8">
+                  <button (click)="cartService.updateQty(item.product.id, -1)" class="w-7 h-full flex items-center justify-center hover:bg-[#F4EDE3] text-[#2B2A26] font-bold">−</button>
+                  <span class="w-8 text-center text-xs font-bold text-[#2B2A26]">{{ item.qty }}</span>
+                  <button (click)="cartService.updateQty(item.product.id, 1)" class="w-7 h-full flex items-center justify-center hover:bg-[#F4EDE3] text-[#2B2A26] font-bold">+</button>
+                </div>
+              </div>
+              <div class="px-4 text-right mt-1.5">
+                <p class="font-bold text-[#2B2A26]">{{ formatPrice(item.product.price) }}đ</p>
+                <p *ngIf="item.product.originalPrice" class="text-[10px] text-[#7A7163] line-through mt-0.5">{{ formatPrice(item.product.originalPrice) }}đ</p>
+              </div>
+              <div class="px-2 flex flex-col items-end gap-1 mt-1.5 relative">
+                <p class="font-bold text-[#6E2A34]">{{ formatPrice(item.product.price * item.qty) }}đ</p>
+                <button (click)="cartService.removeItem(item.product.id)" class="text-[10px] text-[#7A7163] hover:text-red-500 underline decoration-dotted mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {{ vi ? 'Xóa' : '삭제' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <a routerLink="/cart/checkout" class="block w-full py-4 bg-[#7A2838] hover:bg-[#5C2129] text-white font-bold text-center rounded-2xl shadow-lg transition-all">
-          {{ langService.t.cart.checkout }}
-        </a>
+        <!-- Mobile Cards -->
+        <div class="sm:hidden space-y-3">
+          <div *ngFor="let item of cartService.cartItems()" class="bg-white rounded-xl border border-[#E4D9C8] p-3 flex gap-3 relative">
+            <img [src]="item.product.img" [alt]="item.product.nameVi" class="w-20 h-24 object-cover rounded-lg border border-[#E4D9C8]">
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <a [routerLink]="['/shop/product', item.product.id]" class="text-sm font-bold text-[#2B2A26] leading-tight line-clamp-2 pr-6">
+                  {{ getProductName(item.product) }}
+                </a>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="text-sm font-bold text-[#6E2A34]">{{ formatPrice(item.product.price) }}đ</span>
+                  <span *ngIf="item.product.originalPrice" class="text-[10px] text-[#7A7163] line-through">{{ formatPrice(item.product.originalPrice) }}đ</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center border border-[#E4D9C8] rounded bg-white h-7">
+                  <button (click)="cartService.updateQty(item.product.id, -1)" class="w-6 h-full hover:bg-[#F4EDE3] font-bold">−</button>
+                  <span class="w-6 text-center text-xs font-bold">{{ item.qty }}</span>
+                  <button (click)="cartService.updateQty(item.product.id, 1)" class="w-6 h-full hover:bg-[#F4EDE3] font-bold">+</button>
+                </div>
+                <button (click)="cartService.removeItem(item.product.id)" class="text-[10px] text-[#7A7163] underline">{{ vi ? 'Xóa' : '삭제' }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions Row -->
+        <div class="flex items-center justify-between mt-5">
+          <a routerLink="/shop" class="flex items-center gap-1.5 px-5 py-2.5 border border-[#E4D9C8] text-sm text-[#7A7163] hover:text-[#6E2A34] hover:border-[#6E2A34] rounded-full font-medium transition-colors">
+            ← {{ vi ? 'Tiếp tục mua sắm' : '쇼핑 계속하기' }}
+          </a>
+          <button (click)="clearCart()" class="text-xs text-[#7A7163] hover:text-[#6E2A34] underline">
+            {{ vi ? 'Xoá tất cả' : '모두 삭제' }}
+          </button>
+        </div>
+
+        <!-- Free Shipping Indicator Strip -->
+        <div class="mt-5 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border"
+             [ngClass]="isFreeship ? 'bg-[#5F6F52]/10 border-[#5F6F52]/20 text-[#5F6F52]' : 'bg-[#F4EDE3] border-[#E4D9C8] text-[#2B2A26]'">
+          <span class="text-xl">🚚</span>
+          <span *ngIf="isFreeship">
+            {{ vi ? 'Chúc mừng! Đơn hàng của bạn được MIỄN PHÍ giao hàng.' : '축하합니다! 무료 배송이 적용되었습니다.' }}
+          </span>
+          <span *ngIf="!isFreeship">
+            {{ vi ? 'Mua thêm ' + formatPrice(amountToFreeship) + 'đ để được Miễn phí giao hàng.' : formatPrice(amountToFreeship) + '₫ 추가 구매 시 무료 배송.' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Right: Order Summary Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl border border-[#E4D9C8] overflow-hidden sticky top-[136px] shadow-sm">
+          <div class="bg-[#6E2A34] px-5 py-4">
+            <h2 class="text-base font-bold text-white font-display-vi">
+              {{ vi ? 'Tóm tắt đơn hàng' : '주문 요약' }}
+            </h2>
+          </div>
+          <div class="p-5 space-y-3">
+            
+            <!-- Calculation Rows -->
+            <div class="space-y-2.5 text-sm">
+              <div class="flex justify-between">
+                <span class="text-[#7A7163]">{{ vi ? 'Tạm tính' : '소계' }}</span>
+                <span class="font-medium text-[#2B2A26] tabular-nums">{{ formatPrice(subtotal) }}đ</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[#7A7163]">VAT 8%</span>
+                <span class="font-medium text-[#2B2A26] tabular-nums">+{{ formatPrice(vat) }}đ</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[#7A7163]">{{ vi ? 'Phí giao hàng' : '배송비' }}</span>
+                <span class="font-semibold tabular-nums" [class.text-emerald-600]="isFreeship">
+                  {{ isFreeship ? (vi ? 'Miễn phí' : '무료') : formatPrice(shipping) + 'đ' }}
+                </span>
+              </div>
+              <div *ngIf="couponApplied" class="flex justify-between">
+                <span class="text-[#5F6F52] flex items-center gap-1">🏷 {{ couponCode }}</span>
+                <span class="font-semibold text-[#5F6F52] tabular-nums">-{{ formatPrice(discountAmount) }}đ</span>
+              </div>
+            </div>
+
+            <!-- Coupon Input -->
+            <div class="pt-3 border-t border-[#E4D9C8]">
+              <p class="text-xs font-semibold text-[#2B2A26] mb-2">{{ vi ? 'Mã khuyến mãi' : '할인 코드' }}</p>
+              <div class="flex gap-2">
+                <input [(ngModel)]="couponCode" type="text" [placeholder]="vi ? 'Mã giảm giá...' : '할인 코드...'" class="flex-1 text-xs border border-[#E4D9C8] rounded-lg px-3 py-2 focus:outline-none focus:border-[#6E2A34] uppercase font-mono" />
+                <button (click)="applyCoupon()" class="px-3 py-2 text-xs font-bold bg-[#2B2A26] text-white rounded-lg hover:bg-[#3D3C38] transition-colors">
+                  {{ vi ? 'Áp dụng' : '적용' }}
+                </button>
+              </div>
+              <p *ngIf="couponMsg" class="text-xs mt-1.5" [class.text-[#5F6F52]]="couponApplied" [class.text-rose-600]="!couponApplied">
+                {{ couponMsg }}
+              </p>
+            </div>
+
+            <!-- Grand Total -->
+            <div class="flex justify-between items-center pt-3 border-t-2 border-[#2B2A26]">
+              <span class="font-bold text-[#2B2A26]">{{ vi ? 'Tổng cộng' : '총액' }}</span>
+              <span class="text-2xl font-bold text-[#6E2A34] tabular-nums font-display-vi">{{ formatPrice(total) }}đ</span>
+            </div>
+
+            <!-- Checkout CTA -->
+            <a routerLink="/cart/checkout" class="block text-center w-full py-4 mt-2 bg-[#6E2A34] text-white font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-[#5C2129] shadow-md transition-transform active:scale-[0.98]">
+              {{ vi ? 'Tiến hành thanh toán →' : '결제하기 →' }}
+            </a>
+
+            <!-- Trust Badges -->
+            <div class="pt-3 grid grid-cols-3 gap-2 text-center border-t border-[#E4D9C8] mt-4">
+              <div><span class="block text-xl mb-0.5">🔒</span><span class="text-[9px] text-[#7A7163] uppercase leading-tight tracking-wider">{{ vi ? 'Thanh toán an toàn' : '안전 결제' }}</span></div>
+              <div><span class="block text-xl mb-0.5">🔄</span><span class="text-[9px] text-[#7A7163] uppercase leading-tight tracking-wider">{{ vi ? 'Đổi trả miễn phí' : '무료 반품' }}</span></div>
+              <div><span class="block text-xl mb-0.5">🎧</span><span class="text-[9px] text-[#7A7163] uppercase leading-tight tracking-wider">{{ vi ? 'Hỗ trợ 24/7' : '24/7 지원' }}</span></div>
+            </div>
+
+            <!-- Payment Method Icons -->
+            <div class="flex items-center justify-center gap-2 pt-2">
+              <div class="w-8 h-6 flex items-center justify-center bg-[#F4EDE3] rounded border border-[#E4D9C8] text-sm">💳</div>
+              <div class="w-8 h-6 flex items-center justify-center bg-[#F4EDE3] rounded border border-[#E4D9C8] text-sm">🏦</div>
+              <div class="w-8 h-6 flex items-center justify-center bg-[#F4EDE3] rounded border border-[#E4D9C8] text-sm">📱</div>
+              <div class="w-8 h-6 flex items-center justify-center bg-[#F4EDE3] rounded border border-[#E4D9C8] text-sm">💵</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

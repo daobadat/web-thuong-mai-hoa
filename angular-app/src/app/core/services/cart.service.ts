@@ -1,10 +1,15 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { CartItem, Product } from '../models';
+import { ToastService } from './toast.service';
+import { LangService } from './lang.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
+  toastService = inject(ToastService);
+  langService = inject(LangService);
+
   public cartItems = signal<CartItem[]>([
     {
       product: {
@@ -50,6 +55,8 @@ export class CartService {
       this.cartItems.set([...current, { product, qty, note }]);
     }
     this.isCartOpen.set(true);
+    const msg = this.langService.currentLang() === 'vi' ? 'Đã thêm vào giỏ hàng!' : '장바구니에 추가되었습니다!';
+    this.toastService.show(msg);
   }
 
   public updateQty(productId: number, delta: number) {
@@ -62,6 +69,16 @@ export class CartService {
       return item;
     }).filter((item): item is CartItem => item !== null);
 
+    this.cartItems.set(updated);
+  }
+
+  public updateItemNote(productId: number, note: string) {
+    const updated = this.cartItems().map(item => {
+      if (item.product.id === productId) {
+        return { ...item, note };
+      }
+      return item;
+    });
     this.cartItems.set(updated);
   }
 

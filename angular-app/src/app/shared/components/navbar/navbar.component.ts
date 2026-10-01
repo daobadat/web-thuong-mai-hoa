@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { LangService } from '../../../core/services/lang.service';
 import { CartService } from '../../../core/services/cart.service';
@@ -25,6 +25,20 @@ export class NavbarComponent {
   searchVal = '';
 
   occasionKeys = OCCASION_KEYS;
+
+  @HostListener('window:keydown.escape')
+  onEscape() {
+    this.userOpen = false;
+    this.menuOpen = false;
+  }
+
+  getAvatarLetter(): string {
+    const name = this.authApi.currentUser()?.full_name?.trim();
+    if (!name) return 'U';
+    const words = name.split(/\s+/);
+    const lastWord = words[words.length - 1];
+    return lastWord.charAt(0).toUpperCase();
+  }
 
   toggleLang() {
     const nextLang = this.langService.currentLang() === 'vi' ? 'ko' : 'vi';

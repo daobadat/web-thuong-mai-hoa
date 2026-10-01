@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { API_BASE_URL, ApiService } from './api.service';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface BackendCartItem {
   id: number;
