@@ -3,35 +3,36 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const cat1 = 'b0000000-0000-0000-0000-000000000001';
-    const cat2 = 'b0000000-0000-0000-0000-000000000002';
-    const cat3 = 'b0000000-0000-0000-0000-000000000003';
-    const cat4 = 'b0000000-0000-0000-0000-000000000004';
+    // ── Category IDs ──
+    const catBouquet   = 'b0000000-0000-0000-0000-000000000001'; // Bó hoa
+    const catStand     = 'b0000000-0000-0000-0000-000000000002'; // Kệ hoa / Chậu lan
+    const catBox       = 'b0000000-0000-0000-0000-000000000003'; // Hộp hoa
+    const catBasket    = 'b0000000-0000-0000-0000-000000000004'; // Giỏ hoa
 
     await queryInterface.bulkInsert('categories', [
-      { id: cat1, parent_id: null, slug: 'hoa-sinh-nhat', is_active: true, display_order: 1, created_at: new Date() },
-      { id: cat2, parent_id: null, slug: 'hoa-khai-truong', is_active: true, display_order: 2, created_at: new Date() },
-      { id: cat3, parent_id: null, slug: 'hoa-cuoi', is_active: true, display_order: 3, created_at: new Date() },
-      { id: cat4, parent_id: null, slug: 'hoa-chia-buon', is_active: true, display_order: 4, created_at: new Date() },
+      { id: catBouquet, parent_id: null, slug: 'bo-hoa',        is_active: true, display_order: 1, created_at: new Date() },
+      { id: catStand,   parent_id: null, slug: 'ke-hoa',        is_active: true, display_order: 2, created_at: new Date() },
+      { id: catBox,     parent_id: null, slug: 'hop-hoa',       is_active: true, display_order: 3, created_at: new Date() },
+      { id: catBasket,  parent_id: null, slug: 'gio-hoa',       is_active: true, display_order: 4, created_at: new Date() },
     ], { ignoreDuplicates: true });
 
     await queryInterface.bulkInsert('category_translations', [
-      // Hoa sinh nhat
-      { category_id: cat1, language_code: 'vi', name: 'Hoa Sinh Nhật', description: 'Bó hoa tươi sáng rực rỡ mừng sinh nhật người thân, bạn bè' },
-      { category_id: cat1, language_code: 'en', name: 'Birthday Flowers', description: 'Vibrant fresh flowers for birthday celebrations' },
-      { category_id: cat1, language_code: 'ko', name: '생일 꽃선물', description: '소중한 분의 생일을 축하하는 아름다운 꽃다발' },
-      // Hoa khai truong
-      { category_id: cat2, language_code: 'vi', name: 'Hoa Khai Trương', description: 'Kệ hoa sang trọng mừng khai trương, hồng phát' },
-      { category_id: cat2, language_code: 'en', name: 'Grand Opening Flowers', description: 'Luxurious flower stands for business openings' },
-      { category_id: cat2, language_code: 'ko', name: '개업 축하 화환', description: '사업 번창을 기원하는 품격 있는 축하 화환' },
-      // Hoa cuoi
-      { category_id: cat3, language_code: 'vi', name: 'Hoa Cưới', description: 'Hoa cầm tay cô dâu và trang trí tiệc cưới tinh tế' },
-      { category_id: cat3, language_code: 'en', name: 'Wedding Flowers', description: 'Bridal bouquets and elegant wedding venue flowers' },
-      { category_id: cat3, language_code: 'ko', name: '웨딩 부케 및 꽃장식', description: '신부를 위한 부케와 우아한 웨딩 꽃장식' },
-      // Hoa chia buon
-      { category_id: cat4, language_code: 'vi', name: 'Hoa Chia Buồn', description: 'Vòng hoa viếng kính tiễn người đã khuất' },
-      { category_id: cat4, language_code: 'en', name: 'Funeral & Sympathy Flowers', description: 'Respectful sympathy wreaths and funeral arrangements' },
-      { category_id: cat4, language_code: 'ko', name: '근조 화환', description: '삼가 고인의 명복을 비는 정성 어린 근조 화환' },
+      // Bó hoa (Bouquet)
+      { category_id: catBouquet, language_code: 'vi', name: 'Bó Hoa',     description: 'Các loại bó hoa tươi thắm: hồng, ly, tulip, lavender…' },
+      { category_id: catBouquet, language_code: 'en', name: 'Bouquets',   description: 'Fresh flower bouquets: roses, lilies, tulips, lavender…' },
+      { category_id: catBouquet, language_code: 'ko', name: '꽃다발',      description: '장미, 백합, 튤립, 라벤더 등 신선한 꽃다발' },
+      // Kệ hoa (Stand / Potted)
+      { category_id: catStand, language_code: 'vi', name: 'Kệ Hoa & Chậu Lan', description: 'Kệ khai trương, chậu lan hồ điệp, kệ sinh nhật' },
+      { category_id: catStand, language_code: 'en', name: 'Flower Stands & Orchids', description: 'Grand opening stands, orchid pots, birthday stands' },
+      { category_id: catStand, language_code: 'ko', name: '화환 & 난 화분',  description: '개업 화환, 호접란 화분, 생일 화환' },
+      // Hộp hoa (Box)
+      { category_id: catBox, language_code: 'vi', name: 'Hộp Hoa',      description: 'Hộp hoa sang trọng, quà tặng doanh nghiệp' },
+      { category_id: catBox, language_code: 'en', name: 'Flower Boxes', description: 'Premium flower boxes and corporate gifts' },
+      { category_id: catBox, language_code: 'ko', name: '꽃 박스',        description: '프리미엄 꽃 박스 및 기업 선물 세트' },
+      // Giỏ hoa (Basket)
+      { category_id: catBasket, language_code: 'vi', name: 'Giỏ Hoa',      description: 'Giỏ hoa cúc, cẩm tú cầu, truyền thống Chuseok' },
+      { category_id: catBasket, language_code: 'en', name: 'Flower Baskets', description: 'Chrysanthemum, hydrangea, and traditional Chuseok baskets' },
+      { category_id: catBasket, language_code: 'ko', name: '꽃 바구니',      description: '국화, 수국, 전통 추석 꽃바구니' },
     ], { ignoreDuplicates: true });
   },
 

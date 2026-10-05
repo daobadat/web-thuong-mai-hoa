@@ -2,19 +2,18 @@
   "name": "nodejs-core",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "prepare": "husky",
-    "postinstall": "npx husky install",
     "test": "jest --detectOpenHandles --verbose"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-router-group": "^0.1.4",
@@ -28,7 +27,7 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.6.3",
+    "@types/node": "^22.0.0",
     "git-branch-is": "^4.0.0",
     "husky": "^9.0.11",
     "jest": "^29.7.0",

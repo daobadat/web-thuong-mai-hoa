@@ -53,7 +53,6 @@ CREATE TABLE `languages` (
   `name` varchar(50) NOT NULL,
   PRIMARY KEY (`code`)
 );
-
 CREATE TABLE `users` (
   `id` char(36) NOT NULL,
   `email` varchar(255) UNIQUE NOT NULL,
@@ -620,4 +619,4 @@ END$$
 
 DELIMITER ;
 
-SET FOREIGN_KEY_CHECKS = 1;qqq
+SET FOREIGN_KEY_CHECKS = 1;
