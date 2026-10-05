@@ -9,8 +9,16 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!--
+    Bao gồm:
+      - Playfair Display (heading): wght 600;700 — latin + vietnamese
+      - Be Vietnam Pro (body): wght 400;600;700 — latin + vietnamese
+      - Noto Sans KR (body tiếng Hàn): wght 400;700
+      - Noto Serif KR (heading tiếng Hàn): wght 600;700
+    display=swap, KHÔNG có &subset= (Google Fonts tự phát hiện subset từ Accept-Language / unicode-range)
+  -->
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap&subset=vietnamese">
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Be+Vietnam+Pro:wght@400;600;700&family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@600;700&display=swap">
 </head>
 <body>
   <app-root></app-root>

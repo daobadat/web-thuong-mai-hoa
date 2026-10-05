@@ -6,7 +6,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // V1 Colors (kept for compatibility with existing hardcoded classes if any were refactored)
+        // V1 Colors
         wine: '#6E2A34',
         darkWine: '#5C2129',
         cream: '#FBF6EF',
@@ -16,7 +16,7 @@ module.exports = {
         sageGreen: '#5F6F52',
         textDark: '#2B2A26',
         textMuted: '#7A7163',
-        
+
         // V2 Design Tokens
         'bg': '#fafaf9',
         'surface': '#ffffff',
@@ -30,10 +30,19 @@ module.exports = {
         'text-muted': '#57534e',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        'display-vi': ['Playfair Display', 'Georgia', 'serif'],
-        'display-ko': ['Playfair Display', 'Georgia', 'serif'],
-        body: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        // Body: Be Vietnam Pro — subset latin + vietnamese tốt nhất
+        sans:         ['Be Vietnam Pro', 'Noto Sans KR', 'system-ui', '-apple-system', 'sans-serif'],
+        body:         ['Be Vietnam Pro', 'Noto Sans KR', 'system-ui', '-apple-system', 'sans-serif'],
+        // Heading VI/EN: Playfair Display — có đủ glyph tiếng Việt
+        'display-vi': ['Playfair Display', 'Be Vietnam Pro', 'Georgia', 'serif'],
+        // Heading KO: Noto Serif KR ưu tiên trước
+        'display-ko': ['Noto Serif KR', 'Playfair Display', 'Georgia', 'serif'],
+        serif:        ['Playfair Display', 'Noto Serif KR', 'Georgia', 'serif'],
+      },
+      maxWidth: {
+        // Layout container tokens
+        'container':    '1440px',
+        'container-xl': '1680px',
       },
       borderRadius: {
         'none': '0',

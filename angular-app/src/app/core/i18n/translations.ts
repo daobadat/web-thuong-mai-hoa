@@ -2,7 +2,7 @@ export const T = {
   vi: {
     brand: 'Hoa Tươi',
     tagline: 'Giao hàng trong ngày · Hoa Đà Lạt',
-    announce: '🌸 Hotline: 0901 234 567 · KakaoTalk: hoatuoivn · Giao nội thành 2–4 giờ · Miễn phí giao đơn từ 800.000đ',
+    announce: '🌸 Hotline: 0901 234 567 · Zalo: 0901234567 · Giao nội thành 2–4 giờ · Miễn phí giao đơn từ 800.000đ',
     navSale: 'Đang Giảm Giá',
     search: 'Tìm kiếm hoa...',
     sections: {
@@ -29,7 +29,7 @@ export const T = {
     vnd: 'đ',
     orderSummary: 'Tóm tắt đơn hàng',
     backHome: 'Về trang chủ',
-    footer: { hotline: 'Hotline: 0901 234 567', kakao: 'KakaoTalk: hoatuoivn', deliver: 'Giao hàng toàn quốc', rights: 'Bản quyền thuộc về chúng tôi' },
+    footer: { hotline: 'Hotline: 0901 234 567', zalo: 'Zalo: 0901234567', deliver: 'Giao hàng toàn quốc', rights: 'Bản quyền thuộc về chúng tôi' },
     heroSlides: [
       { eyebrow: '— Bộ Sưu Tập', title: 'Hoa Cưới\nCầm Tay', sub: 'Freeship & Tặng hoa cài áo chú rể', cta: 'Xem ngay', img: 'https://images.unsplash.com/photo-1652346072098-cfc2e94d30e7?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
       { eyebrow: '— Ưu Đãi Hôm Nay', title: 'Giảm Đến\n25%', sub: 'Hoa tươi Đà Lạt, giao trong ngày, giá tốt nhất', cta: 'Khám phá', img: 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
@@ -39,7 +39,7 @@ export const T = {
   ko: {
     brand: '플라워 베트남',
     tagline: '당일 배달 · 달랏 신선 꽃',
-    announce: '🌸 핫라인: 0901 234 567 · 카카오톡: hoatuoivn · 시내 2–4시간 배달 · 800,000₫ 이상 무료 배달',
+    announce: '🌸 핫라인: 0901 234 567 · 잘로(Zalo): 0901234567 · 시내 2–4시간 배달 · 800,000₫ 이상 무료 배달',
     navSale: '할인 상품',
     search: '꽃 검색...',
     sections: {
@@ -66,7 +66,7 @@ export const T = {
     vnd: '₫',
     orderSummary: '주문 요약',
     backHome: '홈으로',
-    footer: { hotline: '핫라인: 0901 234 567', kakao: '카카오톡: hoatuoivn', deliver: '전국 배달', rights: '모든 권리 보유' },
+    footer: { hotline: '핫라인: 0901 234 567', zalo: '잘로(Zalo): 0901234567', deliver: '전국 배달', rights: '모든 권리 보유' },
     heroSlides: [
       { eyebrow: '— 컬렉션', title: '웨딩\n부케', sub: '무료 배달 & 신랑 코사지 증정', cta: '지금 보기', img: 'https://images.unsplash.com/photo-1652346072098-cfc2e94d30e7?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
       { eyebrow: '— 오늘의 할인', title: '최대\n25% 할인', sub: '달랏 신선 꽃, 당일 배달, 최저가', cta: '지금 보기', img: 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },

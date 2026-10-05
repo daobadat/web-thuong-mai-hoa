@@ -1,5 +1,5 @@
 <footer class="bg-[#2B2A26] text-white py-12">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="site-container">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
       <div>
         <div class="flex items-center gap-2 mb-3">
@@ -13,7 +13,10 @@
       </div>
       <div class="space-y-2">
         <p class="text-sm text-white/80">{{ langService.t.footer.hotline }}</p>
-        <p class="text-sm text-white/60">{{ langService.t.footer.kakao }}</p>
+        <a href="https://zalo.me/0901234567" target="_blank" rel="noopener noreferrer"
+           class="text-sm text-white/60 hover:text-[#D9A6A0] transition-colors">
+          {{ langService.t.footer.zalo }}
+        </a>
       </div>
       <div class="flex gap-5 items-start">
         <a href="#" class="text-xs text-white/50 hover:text-[#D9A6A0] transition-colors">Zalo</a>

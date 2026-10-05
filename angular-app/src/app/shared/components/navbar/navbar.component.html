@@ -1,7 +1,7 @@
 <div class="bg-[#FBF6EF]">
   <!-- ── Main header row (wine bg) ── -->
   <div class="bg-[#6E2A34]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-[60px] flex items-center gap-3">
+    <div class="site-container h-[60px] flex items-center gap-3">
 
       <!-- Mobile hamburger -->
       <button (click)="menuOpen = !menuOpen" class="md:hidden p-1.5 rounded text-white/80 hover:text-white" aria-label="Menu">
@@ -161,7 +161,7 @@
 
   <!-- ── Sub nav (occasion links) ── -->
   <div class="hidden md:block bg-[#FBF6EF] border-b border-[#E4D9C8]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-center overflow-x-auto">
+    <div class="site-container flex items-center justify-between overflow-x-auto">
       <button *ngFor="let k of occasionKeys" (click)="filterOccasion(k)"
         class="flex items-center gap-1.5 px-3.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide hover:text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors whitespace-nowrap relative group"
         [class.text-[#6E2A34]]="productService.selectedOccasion() === k"

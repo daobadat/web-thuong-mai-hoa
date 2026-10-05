@@ -15,7 +15,6 @@ import { FormsModule } from '@angular/forms';
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <ng-container *ngTemplateOutlet="field; context: {label: 'Tên cửa hàng', k: 'shopName'}"></ng-container>
           <ng-container *ngTemplateOutlet="field; context: {label: 'Số điện thoại', k: 'phone', type: 'tel'}"></ng-container>
-          <ng-container *ngTemplateOutlet="field; context: {label: 'KakaoTalk ID', k: 'kakao'}"></ng-container>
           <ng-container *ngTemplateOutlet="field; context: {label: 'Zalo', k: 'zalo'}"></ng-container>
           <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: 'Địa chỉ Hà Nội', k: 'addressHN'}"></ng-container></div>
           <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: 'Địa chỉ TP.HCM', k: 'addressHCM'}"></ng-container></div>
@@ -78,7 +77,6 @@ export class AdminSettingsComponent {
   settings: Record<string, any> = {
     shopName: 'Hoa Tươi Việt Nam',
     phone: '0901 234 567',
-    kakao: 'hoatuoivn',
     zalo: '0901234567',
     addressHN: '24 Xuân Thủy, Cầu Giấy, Hà Nội',
     addressHCM: '88 Lê Lợi, Q.1, TP.HCM',

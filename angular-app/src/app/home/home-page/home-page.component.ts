@@ -24,7 +24,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   currentSlideIdx = 0;
   private timerRef: any = null;
 
-  // Promo tiles
+  // Promo tiles — ảnh Unsplash thật, label tiếng Việt đủ dấu
   get promos() {
     const vi = this.langService.currentLang() === 'vi';
     return [
@@ -32,28 +32,28 @@ export class HomePageComponent implements OnInit, OnDestroy {
         label: vi ? 'Hoa Sinh Nhật' : '생일 꽃',
         sub: vi ? 'Giao trong ngày' : '당일 배달',
         color: 'from-[#D9A6A0] to-[#C07E78]',
-        img: 'https://placehold.co/320x320/D9A6A0/FFF?text=Hoa+Sinh+Nhat',
+        img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=640&h=640&fit=crop&auto=format',
         key: 'birthday' as OccasionKey | 'sale',
       },
       {
         label: vi ? 'Hoa Khai Trương' : '개업 꽃',
         sub: vi ? 'Kệ hoa lớn' : '대형 화환',
         color: 'from-[#5F6F52] to-[#3D4D33]',
-        img: 'https://placehold.co/320x320/5F6F52/FFF?text=Hoa+Khai+Truong',
+        img: 'https://images.unsplash.com/photo-1487530811015-780f5d82f80c?w=640&h=640&fit=crop&auto=format',
         key: 'opening' as OccasionKey | 'sale',
       },
       {
         label: vi ? 'SALE -30%' : '세일 -30%',
         sub: vi ? 'Hoa đặc biệt' : '특별 할인',
         color: 'from-[#6E2A34] to-[#4A1A22]',
-        img: 'https://placehold.co/320x320/6E2A34/FFF?text=Sale',
+        img: 'https://images.unsplash.com/photo-1490750967868-88df5691cc09?w=640&h=640&fit=crop&auto=format',
         key: 'sale' as OccasionKey | 'sale',
       },
       {
         label: vi ? 'Hoa Cưới Hỏi' : '결혼 꽃',
         sub: vi ? 'Sang trọng · Tinh tế' : '우아하고 세련된',
         color: 'from-[#E4D9C8] to-[#C9B9A2]',
-        img: 'https://placehold.co/320x320/E4D9C8/6E2A34?text=Hoa+Cuoi+Hoi',
+        img: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=640&h=640&fit=crop&auto=format',
         key: 'wedding' as OccasionKey | 'sale',
       },
     ];

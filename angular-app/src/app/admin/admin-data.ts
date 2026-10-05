@@ -68,7 +68,7 @@ export const ADMIN_PRODUCTS: AdminProduct[] = [
 export const ADMIN_CUSTOMERS: Customer[] = [
   { id: 1, name: 'Kim Jiyeon', phone: '0901 234 111', email: 'jiyeon.kim@gmail.com', city: 'Hà Nội', orders: 7, totalSpent: 5250000, lastOrder: '17/08/2026', lang: 'ko' },
   { id: 2, name: 'Park Sanghoon', phone: '0902 345 222', email: 'sanghoon@naver.com', city: 'Hà Nội', orders: 4, totalSpent: 6800000, lastOrder: '17/08/2026', lang: 'ko' },
-  { id: 3, name: 'Choi Minji', phone: '0903 456 333', email: 'minji.choi@kakao.com', city: 'TP.HCM', orders: 12, totalSpent: 9100000, lastOrder: '17/08/2026', lang: 'ko' },
+  { id: 3, name: 'Choi Minji', phone: '0903 456 333', email: 'minji.choi@naver.com', city: 'TP.HCM', orders: 12, totalSpent: 9100000, lastOrder: '17/08/2026', lang: 'ko' },
   { id: 4, name: 'Lee Donghyun', phone: '0904 567 444', email: 'lee.donghyun@samsung.com', city: 'TP.HCM', orders: 3, totalSpent: 5400000, lastOrder: '16/08/2026', lang: 'ko' },
   { id: 5, name: 'Jung Yoonji', phone: '0905 678 555', email: 'yoonji.jung@gmail.com', city: 'Hà Nội', orders: 2, totalSpent: 1470000, lastOrder: '16/08/2026', lang: 'ko' },
   { id: 6, name: 'Trần Lan Anh', phone: '0912 111 222', email: 'lananh@gmail.com', city: 'Hà Nội', orders: 5, totalSpent: 3200000, lastOrder: '15/08/2026', lang: 'vi' },

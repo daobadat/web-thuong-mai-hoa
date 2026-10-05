@@ -1,27 +1,34 @@
 <!-- ─── HomeHeroGrid (Carousel + 4 Promo Tiles) ──────────────────────────── -->
 <div class="bg-[#F4EDE3]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+  <div class="site-container py-4">
     <div class="grid grid-cols-1 gap-3">
 
       <!-- Carousel + promo row -->
       <div class="flex flex-col gap-3">
         <!-- Hero Carousel -->
         <div class="rounded-xl overflow-hidden">
-          <div class="relative overflow-hidden" style="height: 520px">
+          <!--
+            aspect-ratio: 21/8 với min/max-height
+            object-fit: cover → ảnh nguồn tối thiểu 2880px sẽ fill đẹp
+          -->
+          <div class="relative overflow-hidden"
+               style="aspect-ratio: 21 / 8; min-height: 420px; max-height: 640px;">
             <!-- Background image -->
             <img
               [src]="currentSlide.img"
               [alt]="currentSlide.title"
               class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+              loading="eager"
+              fetchpriority="high"
             />
             <!-- Gradient overlay -->
             <div class="absolute inset-0 bg-gradient-to-r from-[#2B2A26]/80 via-[#2B2A26]/40 to-transparent"></div>
 
             <!-- Text content -->
-            <div class="relative h-full max-w-7xl mx-auto px-6 sm:px-10 flex items-center">
+            <div class="relative h-full site-container flex items-center">
               <div class="max-w-md">
                 <p class="text-xs font-semibold tracking-[0.25em] uppercase text-[#D9A6A0] mb-4">{{ currentSlide.eyebrow }}</p>
-                <h2 class="text-5xl sm:text-6xl font-bold text-white leading-[1.05] mb-5 whitespace-pre-line font-serif"
+                <h2 class="text-5xl sm:text-6xl font-bold text-white leading-[1.05] mb-5 whitespace-pre-line"
                     [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
                   {{ currentSlide.title }}
                 </h2>
@@ -79,18 +86,18 @@
 
 <!-- ─── Sale Products Section ─────────────────────────────────────────── -->
 <section *ngIf="saleProducts.length > 0" class="py-14 bg-[#FBF6EF]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="site-container">
     <!-- Section Title -->
     <div class="text-center mb-8">
       <p class="text-[11px] tracking-[0.25em] uppercase text-[#5F6F52] font-semibold mb-2">{{ langService.t.sections.sale.sub }}</p>
-      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2 font-serif"
+      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2"
           [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
         {{ langService.t.sections.sale.title }}
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <!-- Product Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    <!-- Product Grid — auto-fill 260px min, gap 24px -->
+    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
       <ng-container *ngFor="let p of saleProducts | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>
@@ -105,16 +112,16 @@
 
 <!-- ─── Popular Products Section ──────────────────────────────────────── -->
 <section *ngIf="popularProducts.length > 0" class="py-14 bg-[#F4EDE3]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="site-container">
     <div class="text-center mb-8">
       <p class="text-[11px] tracking-[0.25em] uppercase text-[#5F6F52] font-semibold mb-2">{{ langService.t.sections.popular.sub }}</p>
-      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2 font-serif"
+      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2"
           [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
         {{ langService.t.sections.popular.title }}
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
       <ng-container *ngFor="let p of popularProducts | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>
@@ -129,16 +136,16 @@
 
 <!-- ─── New Products Section ──────────────────────────────────────────── -->
 <section *ngIf="newProducts.length > 0" class="py-14 bg-[#FBF6EF]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="site-container">
     <div class="text-center mb-8">
       <p class="text-[11px] tracking-[0.25em] uppercase text-[#5F6F52] font-semibold mb-2">{{ langService.t.sections.newest.sub }}</p>
-      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2 font-serif"
+      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2"
           [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
         {{ langService.t.sections.newest.title }}
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
       <ng-container *ngFor="let p of newProducts | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>
@@ -153,16 +160,16 @@
 
 <!-- ─── Per-Occasion Sections ─────────────────────────────────────────── -->
 <section *ngFor="let occ of occasionSections" class="py-14" [ngClass]="occ.bgClass">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6" *ngIf="occ.products.length > 0">
+  <div class="site-container" *ngIf="occ.products.length > 0">
     <div class="text-center mb-8">
       <p class="text-[11px] tracking-[0.25em] uppercase text-[#5F6F52] font-semibold mb-2">{{ occ.sub }}</p>
-      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2 font-serif"
+      <h2 class="text-3xl sm:text-4xl text-[#2B2A26] inline-block relative pb-2"
           [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
         {{ occ.title }}
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
       <ng-container *ngFor="let p of occ.products | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>
@@ -177,7 +184,7 @@
 
 <!-- ─── Trust Section ─────────────────────────────────────────────────── -->
 <section class="py-12 border-t border-b border-[#E4D9C8] bg-[#F4EDE3]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="site-container">
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
       <div *ngFor="let item of langService.t.trust" class="flex flex-col items-center text-center gap-2">
         <span class="text-3xl">{{ item.icon }}</span>
@@ -198,6 +205,7 @@
         [alt]="getProductName(product)"
         [routerLink]="['/shop/product', product.id]"
         class="w-full h-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-[1.03]"
+        loading="lazy"
       />
       <!-- Discount badge -->
       <span *ngIf="discountPct(product) > 0" class="absolute top-2 left-2 bg-[#6E2A34] text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight">
@@ -225,7 +233,7 @@
         {{ getProductName(product) }}
       </h3>
       <div class="text-center">
-        <span class="text-base font-semibold text-[#6E2A34] tabular-nums font-serif"
+        <span class="text-base font-semibold text-[#6E2A34] tabular-nums"
               [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
           {{ formatPrice(product.price) }}{{ langService.t.vnd }}
         </span>

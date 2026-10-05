@@ -10,6 +10,8 @@ export class LangService {
 
   public setLang(lang: Lang) {
     this.currentLang.set(lang);
+    // Cập nhật thuộc tính lang trên <html> để CSS html[lang='ko'] hoạt động
+    document.documentElement.lang = lang;
   }
 
   public get t() {
