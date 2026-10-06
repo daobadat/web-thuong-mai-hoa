@@ -1,5 +1,6 @@
 const { Order, OrderItem, OrderStatusHistory, Cart, CartItem, Product, ProductTranslation, ProductVariant, Coupon, User, DeliveryTimeSlot, sequelize } = require("models");
 const notificationService = require("modules/notification/services/notificationService");
+const paymentService = require("modules/payment/services/paymentService");
 
 const orderService = {
   checkout: async (userId, data) => {
@@ -95,6 +96,8 @@ const orderService = {
       const total_amount = Math.max(0, subtotal + shipping_fee - discount_amount);
 
       const orderNumber = `FLW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const orderTtl = parseInt(process.env.ORDER_TTL_MINUTES || "15");
+      const expiresAt = new Date(Date.now() + orderTtl * 60 * 1000);
 
       const order = await Order.create(
         {
@@ -115,6 +118,7 @@ const orderService = {
           delivery_address: data.delivery_address,
           card_message: data.card_message || null,
           notes: data.notes || null,
+          expires_at: expiresAt,
         },
         { transaction }
       );
@@ -151,7 +155,14 @@ const orderService = {
         // Không throw nếu notification lỗi
       }
 
-      return orderService.getOrderById(order.id);
+      const createdOrder = await orderService.getOrderById(order.id);
+      let responseData = createdOrder.toJSON();
+
+      if (data.payment_method === "bank_transfer") {
+        responseData.qrUrl = paymentService.buildVietQrUrl(orderNumber, total_amount);
+      }
+
+      return responseData;
     } catch (err) {
       await transaction.rollback();
       throw err;

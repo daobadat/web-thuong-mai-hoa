@@ -24,8 +24,8 @@ export class ProductDetailPageComponent implements OnInit {
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
-      const id = Number(params.get('id'));
-      this.product = this.productService.products().find(p => p.id === id) || this.productService.products()[0];
+      const id = params.get('id') || '';
+      this.product = this.productService.products().find(p => String(p.id) === id) || this.productService.products()[0];
       this.qty = 1;
       this.activeTab = 'detail';
       window.scrollTo({ top: 0 });
@@ -66,7 +66,7 @@ export class ProductDetailPageComponent implements OnInit {
     }
   }
 
-  goToProduct(id: number) {
+  goToProduct(id: string) {
     this.router.navigate(['/shop/product', id]);
   }
 }

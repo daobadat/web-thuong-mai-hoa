@@ -16,6 +16,7 @@ const couponController = require("modules/coupon/controllers/couponController");
 const reviewController = require("modules/review/controllers/reviewController");
 const wishlistController = require("modules/wishlist/controllers/wishlistController");
 const notificationController = require("modules/notification/controllers/notificationController");
+const paymentController = require("modules/payment/controllers/paymentController");
 
 // ===== Validations =====
 const authValidation = require("modules/auth/validations/authValidation");
@@ -178,6 +179,17 @@ router.group("/notifications", middlewares([authenticated]), (router) => {
   router.put("/read-all", notificationController.markAllAsRead);
   router.put("/:id/read", notificationController.markAsRead);
   router.delete("/:id", notificationController.destroy);
+});
+
+// =====================================================================
+// PAYMENT ROUTES - /payments
+// =====================================================================
+router.group("/payments", (router) => {
+  // Webhook từ provider (SePay, Casso...) - Public endpoint (sử dụng API Key validation bên trong)
+  router.post("/webhook", paymentController.webhook);
+  
+  // Endpoint để frontend poll trạng thái thanh toán
+  router.get("/status/:orderNumber", middlewares([authenticated]), paymentController.status);
 });
 
 module.exports = router;

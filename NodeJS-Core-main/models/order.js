@@ -104,6 +104,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      expires_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      paid_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       sequelize,

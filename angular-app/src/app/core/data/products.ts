@@ -22,7 +22,7 @@ export const OCC_ICONS: Record<OccasionKey, string> = {
 
 export const PRODUCTS: Product[] = [
   {
-    id: 1, nameVi: 'Bó Hồng Phấn Premium 24 Bông', nameKo: '프리미엄 핑크 장미 24송이',
+    id: 'p0000000-0000-0000-0000-000000000001', nameVi: 'Bó Hồng Phấn Premium 24 Bông', nameKo: '프리미엄 핑크 장미 24송이',
     price: 850000, originalPrice: 1000000,
     occasions: ['birthday', 'valentine'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=500&h=620&fit=crop&auto=format',
@@ -33,7 +33,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 12,
   },
   {
-    id: 2, nameVi: 'Bó Tulip Hồng Đà Lạt', nameKo: '달랏 핑크 튤립 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000002', nameVi: 'Bó Tulip Hồng Đà Lạt', nameKo: '달랏 핑크 튤립 꽃다발',
     price: 580000,
     occasions: ['birthday', 'valentine'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1490750967868-88df5691cc02?w=500&h=620&fit=crop&auto=format',
@@ -44,7 +44,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 10,
   },
   {
-    id: 3, nameVi: 'Bó Hướng Dương Tươi Sáng', nameKo: '밝은 해바라기 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000003', nameVi: 'Bó Hướng Dương Tươi Sáng', nameKo: '밝은 해바라기 꽃다발',
     price: 450000,
     occasions: ['birthday', 'chuseok'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1644248422980-8e0eb75a1557?w=500&h=620&fit=crop&auto=format',
@@ -55,7 +55,7 @@ export const PRODUCTS: Product[] = [
     stock: 20,
   },
   {
-    id: 4, nameVi: 'Bó Hoa Ly Trắng Tinh', nameKo: '순백 백합 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000004', nameVi: 'Bó Hoa Ly Trắng Tinh', nameKo: '순백 백합 꽃다발',
     price: 680000, originalPrice: 760000,
     occasions: ['birthday', 'wedding'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=500&h=620&fit=crop&auto=format',
@@ -66,7 +66,7 @@ export const PRODUCTS: Product[] = [
     stock: 6,
   },
   {
-    id: 5, nameVi: 'Bó Lavender Mix Mộng Mơ', nameKo: '라벤더 믹스 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000005', nameVi: 'Bó Lavender Mix Mộng Mơ', nameKo: '라벤더 믹스 꽃다발',
     price: 490000, originalPrice: 540000,
     occasions: ['birthday', 'valentine'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1521334726092-b509a19597c6?w=500&h=620&fit=crop&auto=format',
@@ -77,7 +77,7 @@ export const PRODUCTS: Product[] = [
     stock: 14,
   },
   {
-    id: 6, nameVi: 'Bó Hoa Mùa Xuân Đa Sắc', nameKo: '봄 믹스 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000006', nameVi: 'Bó Hoa Mùa Xuân Đa Sắc', nameKo: '봄 믹스 꽃다발',
     price: 480000,
     occasions: ['birthday'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1589131854040-89f700aeafcd?w=500&h=620&fit=crop&auto=format',
@@ -88,7 +88,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 15,
   },
   {
-    id: 7, nameVi: 'Bó Cẩm Chướng Tình Mẫu Tử', nameKo: '카네이션 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000007', nameVi: 'Bó Cẩm Chướng Tình Mẫu Tử', nameKo: '카네이션 꽃다발',
     price: 380000, originalPrice: 420000,
     occasions: ['birthday', 'chuseok'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1562519422-ced6a0e2f5b4?w=500&h=620&fit=crop&auto=format',
@@ -99,7 +99,7 @@ export const PRODUCTS: Product[] = [
     stock: 18,
   },
   {
-    id: 8, nameVi: 'Bó 99 Hoa Hồng Đỏ', nameKo: '빨간 장미 99송이',
+    id: 'p0000000-0000-0000-0000-000000000008', nameVi: 'Bó 99 Hoa Hồng Đỏ', nameKo: '빨간 장미 99송이',
     price: 2900000, originalPrice: 3300000,
     occasions: ['valentine', 'birthday'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1455659817273-f96807779a8a?w=500&h=620&fit=crop&auto=format',
@@ -110,7 +110,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 8,
   },
   {
-    id: 9, nameVi: 'Hộp Hoa Mix Pastel', nameKo: '파스텔 믹스 꽃 박스',
+    id: 'p0000000-0000-0000-0000-000000000009', nameVi: 'Hộp Hoa Mix Pastel', nameKo: '파스텔 믹스 꽃 박스',
     price: 650000,
     occasions: ['birthday', 'corporate'], category: 'box',
     img: 'https://images.unsplash.com/photo-1644248423441-bc7c5dcebeb6?w=500&h=620&fit=crop&auto=format',
@@ -121,7 +121,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 8,
   },
   {
-    id: 10, nameVi: 'Hộp Quà Doanh Nghiệp Premium', nameKo: '프리미엄 기업용 꽃 선물 세트',
+    id: 'p0000000-0000-0000-0000-000000000010', nameVi: 'Hộp Quà Doanh Nghiệp Premium', nameKo: '프리미엄 기업용 꽃 선물 세트',
     price: 1200000, originalPrice: 1290000,
     occasions: ['corporate', 'opening'], category: 'box',
     img: 'https://images.unsplash.com/photo-1667010723263-8ad9a8f5f6c6?w=500&h=620&fit=crop&auto=format',
@@ -132,7 +132,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 10,
   },
   {
-    id: 11, nameVi: 'Hộp Hoa Cao Cấp VIP', nameKo: 'VIP 고급 꽃 박스',
+    id: 'p0000000-0000-0000-0000-000000000011', nameVi: 'Hộp Hoa Cao Cấp VIP', nameKo: 'VIP 고급 꽃 박스',
     price: 1500000,
     occasions: ['corporate', 'wedding'], category: 'box',
     img: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=500&h=620&fit=crop&auto=format',
@@ -143,7 +143,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 6,
   },
   {
-    id: 12, nameVi: 'Hộp Hoa Khô Lãng Mạn', nameKo: '로맨틱 드라이 플라워 박스',
+    id: 'p0000000-0000-0000-0000-000000000012', nameVi: 'Hộp Hoa Khô Lãng Mạn', nameKo: '로맨틱 드라이 플라워 박스',
     price: 390000,
     occasions: ['valentine', 'birthday'], category: 'box',
     img: 'https://images.unsplash.com/photo-1644248423441-bc7c5dcebeb6?w=500&h=620&fit=crop&auto=format&crop=right',
@@ -154,7 +154,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 20,
   },
   {
-    id: 13, nameVi: 'Giỏ Hoa Cúc Vàng Chuseok', nameKo: '추석 노란 국화 꽃 바구니',
+    id: 'p0000000-0000-0000-0000-000000000013', nameVi: 'Giỏ Hoa Cúc Vàng Chuseok', nameKo: '추석 노란 국화 꽃 바구니',
     price: 520000,
     occasions: ['chuseok', 'corporate'], category: 'basket',
     img: 'https://images.unsplash.com/photo-1689061732262-2f8a68fa99cb?w=500&h=620&fit=crop&auto=format',
@@ -165,7 +165,7 @@ export const PRODUCTS: Product[] = [
     stock: 15,
   },
   {
-    id: 14, nameVi: 'Giỏ Truyền Thống Chuseok', nameKo: '전통 추석 꽃 바구니',
+    id: 'p0000000-0000-0000-0000-000000000014', nameVi: 'Giỏ Truyền Thống Chuseok', nameKo: '전통 추석 꽃 바구니',
     price: 620000,
     occasions: ['chuseok'], category: 'basket',
     img: 'https://images.unsplash.com/photo-1689061732262-2f8a68fa99cb?w=500&h=620&fit=crop&auto=format&crop=right',
@@ -174,7 +174,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 11,
   },
   {
-    id: 15, nameVi: 'Giỏ Hortensia Xanh Nhẹ', nameKo: '연청 수국 꽃 바구니',
+    id: 'p0000000-0000-0000-0000-000000000015', nameVi: 'Giỏ Hortensia Xanh Nhẹ', nameKo: '연청 수국 꽃 바구니',
     price: 750000, originalPrice: 840000,
     occasions: ['corporate', 'birthday'], category: 'basket',
     img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=500&h=620&fit=crop&auto=format&crop=right',
@@ -185,7 +185,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 9,
   },
   {
-    id: 16, nameVi: 'Kệ Khai Trương 2 Tầng Premium', nameKo: '2단 프리미엄 개업 화환',
+    id: 'p0000000-0000-0000-0000-000000000016', nameVi: 'Kệ Khai Trương 2 Tầng Premium', nameKo: '2단 프리미엄 개업 화환',
     price: 1800000, originalPrice: 2250000,
     occasions: ['opening'], category: 'stand',
     img: 'https://images.unsplash.com/photo-1760618511409-9d80f26e36f4?w=500&h=620&fit=crop&auto=format',
@@ -196,7 +196,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 5,
   },
   {
-    id: 17, nameVi: 'Kệ Khai Trương 3 Tầng Vàng', nameKo: '3단 골드 개업 화환',
+    id: 'p0000000-0000-0000-0000-000000000017', nameVi: 'Kệ Khai Trương 3 Tầng Vàng', nameKo: '3단 골드 개업 화환',
     price: 2800000, originalPrice: 3500000,
     occasions: ['opening'], category: 'stand',
     img: 'https://images.unsplash.com/photo-1760618511409-9d80f26e36f4?w=500&h=620&fit=crop&auto=format&crop=entropy',
@@ -205,7 +205,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 3,
   },
   {
-    id: 18, nameVi: 'Chậu Lan Hồ Điệp Cao Cấp', nameKo: '고급 호접란 화분',
+    id: 'p0000000-0000-0000-0000-000000000018', nameVi: 'Chậu Lan Hồ Điệp Cao Cấp', nameKo: '고급 호접란 화분',
     price: 1100000, originalPrice: 1220000,
     occasions: ['opening', 'corporate'], category: 'stand',
     img: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=500&h=620&fit=crop&auto=format',
@@ -216,7 +216,7 @@ export const PRODUCTS: Product[] = [
     stock: 6,
   },
   {
-    id: 19, nameVi: 'Kệ Hoa Khai Trương Classic', nameKo: '클래식 개업 화환',
+    id: 'p0000000-0000-0000-0000-000000000019', nameVi: 'Kệ Hoa Khai Trương Classic', nameKo: '클래식 개업 화환',
     price: 1650000,
     occasions: ['opening'], category: 'stand',
     img: 'https://images.unsplash.com/photo-1760618511409-9d80f26e36f4?w=500&h=620&fit=crop&auto=format&crop=faces',
@@ -225,7 +225,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 7,
   },
   {
-    id: 20, nameVi: 'Kệ Hoa Sinh Nhật Hàn Quốc', nameKo: '한국 스타일 생일 화환',
+    id: 'p0000000-0000-0000-0000-000000000020', nameVi: 'Kệ Hoa Sinh Nhật Hàn Quốc', nameKo: '한국 스타일 생일 화환',
     price: 950000,
     occasions: ['birthday'], category: 'stand',
     img: 'https://images.unsplash.com/photo-1652346107876-58d7354ce9b8?w=500&h=620&fit=crop&auto=format',
@@ -236,7 +236,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 4,
   },
   {
-    id: 21, nameVi: 'Bó Cầm Tay Cô Dâu Thuần Trắng', nameKo: '신부 순백 부케',
+    id: 'p0000000-0000-0000-0000-000000000021', nameVi: 'Bó Cầm Tay Cô Dâu Thuần Trắng', nameKo: '신부 순백 부케',
     price: 720000,
     occasions: ['wedding'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1652346072098-cfc2e94d30e7?w=500&h=620&fit=crop&auto=format',
@@ -247,7 +247,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 6,
   },
   {
-    id: 22, nameVi: 'Bó Cưới Hồng Ngọt Ngào', nameKo: '달콤한 핑크 웨딩 부케',
+    id: 'p0000000-0000-0000-0000-000000000022', nameVi: 'Bó Cưới Hồng Ngọt Ngào', nameKo: '달콤한 핑크 웨딩 부케',
     price: 890000, originalPrice: 990000,
     occasions: ['wedding'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1520763185298-128e5c58a49a?w=500&h=620&fit=crop&auto=format',
@@ -258,7 +258,7 @@ export const PRODUCTS: Product[] = [
     isNew: true, stock: 5,
   },
   {
-    id: 23, nameVi: 'Bó Mẫu Đơn Hồng Cao Cấp', nameKo: '프리미엄 모란 꽃다발',
+    id: 'p0000000-0000-0000-0000-000000000023', nameVi: 'Bó Mẫu Đơn Hồng Cao Cấp', nameKo: '프리미엄 모란 꽃다발',
     price: 1200000,
     occasions: ['wedding', 'valentine'], category: 'bouquet',
     img: 'https://images.unsplash.com/photo-1530092285049-1c42085fd395?w=500&h=620&fit=crop&auto=format',
@@ -269,7 +269,7 @@ export const PRODUCTS: Product[] = [
     isPopular: true, stock: 8,
   },
   {
-    id: 24, nameVi: 'Giỏ Hortensia Tím Mộng', nameKo: '보라 수국 꽃 바구니',
+    id: 'p0000000-0000-0000-0000-000000000024', nameVi: 'Giỏ Hortensia Tím Mộng', nameKo: '보라 수국 꽃 바구니',
     price: 680000, originalPrice: 750000,
     occasions: ['wedding', 'birthday'], category: 'basket',
     img: 'https://images.unsplash.com/photo-1496661415325-ef852f9e8e7c?w=500&h=620&fit=crop&auto=format',

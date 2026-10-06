@@ -7,16 +7,28 @@
       <h2 class="text-3xl text-[#6E2A34] mb-3 font-display-vi">
         {{ vi ? 'Đặt hoa thành công!' : '주문 성공!' }}
       </h2>
-      <p class="text-[#7A7163] mb-8 leading-relaxed">
-        {{ vi ? 'Chúng tôi sẽ liên hệ xác nhận trong 30 phút. Cảm ơn bạn!' : '30분 내에 확인 연락 드리겠습니다. 감사합니다!' }}
-      </p>
-      <a routerLink="/" class="inline-block px-8 py-3 bg-[#6E2A34] text-white rounded-full font-semibold hover:bg-[#5C2129] transition-colors">
-        {{ vi ? 'Về trang chủ' : '홈으로' }}
-      </a>
+      <!-- QR Payment View -->
+      <app-qr-payment 
+        *ngIf="isPendingPayment" 
+        [qrUrl]="qrCodeUrl" 
+        [orderNumber]="orderNumber" 
+        [amount]="finalTotal"
+        (paymentSuccess)="handlePaymentSuccess()">
+      </app-qr-payment>
+
+      <div *ngIf="isSuccess">
+        <p class="text-[#7A7163] mb-8 leading-relaxed">
+          {{ vi ? 'Chúng tôi sẽ liên hệ xác nhận trong 30 phút. Cảm ơn bạn!' : '30분 내에 확인 연락 드리겠습니다. 감사합니다!' }}
+        </p>
+
+        <a routerLink="/" class="inline-block px-8 py-3 bg-[#6E2A34] text-white rounded-full font-semibold hover:bg-[#5C2129] transition-colors">
+          {{ vi ? 'Về trang chủ' : '홈으로' }}
+        </a>
+      </div>
     </div>
 
     <!-- Checkout Form View -->
-    <ng-container *ngIf="!isSuccess">
+    <ng-container *ngIf="!isSuccess && !isPendingPayment">
       <h1 class="text-3xl sm:text-4xl text-[#2B2A26] mb-8 font-display-vi">
         {{ vi ? 'Thanh toán' : '결제' }}
       </h1>
@@ -24,6 +36,15 @@
       <form (submit)="placeOrder($event)" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <!-- Left: Delivery Form -->
         <div class="lg:col-span-3 space-y-4">
+          <div *ngIf="savedProfiles.length > 0" class="mb-2">
+            <label class="text-xs font-semibold text-[#7A7163] uppercase tracking-widest">{{ vi ? 'Chọn thông tin đã lưu' : '저장된 정보 선택' }}</label>
+            <select (change)="onProfileSelect($event)" class="mt-1.5 w-full border border-[#E4D9C8] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6E2A34] bg-white text-[#2B2A26] appearance-none cursor-pointer">
+              <option value="">-- {{ vi ? 'Nhập thông tin mới' : '새 정보 입력' }} --</option>
+              <option *ngFor="let p of savedProfiles; let i = index" [value]="i">
+                {{ p.name }} - {{ p.phone }} - {{ p.address }}
+              </option>
+            </select>
+          </div>
           <div>
             <label class="text-xs font-semibold text-[#7A7163] uppercase tracking-widest">{{ vi ? 'Họ và tên' : '이름' }}</label>
             <input [(ngModel)]="name" name="name" type="text" required class="mt-1.5 w-full border border-[#E4D9C8] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#6E2A34] bg-white" />
@@ -71,33 +92,29 @@
           <div>
             <label class="text-xs font-semibold text-[#7A7163] uppercase tracking-widest mb-2 block mt-6">{{ vi ? 'Phương thức thanh toán' : '결제 수단' }}</label>
             <div class="space-y-2">
-              <label class="flex items-center justify-between p-3 border border-[#E4D9C8] rounded-xl cursor-pointer bg-white transition-colors" [class.border-[#6E2A34]]="paymentMethod === 'transfer'" [class.bg-[#F4EDE3]]="paymentMethod === 'transfer'">
+              <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer bg-white transition-colors"
+                [ngClass]="{'border-[#6E2A34] bg-[#F4EDE3]': paymentMethod === 'bank_transfer', 'border-[#E4D9C8]': paymentMethod !== 'bank_transfer'}">
                 <div class="flex items-center gap-3">
-                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="transfer" class="w-4 h-4 text-[#6E2A34] focus:ring-[#6E2A34] border-[#C4B8A8]">
-                  <span class="text-sm font-medium text-[#2B2A26]">{{ vi ? 'Chuyển khoản ngân hàng' : '계좌 이체' }}</span>
+                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="bank_transfer" class="w-4 h-4 accent-[#6E2A34]">
+                  <span class="text-sm font-medium text-[#2B2A26]">{{ vi ? 'Chuyển khoản ngân hàng (QR)' : '계좌 이체 (QR)' }}</span>
                 </div>
                 <span class="text-xl">🏦</span>
               </label>
-              <label class="flex items-center justify-between p-3 border border-[#E4D9C8] rounded-xl cursor-pointer bg-white transition-colors" [class.border-[#6E2A34]]="paymentMethod === 'ewallet'" [class.bg-[#F4EDE3]]="paymentMethod === 'ewallet'">
+              <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer bg-white transition-colors"
+                [ngClass]="{'border-[#6E2A34] bg-[#F4EDE3]': paymentMethod === 'momo', 'border-[#E4D9C8]': paymentMethod !== 'momo'}">
                 <div class="flex items-center gap-3">
-                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="ewallet" class="w-4 h-4 text-[#6E2A34] focus:ring-[#6E2A34] border-[#C4B8A8]">
+                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="momo" class="w-4 h-4 accent-[#6E2A34]">
                   <span class="text-sm font-medium text-[#2B2A26]">Momo / ZaloPay</span>
                 </div>
                 <span class="text-xl">📱</span>
               </label>
-              <label class="flex items-center justify-between p-3 border border-[#E4D9C8] rounded-xl cursor-pointer bg-white transition-colors" [class.border-[#6E2A34]]="paymentMethod === 'cod'" [class.bg-[#F4EDE3]]="paymentMethod === 'cod'">
+              <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer bg-white transition-colors"
+                [ngClass]="{'border-[#6E2A34] bg-[#F4EDE3]': paymentMethod === 'cod', 'border-[#E4D9C8]': paymentMethod !== 'cod'}">
                 <div class="flex items-center gap-3">
-                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="cod" class="w-4 h-4 text-[#6E2A34] focus:ring-[#6E2A34] border-[#C4B8A8]">
+                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="cod" class="w-4 h-4 accent-[#6E2A34]">
                   <span class="text-sm font-medium text-[#2B2A26]">{{ vi ? 'Thanh toán khi nhận hàng (COD)' : '현금 결제 (배송 시)' }}</span>
                 </div>
                 <span class="text-xl">💵</span>
-              </label>
-              <label class="flex items-center justify-between p-3 border border-[#E4D9C8] rounded-xl cursor-pointer bg-white transition-colors" [class.border-[#6E2A34]]="paymentMethod === 'card'" [class.bg-[#F4EDE3]]="paymentMethod === 'card'">
-                <div class="flex items-center gap-3">
-                  <input type="radio" [(ngModel)]="paymentMethod" name="paymentMethod" value="card" class="w-4 h-4 text-[#6E2A34] focus:ring-[#6E2A34] border-[#C4B8A8]">
-                  <span class="text-sm font-medium text-[#2B2A26]">{{ vi ? 'Thẻ tín dụng / Ghi nợ' : '신용카드 / 체크카드' }}</span>
-                </div>
-                <span class="text-xl">💳</span>
               </label>
             </div>
           </div>

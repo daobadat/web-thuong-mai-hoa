@@ -1,95 +1,154 @@
-# 📝 Tổng Kết Các Công Việc Đã Thực Hiện
+# 📋 TỔNG KẾT CÔNG VIỆC AI ĐÃ LÀM
 
-Dưới đây là danh sách toàn bộ các tính năng, sửa lỗi và cấu hình mà tôi đã thực hiện cho dự án **Thương mại điện tử hoa** của bạn:
-
-## 1. Tích hợp Frontend (Angular) với Backend (NodeJS)
-
-- **Thiết lập Proxy để tránh lỗi CORS**: 
-  - Đã cấu hình file `proxy.conf.json` để chuyển hướng toàn bộ các request từ đường dẫn `/api/*` của Angular sang Backend `http://localhost:3000`.
-  - Khắc phục lỗi BOM encoding (`InvalidSymbol`) trong file proxy.
-  - Tích hợp `proxyConfig` vào file `angular.json` để dev server tự động chạy cùng cấu hình.
-  
-- **Cấu hình HttpClient cho Angular**:
-  - Đã import `provideHttpClient` vào mảng `providers` trong `app.module.ts`. Việc này đã sửa triệt để lỗi "Blank Screen" (màn hình trắng bóc do thiếu Injector) khi các Service gọi API.
-  - Chuyển `API_BASE_URL` trong `api.service.ts` từ URL tuyệt đối thành URL tương đối (`/api`) để thông qua Proxy.
-
-- **Khởi tạo 5 Services quan trọng**:
-  - `api.service.ts`: Xử lý HTTP requests chung, nhúng Token tự động.
-  - `auth-api.service.ts`: Xử lý Đăng nhập, Đăng ký, lấy thông tin User (Signals).
-  - `product-api.service.ts`: Xử lý API sản phẩm.
-  - `cart-api.service.ts`: Xử lý giỏ hàng (hỗ trợ cả session_id cho khách ẩn danh và token cho user đã đăng nhập).
-  - `order-api.service.ts`: Xử lý đơn hàng.
-
-## 2. Nâng cấp tính năng Authentication (Đăng Nhập / Đăng Ký)
-
-- **Trang Đăng ký (`Register`)**:
-  - Gắn API thực tế gọi lên backend.
-  - Thêm trường **Số điện thoại** (phone).
-  - Thêm trường **Xác nhận mật khẩu** (confirmPassword) và code logic kiểm tra độ trùng khớp giữa 2 mật khẩu ngay tại giao diện.
-  - Thêm tính năng **Mật khẩu mạnh (Strong Password Validator)** (tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số, ký tự đặc biệt) dựa trên Checklist bảo mật.
-  - Bổ sung biểu tượng con mắt 👁️ để **Ẩn / Hiện mật khẩu**. Đồng bộ thao tác 1 nút ấn thay đổi cả 2 trường mật khẩu và xác nhận.
-
-- **Trang Đăng nhập (`Login`)**:
-  - Gắn API thực tế gọi lên backend, xử lý lưu `access_token` vào localStorage.
-  - Đổi thông báo lỗi thành dạng **Generic Error Message** ("Thông tin đăng nhập không chính xác hoặc tài khoản đã bị khóa") thay vì báo lỗi cụ thể để chống hacker dò tìm email.
-  - Sửa lỗi cú pháp của Angular 17+ (`NG5002` do dùng ký tự `@` trong template). Đã thay thế thành `&#64;`.
-  - Thêm tính năng **Ẩn / Hiện mật khẩu** với biểu tượng con mắt 👁️.
-
-- **Thanh Điều hướng (`Navbar`)**:
-  - Cập nhật Navbar để lấy tên User tự động hiển thị khi Đăng nhập thành công, sử dụng `AuthApiService` kết hợp Signals.
-  - Gỡ bỏ nút "Quản lý" mặc định hiển thị bừa bãi (bạn tự truy cập localhost/admin).
-  - Căn chỉnh lại giao diện cân đối, thêm Dropdown với nút "Đăng xuất" (Xóa Token và dọn dẹp state).
-  - Sửa một số lỗi cú pháp Typescript (`Object is possibly undefined` - lỗi TS2532) khi cắt chuỗi tên người dùng (`full_name`).
-
-## 3. Quản lý Server & Xử lý lỗi hệ thống
-
-- **Xử lý xung đột cổng (Port Conflict)**:
-  - Khắc phục lỗi `EADDRINUSE: address already in use :::3000` của NodeJS bằng lệnh Taskkill trên Windows. Giải phóng các phiên bản Node đang chạy ngầm và khởi động lại Server sạch sẽ.
-- **Khởi động đồng bộ**:
-  - Setup chạy thành công cả Backend (Port 3000) và Frontend (Port 4200) cùng lúc.
+**Dự án:** Web Thương Mại Điện Tử Hoa - KFlowerVN  
+**Domain:** kflowervn.site  
+**Stack:** Node.js (Express) + Angular + MySQL  
+**Ngày thực hiện:** 06/10/2026  
 
 ---
-## 4. Nâng cấp Trải nghiệm Người dùng (UX) và Bảo mật (Security) cho Menu Tài khoản
 
-- **Bảo mật và Định tuyến (Route Guards):**
-  - Tạo `AuthGuard` để chặn truy cập vào các trang yêu cầu đăng nhập. Nếu chưa đăng nhập, người dùng sẽ tự động bị điều hướng về trang đăng nhập kèm theo `returnUrl` (URL cũ muốn vào).
-  - Tạo `AdminGuard` để bảo vệ các trang quản trị (`/admin`). Nếu cố tình thay đổi URL trên thanh địa chỉ, người dùng thường sẽ bị đẩy về trang chủ.
-- **Xử lý Token và Đăng xuất (HTTP Interceptor & Multi-tab Sync):**
-  - Thêm `AuthInterceptor` để tự động bắt lỗi `401 Unauthorized` từ API. Khi nhận mã lỗi này, ứng dụng sẽ xóa Token nội bộ và đưa người dùng về trang đăng nhập.
-  - Lắng nghe sự kiện `storage` giữa các tab: Khi người dùng nhấn Đăng xuất ở tab A, tab B sẽ tự động phát hiện và thoát luôn phiên đăng nhập mà không cần f5.
-- **Tối ưu Hóa Giao diện Navbar (Avatar & Dropdown):**
-  - Chuyển nút Đăng nhập hiển thị tên gốc thành **Avatar hình tròn** lấy chữ cái đầu tiên của từ cuối cùng trong Tên gọi (chuẩn Tiếng Việt, vd "Thành Đạt" lấy chữ "Đ"), kèm màu sắc bắt mắt.
-  - Sửa menu dropdown: Thêm mục "Cài đặt tài khoản" cho User và tách biệt phần "Quản trị Admin" bằng đường kẻ ngăn (`border-t`) nổi bật màu sắc riêng biệt giúp người dùng không bị bấm nhầm.
-  - Tích hợp phím **Escape** để tự động đóng dropdown menu.
-  - Hoàn thiện toàn bộ các nhãn Accessibility (`aria-expanded`, `aria-label`) hỗ trợ đọc màn hình và điều hướng bàn phím tốt hơn.
-- **Chuẩn hóa Source Code:**
-  - Định nghĩa Type chuẩn cho quyền User thông qua khai báo `enum Role { ADMIN, STAFF, CUSTOMER }` thay vì so sánh string rải rác. Sửa `AuthApiService` để đảm bảo an toàn kiểu dữ liệu.
+## ✅ 1. CHUẨN BỊ DEPLOY LÊN HOSTING (cPanel)
+
+### Backend (NodeJS-Core-main)
+- Cập nhật `server.js` dùng `process.env.PORT` (tương thích cPanel)
+- Cập nhật `index.js`: thêm **CORS** cho domain production `kflowervn.site`, serve static Angular từ `/public`
+- Cập nhật `.gitignore` để loại trừ file nhạy cảm
+
+### Frontend (Angular)
+- Cập nhật `angular.json`: cấu hình production build, swap environment files
+- Tạo file `environment.production.ts` với `apiUrl` production
+- Tạo script `build-deploy.ps1` để build Angular và copy vào thư mục backend
+- Tạo file `DEPLOY_GUIDE.md` hướng dẫn từng bước deploy lên cPanel
 
 ---
-## 5. Chuyển đổi và Hoàn thiện UI/UX từ HTML tĩnh sang Angular
 
-Hoàn tất việc di chuyển các thiết kế HTML tĩnh từ file `index.html` cũ sang các component Angular, đảm bảo đồng bộ hoàn toàn về mặt thẩm mỹ và tương tác:
+## ✅ 2. FIX BUG GIỎ HÀNG TỰ ĐỘNG CÓ SẢN PHẨM KHI ĐĂNG NHẬP
 
-- **Chi tiết sản phẩm (Product Detail Page)**:
-  - Thiết kế lại layout 2 cột sang trọng.
-  - Thêm tính năng tính toán % giảm giá động, hiển thị voucher khuyến mãi, benefits cards (Giao miễn phí, Tặng thiệp, Giao nhanh).
-  - Tích hợp 4 tab nội dung: Chi tiết, Hoa ngữ (ý nghĩa), Vận chuyển, và Đánh giá (kèm biểu đồ sao).
-  - Thêm section "Sản phẩm tương tự" ở cuối trang.
-  
-- **Giỏ hàng (Cart Page)**:
-  - Xây dựng Desktop Table Layout với đầy đủ thông tin: Ảnh, Sản phẩm, Số lượng, Đơn giá, Tổng.
-  - Tích hợp Mobile Layout dạng danh sách thẻ (cards) hiển thị gọn gàng trên màn hình nhỏ.
-  - Logic tính toán: Tạm tính, VAT 8%, Phí giao hàng (miễn phí đơn > 800k), tính năng nhập mã giảm giá (VD: HOATUOI giảm 5%).
-  - Bổ sung thanh trạng thái tiến trình "Miễn phí giao hàng" sinh động.
-  
-- **Thanh toán (Checkout Page)**:
-  - Form đặt hàng hoàn chỉnh: Thông tin người nhận, Ngày giao, Khung giờ giao (08:00-12:00, 12:00-17:00, 17:00-21:00), Lời nhắn thiệp.
-  - Tích hợp lựa chọn phương thức thanh toán trực quan (Chuyển khoản, Momo/ZaloPay, COD, Thẻ).
-  - Tạo màn hình xác nhận đặt hoa thành công (Checkout Success View).
-  
-- **Hệ thống Thông báo (Toast Notification)**:
-  - Tạo `ToastService` sử dụng Signals để quản lý trạng thái thông báo toàn cục.
-  - Tạo `ToastComponent` hiển thị các thông báo dạng popup (như "Đã thêm vào giỏ hàng") mượt mà, tự động ẩn sau 3 giây. Tích hợp sẵn hiệu ứng CSS Animation `fade-in-up`.
-  - Tích hợp Toast vào `CartService` để phản hồi tức thì các thao tác giỏ hàng.
+**File:** `angular-app/src/app/core/services/cart.service.ts`  
+- Xoá hardcoded mock cart item "Bó Hồng Phấn" khỏi signal khởi tạo
+- Giỏ hàng ban đầu luôn rỗng khi đăng ký/đăng nhập mới
 
-*Báo cáo này được tự động cập nhật dựa trên ngữ cảnh công việc đã hoàn thành.*
+---
+
+## ✅ 3. FIX GIỎ HÀNG MẤT KHI F5 (RELOAD TRANG)
+
+**File:** `angular-app/src/app/core/services/cart.service.ts`  
+- Thêm `effect()` của Angular để **tự động lưu giỏ hàng vào `localStorage`** mỗi khi có thay đổi
+- Thêm hàm `loadCart()` để đọc lại từ `localStorage` khi trang tải lại
+- Key lưu: `kflower_cart`
+
+---
+
+## ✅ 4. HỆ THỐNG THANH TOÁN QR VIETQR + WEBHOOK
+
+### Database
+- Thêm cột `expires_at` (thời hạn thanh toán) vào bảng `orders`
+- Thêm cột `paid_at` (thời gian đã thanh toán) vào bảng `orders`
+- **Đã chạy migration thành công** — DB đã được cập nhật
+- Gộp 2 cột vào file migration gốc `create-orders.js` cho gọn
+
+### Backend — Payment Module mới (`modules/payment/`)
+
+#### `paymentService.js`
+- `buildVietQrUrl(orderNumber, amount)`: Tạo URL QR VietQR động theo từng đơn
+- `handleWebhook(headers, body)`: Xử lý webhook từ SePay/Casso
+  - Xác thực API Key bằng `crypto.timingSafeEqual` (chống timing attack)
+  - Nhận dạng mã đơn `FLW-xxx` trong nội dung chuyển khoản
+  - Dùng **Database Transaction + `SELECT ... FOR UPDATE`** chống race condition
+  - **Idempotency**: kiểm tra trùng `provider_transaction_id`
+  - Không tự duyệt khi thiếu tiền (UNDERPAID)
+- `getPaymentStatus(orderNumber)`: Lấy trạng thái + kiểm tra hết hạn
+- `expireStaleOrders()`: Cron — đánh dấu đơn hết hạn chưa thanh toán
+
+#### `paymentController.js`
+- `POST /api/payments/webhook` — Public, dùng API Key
+- `GET /api/payments/status/:orderNumber` — Yêu cầu JWT (để poll)
+
+### Backend — Cập nhật `orderService.js`
+- Tính và lưu `expires_at` khi tạo đơn (mặc định 15 phút, từ `ORDER_TTL_MINUTES`)
+- Nếu `payment_method === 'bank_transfer'` → tạo và trả về `qrUrl` trong response
+
+### Backend — Cron Job (`server.js`)
+- `setInterval` mỗi **5 phút** gọi `expireStaleOrders()` để dọn đơn hết hạn
+- Log SQL mỗi lần chạy để dễ debug
+
+### Frontend — `QrPaymentComponent` mới
+- Hiển thị ảnh QR VietQR với số tiền đúng của đơn
+- **Poll API** `GET /payments/status/:orderNumber` mỗi **3 giây** bằng `rxjs interval`
+- Tự động `unsubscribe` khi `payment_status === 'paid'`
+- Dùng `ApiService` (có Bearer token) để poll
+
+### Frontend — Cập nhật `checkout-page`
+- Khi chọn "Chuyển khoản ngân hàng" và xác nhận đặt hoa → gọi API backend thật (`POST /orders/checkout`)
+- Backend trả về `qrUrl` → hiển thị `QrPaymentComponent`
+- Khi poll phát hiện `paid` → tự chuyển sang màn hình "Đặt hoa thành công"
+- Fix lỗi Angular compile: thay `[class.border-[...]]` bằng `[ngClass]`
+
+### Biến môi trường mới (.env)
+```
+VIETQR_BANK_ID=MB
+VIETQR_ACCOUNT_NO=0123456789
+VIETQR_ACCOUNT_NAME=KFLOWERVN
+WEBHOOK_API_KEY=your_secret_key
+ORDER_TTL_MINUTES=15
+```
+
+---
+
+## 📌 VIỆC BẠN CẦN LÀM TIẾP
+
+### Cấu hình tài khoản ngân hàng thật
+Mở file `.env` (local) và `.env.production` (hosting), điền:
+- `VIETQR_BANK_ID` — Mã ngân hàng (VD: VCB, MB, TCB, ACB...)
+- `VIETQR_ACCOUNT_NO` — Số tài khoản thật của bạn
+- `VIETQR_ACCOUNT_NAME` — Tên chủ tài khoản (không dấu)
+
+> Tra cứu mã ngân hàng tại: https://api.vietqr.io/v2/banks
+
+### Đăng ký dịch vụ Webhook (1 trong 3)
+| Dịch vụ | Link | Xác thực |
+|---|---|---|
+| **SePay** (khuyên dùng) | https://sepay.vn | API Key (Header) |
+| **Casso** | https://casso.vn | API Key (Header) |
+| **payOS** | https://payos.vn | Checksum (cần đổi logic xác thực) |
+
+**Cấu hình webhook:**
+- URL: `https://kflowervn.site/api/payments/webhook`
+- Method: POST
+- API Key: giá trị bạn đặt trong `WEBHOOK_API_KEY`
+
+### Test thử
+1. Thêm sản phẩm vào giỏ, đăng nhập, vào trang thanh toán
+2. Chọn "Chuyển khoản ngân hàng" → Xác nhận đặt hoa
+3. Màn hình QR hiện ra
+4. Mở DataGrip/MySQL Workbench → sửa `payment_status = 'paid'` trong bảng `orders`
+5. Sau 3 giây, web tự động chuyển sang "Đặt hoa thành công" ✅
+
+---
+
+## 📂 DANH SÁCH FILE ĐÃ THAY ĐỔI
+
+| File | Loại thay đổi |
+|---|---|
+| `NodeJS-Core-main/server.js` | Cập nhật PORT động + thêm cron |
+| `NodeJS-Core-main/index.js` | CORS production + serve Angular |
+| `NodeJS-Core-main/.env` | Thêm biến VietQR/Webhook |
+| `NodeJS-Core-main/.env.production` | Thêm biến VietQR/Webhook |
+| `NodeJS-Core-main/.env.example` | Thêm biến VietQR/Webhook |
+| `NodeJS-Core-main/models/order.js` | Thêm `expires_at`, `paid_at` |
+| `NodeJS-Core-main/database/migrations/20260921000018-create-orders.js` | Thêm `expires_at`, `paid_at` |
+| `NodeJS-Core-main/modules/order/services/orderService.js` | Thêm QR URL + expires_at khi tạo đơn |
+| `NodeJS-Core-main/modules/payment/services/paymentService.js` | **Tạo mới** — Logic QR + Webhook |
+| `NodeJS-Core-main/modules/payment/controllers/paymentController.js` | **Tạo mới** |
+| `NodeJS-Core-main/routes/api.js` | Thêm payment routes |
+| `NodeJS-Core-main/thuong_mai_hoa.sql` | Thêm `expires_at`, `paid_at` vào schema |
+| `angular-app/src/app/core/services/cart.service.ts` | Fix giỏ hàng: localStorage persist + xoá mock data |
+| `angular-app/src/app/cart/qr-payment/qr-payment.component.ts` | **Tạo mới** — Component QR poll |
+| `angular-app/src/app/cart/qr-payment/qr-payment.component.html` | **Tạo mới** |
+| `angular-app/src/app/cart/checkout-page/checkout-page.component.ts` | Gọi API thật + xử lý QR flow |
+| `angular-app/src/app/cart/checkout-page/checkout-page.component.html` | Tích hợp QrPaymentComponent + fix lỗi compile |
+| `angular-app/src/app/cart/cart.module.ts` | Đăng ký QrPaymentComponent |
+| `angular-app/angular.json` | Cấu hình production build |
+| `angular-app/src/environments/environment.production.ts` | URL production |
+| `build-deploy.ps1` | Script build & deploy |
+| `DEPLOY_GUIDE.md` | Hướng dẫn deploy cPanel |

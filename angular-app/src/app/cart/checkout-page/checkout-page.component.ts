@@ -2,6 +2,13 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { LangService } from '../../core/services/lang.service';
 import { CartService } from '../../core/services/cart.service';
+import { OrderApiService } from '../../core/services/order-api.service';
+
+export interface SavedProfile {
+  name: string;
+  phone: string;
+  address: string;
+}
 
 @Component({
   selector: 'app-checkout-page',
@@ -14,15 +21,25 @@ export class CheckoutPageComponent implements OnInit {
   cartService = inject(CartService);
   router = inject(Router);
 
-  name = 'Nguyễn Thùy Linh';
-  phone = '0908 123 456';
-  address = 'Tầng 12, Tòa nhà Bitexco, Q.1, TP.HCM';
+  name = '';
+  phone = '';
+  address = '';
   deliveryDate = '';
   deliveryTime = '08:00-12:00';
-  cardMessage = 'Chúc mừng sinh nhật em yêu!';
-  paymentMethod = 'cod';
+  cardMessage = '';
+  paymentMethod: 'bank_transfer' | 'cod' | 'momo' | 'zalopay' | 'ewallet' | 'card' = 'bank_transfer';
+  
+  savedProfiles: SavedProfile[] = [];
   
   isSuccess = false;
+  finalTotal = 0;
+  
+  // Trạng thái QR và thanh toán
+  isPendingPayment = false;
+  orderNumber = '';
+  qrCodeUrl = '';
+
+  orderApiService = inject(OrderApiService);
 
   get vi(): boolean {
     return this.langService.currentLang() === 'vi';
@@ -33,6 +50,46 @@ export class CheckoutPageComponent implements OnInit {
     this.deliveryDate = today.toISOString().split('T')[0];
     if (this.cartService.cartItems().length === 0 && !this.isSuccess) {
       this.router.navigate(['/cart']);
+    }
+    
+    const profilesJson = localStorage.getItem('savedProfiles');
+    if (profilesJson) {
+      try {
+        this.savedProfiles = JSON.parse(profilesJson);
+      } catch (e) {}
+    }
+  }
+
+  onProfileSelect(event: any) {
+    const index = event.target.value;
+    if (index !== '') {
+      const p = this.savedProfiles[index];
+      if (p) {
+        this.name = p.name;
+        this.phone = p.phone;
+        this.address = p.address;
+      }
+    } else {
+      this.name = '';
+      this.phone = '';
+      this.address = '';
+    }
+  }
+
+  saveProfileToLocal() {
+    const newProfile: SavedProfile = {
+      name: this.name,
+      phone: this.phone,
+      address: this.address
+    };
+    
+    const exists = this.savedProfiles.find(p => p.name === newProfile.name && p.phone === newProfile.phone && p.address === newProfile.address);
+    if (!exists) {
+      this.savedProfiles.unshift(newProfile);
+      if (this.savedProfiles.length > 5) {
+        this.savedProfiles.pop();
+      }
+      localStorage.setItem('savedProfiles', JSON.stringify(this.savedProfiles));
     }
   }
 
@@ -63,7 +120,43 @@ export class CheckoutPageComponent implements OnInit {
       return;
     }
     
-    // Simulate order placement
+    const payload = {
+      recipient_name: this.name,
+      recipient_phone: this.phone,
+      delivery_address: this.address,
+      delivery_date: this.deliveryDate,
+      card_message: this.cardMessage,
+      payment_method: this.paymentMethod as any,
+      note: ''
+    };
+
+    // Store final total before clearing cart
+    this.finalTotal = this.total;
+
+    this.orderApiService.checkout(payload).subscribe({
+      next: (res: any) => {
+        const orderData = res.data || res;
+        this.orderNumber = orderData.order_number;
+        this.saveProfileToLocal();
+        
+        if (this.paymentMethod === 'bank_transfer' && orderData.qrUrl) {
+          this.qrCodeUrl = orderData.qrUrl;
+          this.isPendingPayment = true;
+          this.cartService.clearCart();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          this.handlePaymentSuccess();
+        }
+      },
+      error: (err) => {
+        console.error("Lỗi đặt hàng", err);
+        alert(this.vi ? 'Có lỗi xảy ra, vui lòng thử lại!' : '오류가 발생했습니다. 다시 시도해주세요!');
+      }
+    });
+  }
+
+  handlePaymentSuccess() {
+    this.isPendingPayment = false;
     this.isSuccess = true;
     this.cartService.clearCart();
     window.scrollTo({ top: 0, behavior: 'smooth' });

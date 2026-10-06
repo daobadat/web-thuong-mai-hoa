@@ -78,8 +78,8 @@ export class CartPageComponent {
     }
   }
 
-  updateNote(productId: number, note: string) {
-    const item = this.cartService.cartItems().find(i => i.product.id === productId);
+  updateNote(productId: string, note: string) {
+    const item = this.cartService.cartItems().find(i => String(i.product.id) === String(productId));
     if (item) {
       this.cartService.updateItemNote(productId, note);
     }

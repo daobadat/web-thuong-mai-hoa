@@ -3,7 +3,7 @@ export type Page = 'home' | 'shop' | 'cart' | 'checkout' | 'product' | 'order-tr
 export type OccasionKey = 'birthday' | 'opening' | 'wedding' | 'corporate' | 'chuseok' | 'valentine';
 
 export interface Product {
-  id: number;
+  id: string;
   nameVi: string;
   nameKo: string;
   price: number;
@@ -21,6 +21,7 @@ export interface Product {
 }
 
 export interface CartItem {
+  id?: string | number;
   product: Product;
   qty: number;
   note: string;

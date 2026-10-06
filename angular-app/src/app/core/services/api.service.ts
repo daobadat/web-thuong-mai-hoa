@@ -17,6 +17,14 @@ export class ApiService {
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
+    
+    let sessionId = localStorage.getItem('session_id');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('session_id', sessionId);
+    }
+    headers = headers.set('x-session-id', sessionId);
+    
     return headers;
   }
 

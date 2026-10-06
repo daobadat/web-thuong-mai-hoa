@@ -96,6 +96,14 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      expires_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      paid_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,

@@ -1,0 +1,19 @@
+<div class="mb-8 p-6 bg-white border border-[#E4D9C8] rounded-2xl shadow-sm max-w-[300px] mx-auto text-center animate-fade-in-up">
+  <h3 class="font-semibold text-[#2B2A26] mb-4">{{ vi ? 'Quét mã QR để thanh toán' : '결제를 위한 QR 코드 스캔' }}</h3>
+  
+  <div class="relative inline-block mb-4">
+    <img [src]="qrUrl" alt="QR Code Thanh Toán" class="w-full object-contain rounded-xl border border-[#E4D9C8] p-2 bg-white">
+    <!-- Overlay loader for polling indication -->
+    <div class="absolute -top-2 -right-2 w-6 h-6 bg-[#6E2A34] rounded-full flex items-center justify-center animate-pulse">
+      <div class="w-2 h-2 bg-white rounded-full"></div>
+    </div>
+  </div>
+
+  <p class="text-sm text-[#7A7163]">{{ vi ? 'Số tiền:' : '금액:' }} <span class="font-bold text-[#6E2A34] text-lg">{{ formatPrice(amount) }}đ</span></p>
+  <p class="text-xs text-[#7A7163] mt-2 bg-[#F4EDE3] p-2 rounded-lg">
+    {{ vi ? 'Vui lòng kiểm tra đúng số tiền và nội dung chuyển khoản' : '금액 및 송금 내용을 확인하십시오' }}
+  </p>
+  <p class="text-xs text-[#6E2A34] mt-3 animate-pulse font-medium">
+    {{ vi ? 'Đang chờ thanh toán...' : '결제 대기 중...' }}
+  </p>
+</div>

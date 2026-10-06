@@ -248,6 +248,8 @@ CREATE TABLE `orders` (
   `notes` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `expires_at` datetime NULL,
+  `paid_at` datetime NULL,
   PRIMARY KEY (`id`)
 ) COMMENT = 'recipient_* fields tach rieng khoi user_id - nguoi mua va nguoi nhan thuong khac nhau trong flower gifting.';
 
