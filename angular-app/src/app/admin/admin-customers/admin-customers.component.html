@@ -4,10 +4,52 @@
       <h1 class="font-serif text-3xl text-[#2C1A2E]">Khách hàng</h1>
       <p class="text-sm text-[#7A6870] mt-0.5">{{ customers.length }} khách · {{ totalKorean }} người Hàn</p>
     </div>
-    <div class="relative max-w-xs">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6870]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-      <input type="text" placeholder="Tìm khách hàng..." [(ngModel)]="search"
-             class="pl-9 pr-4 py-2.5 w-full bg-white border border-[#DDD4CC] rounded-xl text-sm focus:outline-none focus:border-[#8B4A5C]" />
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+      <div class="relative flex-1 sm:flex-none sm:w-64">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A6870]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <input type="text" placeholder="Tìm khách hàng..." [(ngModel)]="search"
+               class="pl-9 pr-4 py-2 w-full bg-white border border-[#DDD4CC] rounded-xl text-sm focus:outline-none focus:border-[#8B4A5C]" />
+      </div>
+      <button (click)="toggleAdd()" class="px-4 py-2 bg-[#8B4A5C] hover:bg-[#6E2A34] text-white text-sm font-semibold rounded-xl transition-colors whitespace-nowrap">
+        + Thêm Khách Hàng
+      </button>
+    </div>
+  </div>
+
+  <!-- Add Customer Form -->
+  <div *ngIf="showAdd" class="bg-white p-5 rounded-2xl border border-[#EDE5DF] shadow-sm mb-6">
+    <h2 class="font-serif text-lg text-[#2C1A2E] mb-4">Thêm Khách Hàng Mới</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-[#7A6870] mb-1">Tên khách hàng</label>
+        <input [(ngModel)]="newCustomer.full_name" type="text" class="w-full px-3 py-2 border border-[#DDD4CC] rounded-lg text-sm focus:outline-none focus:border-[#8B4A5C]">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-[#7A6870] mb-1">Số điện thoại</label>
+        <input [(ngModel)]="newCustomer.phone" type="text" class="w-full px-3 py-2 border border-[#DDD4CC] rounded-lg text-sm focus:outline-none focus:border-[#8B4A5C]">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-[#7A6870] mb-1">Email</label>
+        <input [(ngModel)]="newCustomer.email" type="email" class="w-full px-3 py-2 border border-[#DDD4CC] rounded-lg text-sm focus:outline-none focus:border-[#8B4A5C]">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-[#7A6870] mb-1">Mật khẩu</label>
+        <input [(ngModel)]="newCustomer.password" type="text" class="w-full px-3 py-2 border border-[#DDD4CC] rounded-lg text-sm focus:outline-none focus:border-[#8B4A5C]" placeholder="Mặc định: 123456">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-[#7A6870] mb-1">Vai trò</label>
+        <select [(ngModel)]="newCustomer.role" class="w-full px-3 py-2 border border-[#DDD4CC] rounded-lg text-sm focus:outline-none focus:border-[#8B4A5C]">
+          <option value="customer">Khách hàng</option>
+          <option value="staff">Nhân viên</option>
+          <option *ngIf="isAdmin" value="admin">Quản trị viên</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3 mt-4">
+      <button (click)="cancelAdd()" class="px-4 py-2 text-[#7A6870] hover:text-[#2C1A2E] text-sm font-medium transition-colors">Hủy</button>
+      <button (click)="addCustomer()" class="px-5 py-2 bg-[#8B4A5C] hover:bg-[#6E2A34] text-white text-sm font-semibold rounded-xl transition-colors">
+        Lưu Khách Hàng
+      </button>
     </div>
   </div>
 
@@ -31,7 +73,7 @@
       <table class="w-full text-sm">
         <thead class="bg-[#F3ECE7]">
           <tr>
-            <th *ngFor="let h of ['Khách hàng', 'Liên hệ', 'Thành phố', 'Ngôn ngữ', 'Số đơn', 'Chi tiêu', 'Đơn cuối']"
+            <th *ngFor="let h of ['Khách hàng', 'Liên hệ', 'Vai trò', 'Ngôn ngữ', 'Số đơn', 'Chi tiêu', 'Thao tác']"
                 class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
               {{ h }}
             </th>
@@ -39,28 +81,76 @@
         </thead>
         <tbody class="divide-y divide-[#EDE5DF]">
           <tr *ngFor="let c of filteredCustomers" class="hover:bg-[#FAF7F2] transition-colors">
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-[#F3ECE7] flex items-center justify-center text-sm font-serif text-[#8B4A5C] flex-shrink-0">
-                  {{ c.name[0] }}
+            
+            <!-- Edit Mode -->
+            <ng-container *ngIf="editId === c.id">
+              <td class="px-4 py-3">
+                <input [ngModel]="c.name" (ngModelChange)="saveEditString(c.id, 'name', $event)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm mb-1" placeholder="Tên">
+              </td>
+              <td class="px-4 py-3">
+                <input [ngModel]="c.phone" (ngModelChange)="saveEditString(c.id, 'phone', $event)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm mb-1" placeholder="Phone">
+                <input [ngModel]="c.email" (ngModelChange)="saveEditString(c.id, 'email', $event)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="Email">
+              </td>
+              <td class="px-4 py-3">
+                <select [ngModel]="c.role" (ngModelChange)="saveEditString(c.id, 'role', $event)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                  <option value="customer">Khách hàng</option>
+                  <option value="staff">Nhân viên</option>
+                  <option *ngIf="isAdmin" value="admin">Quản trị viên</option>
+                </select>
+              </td>
+              <td class="px-4 py-3">
+                <select [ngModel]="c.lang" (ngModelChange)="saveEditString(c.id, 'lang', $event)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                  <option value="vi">VI</option>
+                  <option value="ko">KR</option>
+                </select>
+              </td>
+              <td class="px-4 py-3 text-[#2C1A2E] text-sm">{{ c.orders }}</td>
+              <td class="px-4 py-3 text-[#8B4A5C] text-sm">{{ fmt(c.totalSpent) }}đ</td>
+              <td class="px-4 py-3">
+                <button (click)="setEditId(c.id)" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-semibold">Xong</button>
+              </td>
+            </ng-container>
+
+            <!-- View Mode -->
+            <ng-container *ngIf="editId !== c.id">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-[#F3ECE7] flex items-center justify-center text-sm font-serif text-[#8B4A5C] flex-shrink-0">
+                    {{ c.name[0] }}
+                  </div>
+                  <span class="font-medium text-[#2C1A2E] whitespace-nowrap">{{ c.name }}</span>
                 </div>
-                <span class="font-medium text-[#2C1A2E] whitespace-nowrap">{{ c.name }}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              <div class="text-[#2C1A2E]">{{ c.phone }}</div>
-              <div class="text-xs text-[#7A6870]">{{ c.email }}</div>
-            </td>
-            <td class="px-4 py-3 text-[#7A6870] whitespace-nowrap">{{ c.city }}</td>
-            <td class="px-4 py-3">
-              <span class="text-xs px-2 py-0.5 rounded-full font-medium"
-                    [ngClass]="c.lang === 'ko' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
-                {{ c.lang === 'ko' ? '🇰🇷 한국어' : '🇻🇳 Tiếng Việt' }}
-              </span>
-            </td>
-            <td class="px-4 py-3 font-medium text-[#2C1A2E]">{{ c.orders }}</td>
-            <td class="px-4 py-3 font-serif text-[#8B4A5C] whitespace-nowrap">{{ fmt(c.totalSpent) }}đ</td>
-            <td class="px-4 py-3 text-[#7A6870] whitespace-nowrap">{{ c.lastOrder }}</td>
+              </td>
+              <td class="px-4 py-3">
+                <div class="text-[#2C1A2E]">{{ c.phone }}</div>
+                <div class="text-xs text-[#7A6870]">{{ c.email }}</div>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                      [ngClass]="c.role === 'admin' ? 'bg-red-100 text-red-700' : c.role === 'staff' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'">
+                  {{ c.role === 'admin' ? '👑 Quản trị viên' : c.role === 'staff' ? '💼 Nhân viên' : '👤 Khách hàng' }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                      [ngClass]="c.lang === 'ko' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
+                  {{ c.lang === 'ko' ? '🇰🇷 한국어' : '🇻🇳 Tiếng Việt' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 font-medium text-[#2C1A2E]">{{ c.orders }}</td>
+              <td class="px-4 py-3 font-serif text-[#8B4A5C] whitespace-nowrap">{{ fmt(c.totalSpent) }}đ</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <button *ngIf="isAdmin || c.role !== 'admin'" (click)="setEditId(c.id)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Sửa">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  </button>
+                  <button *ngIf="isAdmin || c.role !== 'admin'" (click)="deleteCustomer(c.id)" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Xóa">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                  <span *ngIf="!isAdmin && c.role === 'admin'" class="text-xs text-gray-400 italic">Không có quyền</span>
+                </div>
+              </td>
+            </ng-container>
           </tr>
         </tbody>
       </table>

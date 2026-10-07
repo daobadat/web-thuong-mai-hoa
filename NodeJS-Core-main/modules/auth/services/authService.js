@@ -32,6 +32,7 @@ const authService = {
         full_name: newUser.full_name,
         phone: newUser.phone,
         role: newUser.role,
+        has_password: true,
       },
       token,
       refreshToken,
@@ -49,6 +50,13 @@ const authService = {
     if (!user.is_active) {
       const error = new Error("Account has been disabled");
       error.statusCode = 403;
+      throw error;
+    }
+
+    // Nếu user tạo qua google không có password
+    if (!user.password_hash) {
+      const error = new Error("Tài khoản này được đăng nhập bằng Google. Vui lòng đăng nhập bằng Google.");
+      error.statusCode = 401;
       throw error;
     }
 
@@ -73,6 +81,7 @@ const authService = {
         full_name: user.full_name,
         phone: user.phone,
         role: user.role,
+        has_password: true,
       },
       token,
       refreshToken,
@@ -80,15 +89,17 @@ const authService = {
   },
 
   getProfile: async (userId) => {
-    const user = await User.findByPk(userId, {
-      attributes: { exclude: ["password_hash"] },
-    });
+    const user = await User.findByPk(userId);
     if (!user) {
       const error = new Error("User not found");
       error.statusCode = 404;
       throw error;
     }
-    return user;
+    
+    const userObj = user.toJSON();
+    userObj.has_password = !!userObj.password_hash;
+    delete userObj.password_hash;
+    return userObj;
   },
 };
 

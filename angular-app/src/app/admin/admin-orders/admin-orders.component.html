@@ -140,6 +140,10 @@
           Huỷ đơn
         </button>
       </div>
+      <button (click)="deleteOrder(selected.id)"
+              class="w-full py-2 bg-red-600 text-white font-medium text-sm rounded-xl hover:bg-red-700 transition-colors mt-2">
+        Xóa đơn hàng
+      </button>
     </div>
 
     <div *ngIf="!selected" class="bg-white rounded-2xl border border-[#EDE5DF] p-5 flex items-center justify-center text-[#7A6870] text-sm h-40">

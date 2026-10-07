@@ -16,6 +16,7 @@ export interface AuthUser {
   role: Role;
   preferred_language?: string;
   avatar_url?: string;
+  has_password?: boolean;
 }
 
 export interface LoginResponse {

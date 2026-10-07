@@ -13,9 +13,12 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // Token expired or invalid
-          this.authApi.logout();
-          this.router.navigate(['/auth/login']);
+          // Chỉ redirect khi user đang đăng nhập (có token) nhưng token hết hạn
+          // Không redirect nếu user chưa đăng nhập đang duyệt trang public
+          if (this.authApi.isLoggedIn()) {
+            this.authApi.logout();
+            this.router.navigate(['/auth/login']);
+          }
         }
         return throwError(() => error);
       })

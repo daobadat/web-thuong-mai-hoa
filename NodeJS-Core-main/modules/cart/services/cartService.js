@@ -3,10 +3,40 @@ const { Cart, CartItem, Product, ProductTranslation, ProductVariant, ProductImag
 const cartService = {
   getOrCreateCart: async (userId, sessionId = null) => {
     let cart = null;
+    let guestCart = null;
+
+    if (sessionId) {
+      guestCart = await Cart.findOne({ where: { session_id: sessionId, user_id: null } });
+    }
+
     if (userId) {
       cart = await Cart.findOne({ where: { user_id: userId } });
+      
+      if (cart && guestCart) {
+        // Merge guest items into user cart
+        const guestItems = await CartItem.findAll({ where: { cart_id: guestCart.id } });
+        for (let item of guestItems) {
+          let existingItem = await CartItem.findOne({ 
+            where: { cart_id: cart.id, product_id: item.product_id, variant_id: item.variant_id } 
+          });
+          if (existingItem) {
+            existingItem.quantity += item.quantity;
+            await existingItem.save();
+            await item.destroy();
+          } else {
+            item.cart_id = cart.id;
+            await item.save();
+          }
+        }
+        await guestCart.destroy();
+      } else if (!cart && guestCart) {
+        // Assign guest cart to user
+        guestCart.user_id = userId;
+        await guestCart.save();
+        cart = guestCart;
+      }
     } else if (sessionId) {
-      cart = await Cart.findOne({ where: { session_id: sessionId } });
+      cart = guestCart;
     }
 
     if (!cart) {

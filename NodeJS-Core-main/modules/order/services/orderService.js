@@ -294,6 +294,19 @@ const orderService = {
 
     return orderService.getOrderById(orderId);
   },
+
+  destroyOrder: async (orderId) => {
+    const order = await Order.findByPk(orderId);
+    if (!order) {
+      const error = new Error("Order not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    await OrderItem.destroy({ where: { order_id: orderId } });
+    await OrderStatusHistory.destroy({ where: { order_id: orderId } });
+    await order.destroy();
+    return true;
+  },
 };
 
 module.exports = orderService;

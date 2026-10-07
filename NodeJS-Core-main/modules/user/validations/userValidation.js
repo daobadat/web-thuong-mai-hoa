@@ -8,6 +8,10 @@ const userValidation = {
     new BodyWithLocale("district").notEmpty(),
     new BodyWithLocale("city").notEmpty(),
   ],
+  changePassword: [
+    new BodyWithLocale("old_password").notEmpty(),
+    new BodyWithLocale("new_password").notEmpty().isLength({ min: 6 }),
+  ]
 };
 
 module.exports = userValidation;

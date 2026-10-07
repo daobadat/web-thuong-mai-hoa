@@ -6,73 +6,77 @@ import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
 import { CurrencyVndPipe } from '../../shared/pipes/currency-vnd.pipe';
 import { OccasionKey } from '../../core/models';
+import { OCC, OCC_ICONS, OCCASION_KEYS } from '../../core/data/products';
 
 @Component({
   selector: 'app-shop',
   standalone: true,
   imports: [CommonModule, RouterLink, CurrencyVndPipe],
   template: `
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <main class="site-container py-10 space-y-8">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 class="text-3xl font-serif font-bold text-gray-900">{{ langService.t.shopTitle }}</h1>
-          <p class="text-xs text-gray-500 mt-1">Khám phá các bộ sưu tập hoa tươi mới cắt cành</p>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ langService.currentLang() === 'vi' ? 'Khám phá các bộ sưu tập hoa tươi mới cắt cành' : '다양한 신선한 꽃 컬렉션을 살펴보세요' }}
+          </p>
         </div>
 
         <!-- Filter Occasions Pill Bar -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-2">
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 flex-wrap">
           <button
             (click)="setOccasion('all')"
-            [class.bg-[#7A2838]]="productService.selectedOccasion() === 'all'"
+            [class.bg-[#6E2A34]]="productService.selectedOccasion() === 'all'"
             [class.text-white]="productService.selectedOccasion() === 'all'"
             [class.bg-white]="productService.selectedOccasion() !== 'all'"
             [class.text-gray-700]="productService.selectedOccasion() !== 'all'"
-            class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-rose-100 transition-all whitespace-nowrap"
+            class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-[#E4D9C8] transition-all whitespace-nowrap hover:bg-[#F4EDE3]"
           >
             {{ langService.t.filterAll }}
           </button>
           <button
             (click)="setOccasion('sale')"
-            [class.bg-[#7A2838]]="productService.selectedOccasion() === 'sale'"
+            [class.bg-[#6E2A34]]="productService.selectedOccasion() === 'sale'"
             [class.text-white]="productService.selectedOccasion() === 'sale'"
             [class.bg-white]="productService.selectedOccasion() !== 'sale'"
-            [class.text-gray-700]="productService.selectedOccasion() !== 'sale'"
-            class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-rose-100 transition-all whitespace-nowrap"
+            [class.text-[#6E2A34]]="productService.selectedOccasion() !== 'sale'"
+            class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-[#E4D9C8] transition-all whitespace-nowrap hover:bg-[#F4EDE3]"
           >
             🔥 {{ langService.t.navSale }}
           </button>
           <button
-            *ngFor="let k of occasions"
+            *ngFor="let k of occasionKeys"
             (click)="setOccasion(k)"
-            [class.bg-[#7A2838]]="productService.selectedOccasion() === k"
+            [class.bg-[#6E2A34]]="productService.selectedOccasion() === k"
             [class.text-white]="productService.selectedOccasion() === k"
             [class.bg-white]="productService.selectedOccasion() !== k"
             [class.text-gray-700]="productService.selectedOccasion() !== k"
-            class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-rose-100 transition-all whitespace-nowrap"
+            class="px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-[#E4D9C8] transition-all whitespace-nowrap hover:bg-[#F4EDE3] flex items-center gap-1"
           >
+            <span>{{ getOccasionIcon(k) }}</span>
             {{ getOccasionTitle(k) }}
           </button>
         </div>
       </div>
 
       <!-- Categories Tabs -->
-      <div class="flex items-center gap-4 border-b border-rose-100 pb-4 text-xs font-bold">
+      <div class="flex items-center gap-6 border-b border-[#E4D9C8] pb-0 text-xs font-bold overflow-x-auto">
         <button
           (click)="setCategory('all')"
-          [class.text-[#7A2838]]="productService.selectedCategory() === 'all'"
+          [class.text-[#6E2A34]]="productService.selectedCategory() === 'all'"
+          [class.border-[#6E2A34]]="productService.selectedCategory() === 'all'"
           [class.border-b-2]="productService.selectedCategory() === 'all'"
-          [class.border-[#7A2838]]="productService.selectedCategory() === 'all'"
-          class="pb-2 text-gray-500 hover:text-gray-900"
+          class="pb-3 text-gray-500 hover:text-gray-900 whitespace-nowrap transition-colors"
         >
           {{ langService.t.filterAll }}
         </button>
         <button
           *ngFor="let cat of ['bouquet', 'box', 'basket', 'stand']"
           (click)="setCategory(cat)"
-          [class.text-[#7A2838]]="productService.selectedCategory() === cat"
+          [class.text-[#6E2A34]]="productService.selectedCategory() === cat"
+          [class.border-[#6E2A34]]="productService.selectedCategory() === cat"
           [class.border-b-2]="productService.selectedCategory() === cat"
-          [class.border-[#7A2838]]="productService.selectedCategory() === cat"
-          class="pb-2 text-gray-500 hover:text-gray-900"
+          class="pb-3 text-gray-500 hover:text-gray-900 whitespace-nowrap transition-colors"
         >
           {{ getCategoryName(cat) }}
         </button>
@@ -80,21 +84,25 @@ import { OccasionKey } from '../../core/models';
 
       <!-- Products Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div *ngIf="productService.filteredProducts().length === 0" class="col-span-full text-center py-16 text-gray-400">
+          <span class="text-5xl block mb-4">🌸</span>
+          <p class="text-sm">{{ langService.currentLang() === 'vi' ? 'Không tìm thấy sản phẩm phù hợp.' : '해당 상품이 없습니다.' }}</p>
+        </div>
         <div
           *ngFor="let p of productService.filteredProducts()"
-          class="bg-white rounded-2xl overflow-hidden border border-rose-100 shadow-sm hover:shadow-xl transition-all flex flex-col group"
+          class="bg-white rounded-2xl overflow-hidden border border-[#E4D9C8] shadow-sm hover:shadow-xl transition-all flex flex-col group"
         >
           <div class="relative overflow-hidden aspect-[4/5]">
             <img [src]="p.img" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" [alt]="p.nameVi">
             <span *ngIf="p.isNew" class="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
               {{ langService.t.badge.new }}
             </span>
-            <span *ngIf="p.isPopular" class="absolute top-3 left-3 bg-[#7A2838] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+            <span *ngIf="p.isPopular && !p.isNew" class="absolute top-3 left-3 bg-[#6E2A34] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
               {{ langService.t.badge.popular }}
             </span>
           </div>
           <div class="p-5 flex flex-col flex-1">
-            <a [routerLink]="['/product', p.id]" class="font-bold text-gray-900 hover:text-[#7A2838] font-serif text-base line-clamp-1">
+            <a [routerLink]="['/product', p.id]" class="font-bold text-gray-900 hover:text-[#6E2A34] font-serif text-base line-clamp-1">
               {{ langService.currentLang() === 'ko' ? p.nameKo : p.nameVi }}
             </a>
             <p class="text-xs text-gray-500 mt-1 line-clamp-2">
@@ -102,7 +110,7 @@ import { OccasionKey } from '../../core/models';
             </p>
             <div class="mt-auto pt-4 flex items-center justify-between">
               <div>
-                <span class="text-[#7A2838] font-bold text-lg">
+                <span class="text-[#6E2A34] font-bold text-lg">
                   {{ p.price | currencyVnd:(langService.currentLang() === 'ko') }}
                 </span>
                 <span *ngIf="p.originalPrice" class="block text-xs text-gray-400 line-through">
@@ -111,9 +119,9 @@ import { OccasionKey } from '../../core/models';
               </div>
               <button
                 (click)="cartService.addToCart(p)"
-                class="px-4 py-2 bg-rose-50 hover:bg-[#7A2838] text-[#7A2838] hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                class="px-4 py-2 bg-[#F4EDE3] hover:bg-[#6E2A34] text-[#6E2A34] hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
               >
-                <i class="ri-shopping-bag-line"></i>
+                🛒
                 <span>{{ langService.t.addCart }}</span>
               </button>
             </div>
@@ -129,7 +137,7 @@ export class ShopComponent {
   cartService = inject(CartService);
   productService = inject(ProductService);
 
-  occasions: OccasionKey[] = ['birthday', 'opening', 'wedding', 'corporate', 'chuseok', 'valentine'];
+  occasionKeys: OccasionKey[] = OCCASION_KEYS;
 
   setOccasion(occ: any) {
     this.productService.selectedOccasion.set(occ);
@@ -139,25 +147,30 @@ export class ShopComponent {
     this.productService.selectedCategory.set(cat);
   }
 
-  getOccasionTitle(k: OccasionKey) {
-    const titles: Record<OccasionKey, string> = {
-      birthday: 'Hoa Sinh Nhật',
-      opening: 'Hoa Khai Trương',
-      wedding: 'Hoa Cưới Hỏi',
-      corporate: 'Quà Doanh Nghiệp',
-      chuseok: 'Hoa Chuseok',
-      valentine: 'Valentine'
-    };
-    return titles[k] || k;
+  getOccasionIcon(k: OccasionKey): string {
+    return OCC_ICONS[k] || '🌸';
+  }
+
+  getOccasionTitle(k: OccasionKey): string {
+    const lang = this.langService.currentLang();
+    return OCC[k] ? OCC[k][lang] : k;
   }
 
   getCategoryName(cat: string) {
-    const map: Record<string, string> = {
+    const vi: Record<string, string> = {
       bouquet: 'Bó hoa',
       box: 'Hộp hoa',
       basket: 'Giỏ hoa',
       stand: 'Kệ hoa'
     };
+    const ko: Record<string, string> = {
+      bouquet: '꽃다발',
+      box: '플라워 박스',
+      basket: '꽃바구니',
+      stand: '화환'
+    };
+    const map = this.langService.currentLang() === 'ko' ? ko : vi;
     return map[cat] || cat;
   }
 }
+

@@ -37,6 +37,8 @@ export class ApiService {
     this.accessToken.set(null);
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
+    localStorage.removeItem('session_id');
+    localStorage.removeItem('cart_session_id');
   }
 
   get<T>(endpoint: string, params?: Record<string, any>): Observable<T> {

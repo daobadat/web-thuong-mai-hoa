@@ -45,9 +45,22 @@ router.group("/auth", (router) => {
 // =====================================================================
 router.group("/user", middlewares([authenticated]), (router) => {
   router.put("/profile", userController.updateProfile);
+  router.put("/change-password", validate([userValidation.changePassword]), userController.changePassword);
   router.get("/addresses", userController.listAddresses);
   router.post("/addresses", validate([userValidation.addAddress]), userController.addAddress);
+  router.put("/addresses/:id", userController.updateAddress);
   router.delete("/addresses/:id", userController.deleteAddress);
+});
+
+// =====================================================================
+// ADMIN USER ROUTES - /users (Quản lý khách hàng)
+// =====================================================================
+router.group("/users", middlewares([authenticated, role("admin", "staff")]), (router) => {
+  router.get("/", userController.index);
+  router.get("/:id", userController.show);
+  router.post("/", userController.create);
+  router.put("/:id", userController.update);
+  router.delete("/:id", userController.destroy);
 });
 
 // =====================================================================
@@ -155,6 +168,8 @@ router.group("/orders", middlewares([authenticated]), (router) => {
     validate([orderValidation.updateStatus]),
     orderController.updateStatus
   );
+  // Admin: Xóa đơn hàng
+  router.delete("/:id", middlewares([role("admin")]), orderController.destroy);
 });
 
 // =====================================================================

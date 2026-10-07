@@ -8,6 +8,15 @@ module.exports = {
     });
   },
 
+  created: (res, data) => {
+    return res.status(201).send({
+      success: true,
+      data,
+      status: 201,
+      message: "created"
+    });
+  },
+
   notFound: (res) => {
     return res.status(404).send({
       success: false,
@@ -29,6 +38,14 @@ module.exports = {
       success: false,
       status: 401,
       message: message || 'Unauthorized',
+    });
+  },
+
+  forbidden: (res, message) => {
+    return res.status(403).send({
+      success: false,
+      status: 403,
+      message: message || 'Forbidden',
     });
   },
 

@@ -70,6 +70,8 @@ html[lang='ko'] {
 html {
   font-synthesis: none;                 /* Tắt synthetic bold/italic tự tạo */
   text-rendering: optimizeLegibility;  /* Kerning + ligature tốt hơn */
+  /* Header sticky ~136px (announcement 32 + header 64 + nav 40) */
+  scroll-padding-top: 136px;
 }
 
 body {

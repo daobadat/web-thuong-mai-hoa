@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ADMIN_PRODUCTS, AdminProduct } from '../admin-data';
+import { ProductApiService } from '../../core/services/product-api.service';
 
 @Component({
   selector: 'app-admin-products',
@@ -10,8 +10,8 @@ import { ADMIN_PRODUCTS, AdminProduct } from '../admin-data';
   templateUrl: './admin-products.component.html',
   styleUrls: ['./admin-products.component.css']
 })
-export class AdminProductsComponent {
-  products = [...ADMIN_PRODUCTS];
+export class AdminProductsComponent implements OnInit {
+  products: any[] = [];
   editId: number | null = null;
   showAdd = false;
   
@@ -26,6 +26,30 @@ export class AdminProductsComponent {
 
   categories = ['Bó hoa', 'Hộp hoa', 'Giỏ hoa', 'Kệ hoa'];
 
+  constructor(private productApi: ProductApiService) {}
+
+  ngOnInit() {
+    this.loadProducts();
+  }
+
+  loadProducts() {
+    this.productApi.getProducts({ limit: 100 }).subscribe({
+      next: (res) => {
+        this.products = (res.data?.products || []).map((p: any) => ({
+          ...p,
+          nameVi: p.translations?.find((t: any) => t.language_code === 'vi')?.name || p.sku,
+          nameKo: p.translations?.find((t: any) => t.language_code === 'ko')?.name || '',
+          category: p.category?.slug || 'Bó hoa',
+          price: p.base_price,
+          stock: p.stock_quantity,
+          sold: 0,
+          img: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop',
+          active: p.is_active !== false
+        }));
+      }
+    });
+  }
+
   get activeProductsCount() {
     return this.products.filter(p => p.active).length;
   }
@@ -35,44 +59,81 @@ export class AdminProductsComponent {
   }
 
   toggleActive(id: number) {
-    this.products = this.products.map(x => x.id === id ? { ...x, active: !x.active } : x);
+    const p = this.products.find(x => x.id === id);
+    if (p) {
+      this.productApi.updateProduct(id, { is_active: !p.active }).subscribe({
+        next: () => p.active = !p.active
+      });
+    }
   }
 
   setEditId(id: number) {
     this.editId = this.editId === id ? null : id;
   }
 
-  saveEditString(id: number, field: 'nameVi' | 'nameKo' | 'category' | 'img', value: string) {
-    this.products = this.products.map(x => x.id === id ? { ...x, [field]: value } : x);
+  saveEditString(id: number, field: string, value: string) {
+    const p = this.products.find(x => x.id === id);
+    if (!p) return;
+    p[field] = value;
+    
+    const payload: any = {};
+    if (field === 'nameVi' || field === 'nameKo') {
+       payload.translations = [
+         { language_code: 'vi', name: p.nameVi },
+         { language_code: 'ko', name: p.nameKo }
+       ];
+    }
+    
+    this.productApi.updateProduct(id, payload).subscribe();
   }
 
-  saveEditNumber(id: number, field: 'price' | 'stock', value: string) {
-    this.products = this.products.map(x => x.id === id ? { ...x, [field]: Number(value) } : x);
+  saveEditNumber(id: number, field: string, value: string) {
+    const p = this.products.find(x => x.id === id);
+    if (!p) return;
+    p[field] = Number(value);
+    
+    const payload: any = {};
+    if (field === 'price') payload.base_price = Number(value);
+    if (field === 'stock') payload.stock_quantity = Number(value);
+    
+    this.productApi.updateProduct(id, payload).subscribe();
   }
 
   addProduct() {
     if (!this.newProd.nameVi || !this.newProd.price) return;
-    const maxId = Math.max(...this.products.map(p => p.id), 0);
-    const id = maxId + 1;
     
-    this.products = [...this.products, {
-      id,
-      nameVi: this.newProd.nameVi,
-      nameKo: this.newProd.nameKo,
-      category: this.newProd.category,
-      price: Number(this.newProd.price),
-      stock: Number(this.newProd.stock),
-      sold: 0,
-      img: this.newProd.img || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop',
-      active: true,
-    }];
+    const payload = {
+      sku: 'SKU-' + Date.now(),
+      base_price: Number(this.newProd.price),
+      stock_quantity: Number(this.newProd.stock),
+      is_active: true,
+      translations: [
+        { language_code: 'vi', name: this.newProd.nameVi },
+        { language_code: 'ko', name: this.newProd.nameKo }
+      ]
+    };
     
-    this.showAdd = false;
-    this.newProd = { nameVi: '', nameKo: '', category: 'Bó hoa', price: '', stock: '', img: '' };
+    this.productApi.createProduct(payload).subscribe({
+      next: () => {
+        this.showAdd = false;
+        this.newProd = { nameVi: '', nameKo: '', category: 'Bó hoa', price: '', stock: '', img: '' };
+        this.loadProducts();
+      },
+      error: (err) => alert(err.message)
+    });
   }
 
   cancelAdd() {
     this.showAdd = false;
+  }
+
+  deleteProduct(id: number) {
+    if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+      this.productApi.deleteProduct(id).subscribe({
+        next: () => this.loadProducts(),
+        error: (err) => alert(err.message)
+      });
+    }
   }
 
   fmt(n: number) {

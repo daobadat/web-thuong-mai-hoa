@@ -67,6 +67,16 @@ const orderController = {
       return responseUtils.error(res, err.message);
     }
   },
+
+  destroy: async (req, res) => {
+    try {
+      await orderService.destroyOrder(req.params.id);
+      return responseUtils.ok(res, { message: "Order deleted successfully" });
+    } catch (err) {
+      if (err.statusCode === 404) return responseUtils.notFound(res);
+      return responseUtils.error(res, err.message);
+    }
+  },
 };
 
 module.exports = orderController;

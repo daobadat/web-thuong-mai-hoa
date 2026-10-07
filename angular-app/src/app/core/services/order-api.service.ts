@@ -65,7 +65,16 @@ export class OrderApiService {
     return this.api.get<OrderDetailResponse>(`/orders/${id}`);
   }
 
+  // Admin / Staff only
+  getAllOrders(params?: any): Observable<OrderListResponse> {
+    return this.api.get<OrderListResponse>('/orders', params);
+  }
+
   updateOrderStatus(id: number, status: string, note?: string): Observable<any> {
     return this.api.put(`/orders/${id}/status`, { status, note });
+  }
+
+  deleteOrder(id: number): Observable<any> {
+    return this.api.delete(`/orders/${id}`);
   }
 }
