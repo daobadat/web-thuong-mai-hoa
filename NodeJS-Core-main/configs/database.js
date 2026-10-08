@@ -12,7 +12,12 @@ module.exports = {
     dialectOptions: {
       bigNumberStrings: true,
       socketPath: process.env.DATABASE_SOCKET || "",
+      charset: "utf8mb4",
     },
+    define: {
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci'
+    }
   },
   test: {
     username: process.env.DATABASE_TEST_USERNAME || process.env.DATABASE_USERNAME || "root",
@@ -36,6 +41,11 @@ module.exports = {
     dialect: "mysql",
     dialectOptions: {
       bigNumberStrings: true,
+      charset: "utf8mb4",
     },
+    define: {
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci'
+    }
   },
 };

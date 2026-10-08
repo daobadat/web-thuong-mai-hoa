@@ -1,4 +1,4 @@
-const { Product, ProductTranslation, ProductImage, ProductVariant, Category } = require("models");
+const { Product, ProductTranslation, ProductImage, ProductVariant, Category, Occasion } = require("models");
 const { Op } = require("sequelize");
 
 const productService = {
@@ -44,6 +44,12 @@ const productService = {
           model: Category,
           as: "category",
           required: false,
+        },
+        {
+          model: Occasion,
+          as: "occasions",
+          required: false,
+          through: { attributes: [] }, // Don't need junction table attributes
         },
       ],
       limit,
@@ -121,6 +127,10 @@ const productService = {
       }
     }
 
+    if (data.occasion_ids && Array.isArray(data.occasion_ids)) {
+      await product.setOccasions(data.occasion_ids);
+    }
+
     return productService.getById(product.id, data.language_code || "vi");
   },
 
@@ -150,6 +160,10 @@ const productService = {
           care_instructions: data.care_instructions !== undefined ? data.care_instructions : translation.care_instructions,
         });
       }
+    }
+
+    if (data.occasion_ids !== undefined) {
+      await product.setOccasions(data.occasion_ids);
     }
 
     return productService.getById(id, data.language_code || "vi");

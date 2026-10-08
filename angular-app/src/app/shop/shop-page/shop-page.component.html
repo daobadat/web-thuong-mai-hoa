@@ -65,7 +65,7 @@
         <!-- Category -->
         <div>
           <p class="text-[11px] font-bold tracking-widest text-[#2B2A26] uppercase mb-3">
-            {{ langService.currentLang() === 'vi' ? 'Loại hoa' : '종류' }}
+            {{ langService.currentLang() === 'vi' ? 'Danh mục' : '카테고리' }}
           </p>
           <div class="flex flex-wrap gap-2">
             <button (click)="setCategory('all')"
@@ -73,10 +73,10 @@
               [ngClass]="productService.selectedCategory() === 'all' ? 'bg-[#2B2A26] text-white border-[#2B2A26]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#2B2A26]'">
               {{ langService.t.filterAll }}
             </button>
-            <button *ngFor="let cat of ['bouquet', 'box', 'basket', 'stand']" (click)="setCategory(cat)"
+            <button *ngFor="let slug of productService.CATEGORY_SLUGS" (click)="setCategory(slug)"
               class="px-3 py-1.5 text-xs rounded-full border transition-colors"
-              [ngClass]="productService.selectedCategory() === cat ? 'bg-[#2B2A26] text-white border-[#2B2A26]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#2B2A26]'">
-              {{ getCategoryName(cat) }}
+              [ngClass]="productService.selectedCategory() === slug ? 'bg-[#2B2A26] text-white border-[#2B2A26]' : 'border-[#E4D9C8] text-[#4A4540] hover:border-[#2B2A26]'">
+              {{ productService.getCategoryName(slug, langService.currentLang()) }}
             </button>
           </div>
         </div>
@@ -117,7 +117,7 @@
       </a>
       <ng-container *ngIf="productService.selectedOccasion() !== 'all'">
         <span class="text-[#C4B8A8]">»</span>
-        <span class="font-bold text-[#2B2A26]">{{ productService.getOccasionInfo(productService.selectedOccasion())?.[langService.currentLang()]?.title || getOccasionTitle(productService.selectedOccasion()) }}</span>
+        <span class="font-bold text-[#2B2A26]">{{ getOccasionTitle(productService.selectedOccasion()) }}</span>
       </ng-container>
     </nav>
 
@@ -125,11 +125,11 @@
     <div *ngIf="productService.selectedOccasion() !== 'all'" class="mb-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-[#2B2A26] mb-1 inline-block relative pb-2"
           [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
-        {{ productService.getOccasionInfo(productService.selectedOccasion())?.[langService.currentLang()]?.title || getOccasionTitle(productService.selectedOccasion()) }}
+        {{ getOccasionTitle(productService.selectedOccasion()) }}
         <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h1>
       <div class="mt-5 bg-white border border-[#E4D9C8] rounded-xl p-5 space-y-2">
-        <p *ngFor="let d of productService.getOccasionInfo(productService.selectedOccasion())?.[langService.currentLang()]?.desc" 
+        <p *ngFor="let d of productService.getOccasionDesc(productService.selectedOccasion(), langService.currentLang())" 
            class="text-sm text-[#4A4540] leading-relaxed">{{ d }}</p>
       </div>
     </div>

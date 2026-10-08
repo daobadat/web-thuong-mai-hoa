@@ -70,11 +70,26 @@ export class OrderApiService {
     return this.api.get<OrderListResponse>('/orders', params);
   }
 
-  updateOrderStatus(id: number, status: string, note?: string): Observable<any> {
+  updateOrderStatus(id: string, status: string, note?: string): Observable<any> {
     return this.api.put(`/orders/${id}/status`, { status, note });
   }
 
-  deleteOrder(id: number): Observable<any> {
+  deleteOrder(id: string): Observable<any> {
     return this.api.delete(`/orders/${id}`);
+  }
+
+  /** Tạo URL thanh toán MoMo */
+  createMomoPayment(orderId: string, orderNumber: string, totalAmount: number): Observable<any> {
+    return this.api.post<any>('/payments/momo-create', { orderId, orderNumber, totalAmount });
+  }
+
+  /** Tạo URL thanh toán VNPay */
+  createVnpayPayment(orderId: string, orderNumber: string, totalAmount: number): Observable<any> {
+    return this.api.post<any>('/payments/vnpay-create', { orderId, orderNumber, totalAmount });
+  }
+
+  /** Poll trạng thái thanh toán */
+  getPaymentStatus(orderNumber: string): Observable<any> {
+    return this.api.get<any>(`/payments/status/${orderNumber}`);
   }
 }

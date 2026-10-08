@@ -1,15 +1,28 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Product, OccasionKey } from '../models';
-import { PRODUCTS, OCC_INFO, OCC_ICONS } from '../data/products';
+import { Product } from '../models';
+import { ProductApiService, BackendProduct } from './product-api.service';
+import { OccasionApiService } from './occasion-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  public products = signal<Product[]>(PRODUCTS);
+  public products = signal<Product[]>([]);
   public selectedCategory = signal<string>('all');
-  public selectedOccasion = signal<OccasionKey | 'sale' | 'all'>('all');
+  public selectedOccasion = signal<string | 'sale' | 'all'>('all');
   public searchQuery = signal<string>('');
+  
+  public occasionsList = signal<any[]>([]);
+  public occasionKeys = computed(() => this.occasionsList().map(o => o.slug));
+
+  // Danh sách slug danh mục từ DB (dynamic)
+  public readonly CATEGORY_SLUGS = ['bo-hoa', 'hop-hoa', 'gio-hoa', 'ke-hoa'];
+  public readonly CATEGORY_NAMES: Record<string, { vi: string; ko: string }> = {
+    'bo-hoa':  { vi: 'Bó hoa',  ko: '꽃다발' },
+    'hop-hoa': { vi: 'Hộp hoa', ko: '플라워 박스' },
+    'gio-hoa': { vi: 'Giỏ hoa', ko: '꽃바구니' },
+    'ke-hoa':  { vi: 'Kệ hoa',  ko: '화환' },
+  };
 
   public priceFilters = signal<string[]>([]);
   public colorFilter = signal<string | null>(null);
@@ -20,6 +33,55 @@ export class ProductService {
     { key: 'mid', label: '500.000đ – 800.000đ', test: (p: Product) => p.price >= 500000 && p.price <= 800000 },
     { key: 'high', label: 'Trên 800.000đ', test: (p: Product) => p.price > 800000 }
   ];
+
+  constructor(
+    private productApi: ProductApiService,
+    private occasionApi: OccasionApiService
+  ) {
+    this.loadProducts();
+    this.loadOccasions();
+  }
+
+  loadOccasions() {
+    this.occasionApi.getOccasions().subscribe({
+      next: (res: any) => {
+        this.occasionsList.set(res.data || []);
+      }
+    });
+  }
+
+  loadProducts() {
+    this.productApi.getProducts({ limit: 100 }).subscribe({
+      next: (res) => {
+        const backendProducts = res.data?.products || [];
+        const mappedProducts: Product[] = backendProducts.map(p => this.mapBackendProduct(p));
+        this.products.set(mappedProducts);
+      }
+    });
+  }
+
+  private mapBackendProduct(p: BackendProduct): Product {
+    const vi = p.translations?.find(t => t.language_code === 'vi');
+    const ko = p.translations?.find(t => t.language_code === 'ko');
+
+    return {
+      id: p.id.toString(),
+      nameVi: vi?.name || p.sku,
+      nameKo: ko?.name || '',
+      price: Number(p.base_price),
+      originalPrice: p.original_price ? Number(p.original_price) : undefined,
+      occasions: p.occasions ? p.occasions.map(o => o.slug).filter(Boolean) : [],
+      category: p.category?.slug || '',  // Lưu slug gốc từ DB
+      img: p.images && p.images.length > 0 ? p.images[0].url : 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=500&h=620&fit=crop&auto=format',
+      descVi: vi?.description || '',
+      descKo: ko?.description || '',
+      meaningVi: vi?.flower_meaning || '',
+      meaningKo: ko?.flower_meaning || '',
+      isPopular: Number(p.avg_rating || 0) > 4.5 || Math.random() > 0.7,
+      isNew: Math.random() > 0.8,
+      stock: p.stock_quantity,
+    };
+  }
 
   public filteredProducts = computed(() => {
     let list = this.products();
@@ -33,7 +95,7 @@ export class ProductService {
     if (occ === 'sale') {
       list = list.filter(p => !!p.originalPrice);
     } else if (occ !== 'all') {
-      list = list.filter(p => p.occasions.includes(occ as OccasionKey));
+      list = list.filter(p => p.occasions.includes(occ));
     }
 
     const query = this.searchQuery().toLowerCase().trim();
@@ -51,10 +113,6 @@ export class ProductService {
       list = list.filter(p => this.PRICE_RANGES.some(r => activePrices.includes(r.key) && r.test(p)));
     }
 
-    // Color filter placeholder (if products had colors)
-    // const color = this.colorFilter();
-    // if (color) list = list.filter(p => p.color === color);
-
     const sort = this.sortOption();
     list = [...list].sort((a, b) => {
       if (sort === 'price-asc') return a.price - b.price;
@@ -68,12 +126,35 @@ export class ProductService {
     return list;
   });
 
-  public getOccasionInfo(key: OccasionKey | 'sale' | 'all') {
-    if (key === 'all') return null;
-    return OCC_INFO[key];
+  public getOccasionName(slug: string, lang: string) {
+    const occ = this.occasionsList().find(o => o.slug === slug);
+    if (!occ) return slug;
+    const translation = occ.translations?.find((t: any) => t.language_code === lang);
+    return translation ? translation.name : (occ.name || slug);
   }
 
-  public getOccasionIcon(key: OccasionKey) {
-    return OCC_ICONS[key];
+  public getOccasionDesc(slug: string, lang: string) {
+    const occ = this.occasionsList().find(o => o.slug === slug);
+    if (!occ) return [];
+    const translation = occ.translations?.find((t: any) => t.language_code === lang);
+    return translation?.description ? [translation.description] : [];
+  }
+
+  public getOccasionIcon(slug: string) {
+    const icons: any = {
+      'valentine': '💝',
+      'quoc-te-phu-nu': '👩',
+      'phu-nu-viet-nam': '👩',
+      'chuseok': '🍂',
+      'sinh-nhat': '🎂',
+      'khai-truong': '🎋',
+      'cuoi-hoi': '💍',
+      'doanh-nghiep': '💼'
+    };
+    return icons[slug] || '🌸';
+  }
+
+  public getCategoryName(slug: string, lang: string): string {
+    return this.CATEGORY_NAMES[slug]?.[lang as 'vi' | 'ko'] || slug;
   }
 }

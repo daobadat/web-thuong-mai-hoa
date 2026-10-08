@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Downloading Payment Integration Guide...</title>
+</head>
+<body>
+    <h3>Đang tải xuống file PAYMENT_INTEGRATION_GUIDE.md...</h3>
+    <script>
+        const markdownContent = `# BÁO CÁO & HƯỚNG DẪN TÍCH HỢP THANH TOÁN MOMO VÀ VNPAY (CHI TIẾT 100%)
+> **Hệ thống:** Flower Shop E-commerce  
+> **Cơ sở dữ liệu:** MySQL 8.0  
+> **Ngôn ngữ & Framework:** Node.js, Express.js  
+
+---
+
+## MỤC LỤC
+1. [Tổng Quan Kiến Trúc & Luồng Dữ Liệu](#1-tổng-quan-kiến-trúc--luồng-dữ-liệu)
+2. [Sơ Đồ Tương Tác CSDL (Database Mapping)](#2-sơ-đồ-tương-tác-csdl-database-mapping)
+3. [Chuẩn Bị Tài Khoản Sandbox & Biến Môi Trường](#3-chuẩn-bị-tài-khoản-sandbox--biến-môi-trường)
+4. [Cấu Trúc Thư Mục Dự Án](#4-cấu-trúc-thư-mục-dự-án)
+5. [Chi Tiết Mã Nguồn Nền Tảng (Step-by-Step Code)](#5-chi-tiết-mã-nguồn-nền-tảng-step-by-step-code)
+   - [5.1 Khởi tạo Package & Độc lập DB (\`config/db.js\`)](#51-khởi-tạo-package--độc-lập-db-configdbjs)
+   - [5.2 Thuật toán mã hóa Chữ ký HMAC (\`services/paymentService.js\`)](#52-thuật-toán-mã-hóa-chữ-ký-hmac-servicespaymentservicejs)
+   - [5.3 Xử lý Nghiệp vụ Checkout & IPN Webhook (\`controllers/paymentController.js\`)](#53-xử-lý-nghiệp-vụ-checkout--ipn-webhook-controllerspaymentcontrollerjs)
+   - [5.4 Cấu hình Router & Server Entry (\`app.js\`)](#54-cấu-hình-router--server-entry-appjs)
+6. [Mã Nguồn Khách Hàng (Frontend Integration)](#6-mã-nguồn-khách-hàng-frontend-integration)
+7. [Quy Trình Kiểm Thử Môi Trường Local (Ngrok & Test Cards)](#7-quy-trình-kiểm-thử-môi-trường-local-ngrok--test-cards)
+8. [Nguyên Tắc Bảo Mật Bắt Buộc (Security Checklist)](#8-nguyên-tắc-bảo-mật-bắt-buộc-security-checklist)
+
+---
+
+## 1. TỔNG QUAN KIẾN TRÚC & LUỒNG DỮ LIỆU
+
+Mô hình thanh toán giữa **Khách hàng (Client)**, **Hệ thống của bạn (Merchant Server)**, **CSDL (MySQL)** và **Cổng thanh toán (MoMo / VNPay)** dựa trên giao thức bảo mật 3 bên qua HTTPS.
+
+\`\`\`
+[ FRONTEND ]             [ BACKEND SERVER ]             [ CSDL MYSQL ]             [ MOMO / VNPAY ]
+     |                          |                              |                          |
+     |--- 1. POST /checkout --->|                              |                          |
+     |                          |--- 2. INSERT orders -------->|                          |
+     |                          |       (payment_status=unpaid)|                          |
+     |                          |--- 3. INSERT transactions -->|                          |
+     |                          |       (status=pending)       |                          |
+     |                          |--- 4. Build HMAC Signature ---------------------------->|
+     |                          |<-- 5. Return payUrl ------------------------------------|
+     |<-- 6. Redirect payUrl ---|                              |                          |
+     |                          |                              |                          |
+     |========================== 7. Khách quét QR / Nhập OTP ============================>|
+     |                          |                              |                          |
+     |                          |<-- 8. IPN Webhook (Server-to-Server, Background) -------|
+     |                          |--- 9. Verify Signature       |                          |
+     |                          |--- 10. UPDATE orders ------->|                          |
+     |                          |        (status=paid)         |                          |
+     |                          |--- 11. UPDATE transactions ->|                          |
+     |                          |        (status=success)      |                          |
+     |<-- 12. Redirect Return --|                              |                          |
+\`\`\`
+
+---
+
+## 2. SƠ ĐỒ TƯƠNG TÁC CSDL (DATABASE MAPPING)
+
+Quá trình thanh toán trực tiếp tác động lên **3 bảng chính** trong CSDL Flower Shop của bạn:
+
+1. **\`orders\`**:
+   - Khởi tạo: \`status = 'pending'\`, \`payment_status = 'unpaid'\`.
+   - Khi IPN thành công: \`status = 'confirmed'\`, \`payment_status = 'paid'\`, \`paid_at = NOW()\`.
+   - Khi IPN thất bại: \`payment_status = 'failed'\`.
+2. **\`payment_transactions\`**:
+   - Khởi tạo: \`status = 'initiated'\`, \`amount = total_amount\`, \`payment_method = 'momo'|'vnpay'\`.
+   - Khi IPN thành công: \`status = 'success'\`, \`provider_transaction_id = [Mã giao dịch từ Cổng]\`, \`raw_response = JSON.stringify(payload)\`.
+3. **\`order_status_history\`**:
+   - Ghi lại lịch sử mỗi khi trạng thái đơn thay đổi để làm bằng chứng kiểm vết.
+
+---
+
+## 3. CHUẨN BỊ TÀI KHOẢN SANDBOX & BIẾN MÔI TRƯỜNG
+
+Tạo file \`.env\` tại thư mục gốc dự án Backend:
+
+\`\`\`env
+# Server Config
+PORT=5000
+APP_BASE_URL=http://localhost:3000
+API_BASE_URL=https://your-ngrok-domain.ngrok-free.app
+
+# MySQL Database Config
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=123456
+DB_NAME=flower_shop
+
+# MoMo Sandbox Credentials
+MOMO_PARTNER_CODE=MOMO_PARTNER_CODE_TEST
+MOMO_ACCESS_KEY=MOMO_ACCESS_KEY_TEST
+MOMO_SECRET_KEY=MOMO_SECRET_KEY_TEST
+MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+
+# VNPay Sandbox Credentials
+VNPAY_TMN_CODE=VNPAY_TMN_TEST
+VNPAY_HASH_SECRET=VNPAY_HASH_SECRET_TEST
+VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:3000/checkout/vnpay-return
+\`\`\`
+
+---
+
+## 4. CẤU TRÚC THƯ MỤC DỰ ÁN
+
+\`\`\`text
+flower-shop-backend/
+├── node_modules/
+├── src/
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   └── paymentController.js
+│   ├── services/
+│   │   └── paymentService.js
+│   └── app.js
+├── .env
+└── package.json
+\`\`\`
+
+---
+
+## 5. CHI TIẾT MÃ NGUỒN NỀN TẢNG (STEP-BY-STEP CODE)
+
+Cài đặt các gói phụ thuộc:
+\`\`\`bash
+npm init -y
+npm install express mysql2 dotenv axios cors qs
+\`\`\`
+
+### 5.1 Khởi tạo Package & Độc lập DB (\`config/db.js\`)
+
+\`\`\`javascript
+const mysql = require('mysql2/promise');
+require('dotenv').config();
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+
+module.exports = pool;
+\`\`\`
+
+---
+
+### 5.2 Thuật toán mã hóa Chữ ký HMAC (\`services/paymentService.js\`)
+
+\`\`\`javascript
+const crypto = require('crypto');
+const axios = require('axios');
+const querystring = require('qs');
+
+/**
+ * Xây dựng URL thanh toán MoMo
+ */
+async function buildMomoPayUrl(order) {
+  const partnerCode = process.env.MOMO_PARTNER_CODE;
+  const accessKey = process.env.MOMO_ACCESS_KEY;
+  const secretKey = process.env.MOMO_SECRET_KEY;
+  
+  const requestId = partnerCode + new Date().getTime();
+  const orderId = order.id;
+  const orderInfo = \`Thanh toan don hang \${order.order_number}\`;
+  const redirectUrl = \`\${process.env.APP_BASE_URL}/checkout/success?orderId=\${orderId}\`;
+  const ipnUrl = \`\${process.env.API_BASE_URL}/api/v1/payments/momo-ipn\`;
+  const amount = Math.round(order.total_amount).toString();
+  const requestType = "captureWallet";
+  const extraData = "";
+
+  // Tạo chuỗi Raw Signature theo định dạng bắt buộc của MoMo
+  const rawSignature = \`accessKey=\${accessKey}&amount=\${amount}&extraData=\${extraData}&ipnUrl=\${ipnUrl}&orderId=\${orderId}&orderInfo=\${orderInfo}&partnerCode=\${partnerCode}&redirectUrl=\${redirectUrl}&requestId=\${requestId}&requestType=\${requestType}\`;
+
+  // Băm HMAC SHA256
+  const signature = crypto.createHmac('sha256', secretKey)
+                          .update(rawSignature)
+                          .digest('hex');
+
+  const requestBody = {
+    partnerCode,
+    partnerName: "Flower Shop",
+    storeId: "FlowerShop_Main",
+    requestId,
+    amount,
+    orderId,
+    orderInfo,
+    redirectUrl,
+    ipnUrl,
+    requestType,
+    extraData,
+    lang: 'vi',
+    signature
+  };
+
+  const response = await axios.post(process.env.MOMO_ENDPOINT, requestBody);
+  if (response.data && response.data.resultCode === 0) {
+    return response.data.payUrl;
+  } else {
+    throw new Error(\`MoMo Error: \${response.data.message || 'Khong the tao thanh toan'}\`);
+  }
+}
+
+/**
+ * Xây dựng URL thanh toán VNPay
+ */
+function buildVnpayPayUrl(req, order) {
+  const tmnCode = process.env.VNPAY_TMN_CODE;
+  const secretKey = process.env.VNPAY_HASH_SECRET;
+  const vnpUrl = process.env.VNPAY_URL;
+  const returnUrl = process.env.VNPAY_RETURN_URL;
+
+  const date = new Date();
+  const createDate = date.getFullYear().toString() +
+    ("0" + (date.getMonth() + 1)).slice(-2) +
+    ("0" + date.getDate()).slice(-2) +
+    ("0" + date.getHours()).slice(-2) +
+    ("0" + date.getMinutes()).slice(-2) +
+    ("0" + date.getSeconds()).slice(-2);
+
+  let vnp_Params = {
+    'vnp_Version': '2.1.0',
+    'vnp_Command': 'pay',
+    'vnp_TmnCode': tmnCode,
+    'vnp_Locale': 'vn',
+    'vnp_CurrCode': 'VND',
+    'vnp_TxnRef': order.id,
+    'vnp_OrderInfo': \`Thanh toan don hang \${order.order_number}\`,
+    'vnp_OrderType': 'other',
+    'vnp_Amount': Math.round(order.total_amount) * 100, // Nhân 100 theo quy định VNPay
+    'vnp_ReturnUrl': returnUrl,
+    'vnp_IpAddr': req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1',
+    'vnp_CreateDate': createDate
+  };
+
+  // Sắp xếp các tham số theo Alphabet
+  vnp_Params = sortObject(vnp_Params);
+
+  const signData = querystring.stringify(vnp_Params, { encode: false });
+  const hmac = crypto.createHmac("sha512", secretKey);
+  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+  
+  vnp_Params['vnp_SecureHash'] = signed;
+  return vnpUrl + '?' + querystring.stringify(vnp_Params, { encode: false });
+}
+
+function sortObject(obj) {
+  let sorted = {};
+  let str = [];
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) str.push(encodeURIComponent(key));
+  }
+  str.sort();
+  for (let key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+  }
+  return sorted;
+}
+
+module.exports = { buildMomoPayUrl, buildVnpayPayUrl, sortObject };
+\`\`\`
+
+---
+
+### 5.3 Xử lý Nghiệp vụ Checkout & IPN Webhook (\`controllers/paymentController.js\`)
+
+\`\`\`javascript
+const db = require('../config/db');
+const { buildMomoPayUrl, buildVnpayPayUrl, sortObject } = require('../services/paymentService');
+const crypto = require('crypto');
+const querystring = require('qs');
+
+/**
+ * API Tạo Đơn Hàng & Sinh Liên Kết Thanh Toán
+ */
+exports.createCheckout = async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const {
+      userId,
+      recipientName,
+      recipientPhone,
+      deliveryAddress,
+      paymentMethod,
+      items,
+      subtotal,
+      shippingFee,
+      totalAmount,
+      cardMessage
+    } = req.body;
+    
+    const orderNumber = 'FS' + Date.now();
+    const orderId = crypto.randomUUID();
+
+    // 1. Insert bảng orders
+    const orderSql = \`
+      INSERT INTO orders 
+      (id, order_number, user_id, status, payment_status, subtotal, shipping_fee, total_amount, recipient_name, recipient_phone, delivery_address, card_message)
+      VALUES (?, ?, ?, 'pending', 'unpaid', ?, ?, ?, ?, ?, ?, ?)
+    \`;
+    await connection.query(orderSql, [
+      orderId, orderNumber, userId, subtotal, shippingFee, totalAmount, recipientName, recipientPhone, deliveryAddress, cardMessage
+    ]);
+
+    // 2. Insert bảng order_items
+    for (let item of items) {
+      const orderItemId = crypto.randomUUID();
+      const itemSql = \`
+        INSERT INTO order_items (id, order_id, product_id, variant_id, product_name_snapshot, quantity, unit_price, subtotal)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      \`;
+      await connection.query(itemSql, [
+        orderItemId, orderId, item.productId, item.variantId || null, item.productName, item.quantity, item.unitPrice, item.quantity * item.unitPrice
+      ]);
+    }
+
+    // 3. Insert bảng payment_transactions
+    const transId = crypto.randomUUID();
+    const transSql = \`
+      INSERT INTO payment_transactions (id, order_id, payment_method, amount, status)
+      VALUES (?, ?, ?, ?, 'initiated')
+    \`;
+    await connection.query(transSql, [transId, orderId, paymentMethod, totalAmount]);
+
+    await connection.commit();
+
+    const orderObj = { id: orderId, order_number: orderNumber, total_amount: totalAmount };
+    let payUrl = "";
+
+    if (paymentMethod === 'momo') {
+      payUrl = await buildMomoPayUrl(orderObj);
+    } else if (paymentMethod === 'vnpay') {
+      payUrl = buildVnpayPayUrl(req, orderObj);
+    } else if (paymentMethod === 'cod') {
+      payUrl = \`\${process.env.APP_BASE_URL}/checkout/success?orderId=\${orderId}\`;
+    }
+
+    return res.json({ success: true, payUrl, orderId, orderNumber });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Checkout Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  } finally {
+    connection.release();
+  }
+};
+
+/**
+ * Webhook IPN xử lý ngầm từ MoMo
+ */
+exports.momoIpn = async (req, res) => {
+  try {
+    const {
+      partnerCode, orderId, requestId, amount, orderInfo,
+      orderType, transId, resultCode, message, responseTime,
+      extraData, signature
+    } = req.body;
+
+    const secretKey = process.env.MOMO_SECRET_KEY;
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+
+    // Verify Chữ ký MoMo
+    const rawSignature = \`accessKey=\${accessKey}&amount=\${amount}&extraData=\${extraData}&message=\${message}&orderId=\${orderId}&orderInfo=\${orderInfo}&orderType=\${orderType}&partnerCode=\${partnerCode}&requestId=\${requestId}&responseTime=\${responseTime}&resultCode=\${resultCode}&transId=\${transId}\`;
+    const expectedSignature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
+
+    if (signature !== expectedSignature) {
+      return res.status(400).json({ message: "Invalid Signature" });
+    }
+
+    const [orders] = await db.query("SELECT * FROM orders WHERE id = ?", [orderId]);
+    if (orders.length === 0) return res.status(404).json({ message: "Order not found" });
+
+    const order = orders[0];
+
+    // Chống lặp giao dịch (Idempotency)
+    if (order.payment_status === 'paid') {
+      return res.status(204).send();
+    }
+
+    if (resultCode === 0) {
+      // Cập nhật CSDL trạng thái THÀNH CÔNG
+      await db.query("UPDATE orders SET payment_status = 'paid', status = 'confirmed', paid_at = NOW() WHERE id = ?", [orderId]);
+      await db.query(
+        "UPDATE payment_transactions SET status = 'success', provider_transaction_id = ?, raw_response = ? WHERE order_id = ?",
+        [transId.toString(), JSON.stringify(req.body), orderId]
+      );
+      await db.query("INSERT INTO order_status_history (id, order_id, status, note) VALUES (UUID(), ?, 'confirmed', 'Thanh toan MoMo thanh cong')", [orderId]);
+    } else {
+      // Cập nhật CSDL trạng thái THẤT BẠI
+      await db.query("UPDATE orders SET payment_status = 'failed' WHERE id = ?", [orderId]);
+      await db.query("UPDATE payment_transactions SET status = 'failed', raw_response = ? WHERE order_id = ?", [JSON.stringify(req.body), orderId]);
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error("MoMo IPN Error:", error);
+    return res.status(500).json({ message: "Internal Error" });
+  }
+};
+
+/**
+ * Webhook IPN xử lý ngầm từ VNPay
+ */
+exports.vnpayIpn = async (req, res) => {
+  try {
+    let vnp_Params = req.query;
+    const secureHash = vnp_Params['vnp_SecureHash'];
+
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortObject(vnp_Params);
+    const secretKey = process.env.VNPAY_HASH_SECRET;
+    const signData = querystring.stringify(vnp_Params, { encode: false });
+    const hmac = crypto.createHmac("sha512", secretKey);
+    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+
+    if (secureHash !== signed) {
+      return res.status(200).json({ RspCode: '97', Message: 'Checksum failed' });
+    }
+
+    const orderId = vnp_Params['vnp_TxnRef'];
+    const rspCode = vnp_Params['vnp_ResponseCode'];
+    const vnpTranNo = vnp_Params['vnp_TransactionNo'];
+    const vnpAmount = parseFloat(vnp_Params['vnp_Amount']) / 100;
+
+    const [orders] = await db.query("SELECT * FROM orders WHERE id = ?", [orderId]);
+    if (orders.length === 0) return res.status(200).json({ RspCode: '01', Message: 'Order not found' });
+
+    const order = orders[0];
+
+    // Kiểm tra số tiền nhận được có khớp với đơn hàng không
+    if (Math.round(order.total_amount) !== Math.round(vnpAmount)) {
+      return res.status(200).json({ RspCode: '04', Message: 'Amount invalid' });
+    }
+
+    if (order.payment_status === 'paid') {
+      return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed' });
+    }
+
+    if (rspCode === "00") {
+      // Cập nhật CSDL THÀNH CÔNG
+      await db.query("UPDATE orders SET payment_status = 'paid', status = 'confirmed', paid_at = NOW() WHERE id = ?", [orderId]);
+      await db.query(
+        "UPDATE payment_transactions SET status = 'success', provider_transaction_id = ?, raw_response = ? WHERE order_id = ?",
+        [vnpTranNo.toString(), JSON.stringify(req.query), orderId]
+      );
+      await db.query("INSERT INTO order_status_history (id, order_id, status, note) VALUES (UUID(), ?, 'confirmed', 'Thanh toan VNPay thanh cong')", [orderId]);
+      
+      return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
+    } else {
+      // Cập nhật CSDL THẤT BẠI
+      await db.query("UPDATE orders SET payment_status = 'failed' WHERE id = ?", [orderId]);
+      await db.query("UPDATE payment_transactions SET status = 'failed', raw_response = ? WHERE

@@ -5,7 +5,6 @@ import { CartService } from '../../../core/services/cart.service';
 import { ProductService } from '../../../core/services/product.service';
 import { AuthApiService } from '../../../core/services/auth-api.service';
 import { OccasionKey } from '../../../core/models';
-import { OCC, OCCASION_KEYS, OCC_ICONS } from '../../../core/data/products';
 
 @Component({
   selector: 'app-navbar',
@@ -24,7 +23,9 @@ export class NavbarComponent {
   userOpen = false;
   searchVal = '';
 
-  occasionKeys = OCCASION_KEYS;
+  get occasionKeys(): string[] {
+    return this.productService.occasionKeys();
+  }
 
   @HostListener('window:keydown.escape')
   onEscape() {
@@ -45,13 +46,12 @@ export class NavbarComponent {
     this.langService.setLang(nextLang);
   }
 
-  getOccasionName(key: OccasionKey): string {
-    const lang = this.langService.currentLang();
-    return OCC[key] ? OCC[key][lang] : key;
+  getOccasionName(key: string): string {
+    return this.productService.getOccasionName(key, this.langService.currentLang());
   }
 
-  getOccasionIcon(key: OccasionKey): string {
-    return OCC_ICONS[key] || '🌸';
+  getOccasionIcon(key: string): string {
+    return this.productService.getOccasionIcon(key);
   }
 
   filterOccasion(key: OccasionKey | 'sale') {

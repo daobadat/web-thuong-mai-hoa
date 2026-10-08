@@ -1,10 +1,9 @@
-require("dotenv").config({
-  path: "./.env",
-});
+require("dotenv").config();
 require("rootpath")();
-const express = require("express");
+
+const fs = require("fs");
 const path = require("path");
-const bodyParser = require("body-parser");
+const express = require("express");
 const cors = require("cors");
 const router = require("routes/api");
 const { swaggerUIServe, swaggerUISetup } = require("kernels/api-docs");
@@ -12,64 +11,59 @@ const { swaggerUIServe, swaggerUISetup } = require("kernels/api-docs");
 const app = express();
 app.disable("x-powered-by");
 
-// =====================================================================
-// CORS - Cho phép Angular frontend kết nối
-// =====================================================================
-const allowedOrigins = [
-  "https://kflowervn.site",
-  "https://www.kflowervn.site",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+const isProd = process.env.NODE_ENV === "production";
 
-// Kiểm tra origin có phải localhost (bất kỳ port nào) không
+const allowedOrigins = new Set(
+  [
+    "https://kflowervn.site",
+    "https://www.kflowervn.site",
+    process.env.FRONTEND_URL,
+  ].filter(Boolean)
+);
+
+const LOCALHOST_RE = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
+
 function isAllowedOrigin(origin) {
-  if (!origin) return true; // Postman, curl, mobile apps
-  if (allowedOrigins.includes(origin)) return true;
-  // Cho phép mọi localhost port trong môi trường dev
-  if (/^http:\/\/localhost:\d+$/.test(origin)) return true;
-  if (/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) return true;
-  return false;
+  if (!origin) return true; // Postman, curl, server-to-server
+  if (allowedOrigins.has(origin)) return true;
+  return !isProd && LOCALHOST_RE.test(origin);
 }
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (isAllowedOrigin(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-session-id"],
+    maxAge: 600, // cache preflight 10 phút, giảm số request OPTIONS
   })
 );
 
-app.use(bodyParser.json());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
-// =====================================================================
-// API ROUTES
-// =====================================================================
-app.use("/", router);
-
-// =====================================================================
-// API DOCS (Swagger)
-// =====================================================================
+app.use("/api", router);
 app.use("/api-docs", swaggerUIServe, swaggerUISetup);
 
-// =====================================================================
-// SERVE ANGULAR FRONTEND (Production)
-// =====================================================================
-// Angular build được copy vào thư mục public/
-const angularDistPath = path.join(__dirname, "public");
-if (require("fs").existsSync(angularDistPath)) {
-  app.use(express.static(angularDistPath));
+// /api/* không khớp -> 404 JSON, không rơi vào SPA fallback
+app.use("/api", (req, res) => {
+  res.status(404).json({ message: "Not Found" });
+});
 
-  // Tất cả các route không khớp API → trả về index.html (SPA routing)
+const angularDistPath = path.join(__dirname, "public");
+if (fs.existsSync(angularDistPath)) {
+  app.use(express.static(angularDistPath, { maxAge: isProd ? "1d" : 0, index: false }));
   app.get("*", (req, res) => {
     res.sendFile(path.join(angularDistPath, "index.html"));
   });
 }
+
+// Error handler cuối cùng: tránh lộ stack trace
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(`[error] ${req.method} ${req.originalUrl}:`, err);
+  if (res.headersSent) return next(err);
+  const status = Number.isInteger(err.status) ? err.status : 500;
+  res.status(status).json({ message: status === 500 ? "Internal Server Error" : err.message });
+});
 
 module.exports = app;

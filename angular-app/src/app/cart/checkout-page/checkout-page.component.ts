@@ -140,11 +140,39 @@ export class CheckoutPageComponent implements OnInit {
         this.saveProfileToLocal();
         
         if (this.paymentMethod === 'bank_transfer' && orderData.qrUrl) {
+          // Hiện QR chuyển khoản
           this.qrCodeUrl = orderData.qrUrl;
           this.isPendingPayment = true;
           this.cartService.clearCart();
           window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (this.paymentMethod === 'momo') {
+          // Redirect sang MoMo
+          this.orderApiService.createMomoPayment(orderData.id, orderData.order_number, this.finalTotal).subscribe({
+            next: (payRes: any) => {
+              if (payRes?.payUrl) {
+                this.cartService.clearCart();
+                window.location.href = payRes.payUrl;
+              } else {
+                alert(this.vi ? 'Không lấy được link MoMo! vui lòng thử lại!' : 'MoMo 링크를 가져올 수 없습니다.');
+              }
+            },
+            error: () => alert(this.vi ? 'Lỗi kết nối MoMo! vui lòng thử lại!' : 'MoMo 연결 오류가 발생했습니다.')
+          });
+        } else if (this.paymentMethod === 'zalopay' as any) {
+          // Redirect sang VNPay (zalopay slot tái dùng cho VNPay)
+          this.orderApiService.createVnpayPayment(orderData.id, orderData.order_number, this.finalTotal).subscribe({
+            next: (payRes: any) => {
+              if (payRes?.payUrl) {
+                this.cartService.clearCart();
+                window.location.href = payRes.payUrl;
+              } else {
+                alert(this.vi ? 'Không lấy được link VNPay. Vui lòng thử lại!' : 'VNPay 링크를 가져올 수 없습니다.');
+              }
+            },
+            error: () => alert(this.vi ? 'Lỗi kết nối VNPay, vui lòng thử lại!' : 'VNPay 연결 오류가 발생했습니다.')
+          });
         } else {
+          // COD hoặc thanh toán khác
           this.handlePaymentSuccess();
         }
       },

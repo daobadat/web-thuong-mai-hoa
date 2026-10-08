@@ -1,154 +1,94 @@
-# 📋 TỔNG KẾT CÔNG VIỆC AI ĐÃ LÀM
+# Tổng Kết Công Việc AI Đã Thực Hiện
 
-**Dự án:** Web Thương Mại Điện Tử Hoa - KFlowerVN  
-**Domain:** kflowervn.site  
-**Stack:** Node.js (Express) + Angular + MySQL  
-**Ngày thực hiện:** 06/10/2026  
+> **Ngày:** 08/10/2026  
+> **Dự án:** Website Thương Mại Điện Tử Hoa (Angular + Node.js/Express + MySQL/Sequelize)
 
 ---
 
-## ✅ 1. CHUẨN BỊ DEPLOY LÊN HOSTING (cPanel)
+## 1. Phân Tích & Lập Kế Hoạch
 
-### Backend (NodeJS-Core-main)
-- Cập nhật `server.js` dùng `process.env.PORT` (tương thích cPanel)
-- Cập nhật `index.js`: thêm **CORS** cho domain production `kflowervn.site`, serve static Angular từ `/public`
-- Cập nhật `.gitignore` để loại trừ file nhạy cảm
+- Phân tích cấu trúc database (migrations) để xác định mối quan hệ giữa `orders`, `payment_transactions`, `order_status_history`.
+- Tạo file kế hoạch `ke_hoach_sua_loi_don_hang.md` liệt kê chi tiết các bước cần sửa để đơn hàng COD hiển thị đúng trên admin.
+- Xác nhận **không cần thêm bảng `payment_method` riêng** — gộp cột `payment_method` vào bảng `orders` là đủ.
 
-### Frontend (Angular)
-- Cập nhật `angular.json`: cấu hình production build, swap environment files
-- Tạo file `environment.production.ts` với `apiUrl` production
-- Tạo script `build-deploy.ps1` để build Angular và copy vào thư mục backend
-- Tạo file `DEPLOY_GUIDE.md` hướng dẫn từng bước deploy lên cPanel
+## 2. Migration: Thêm Cột `payment_method` Vào Bảng `orders`
 
----
+- **File tạo mới:** `database/migrations/20261008000000-add-payment-method-to-orders.js`
+- Thêm cột `payment_method` (STRING(30), default `'bank_transfer'`) vào bảng `orders`.
+- Chạy migration thành công.
 
-## ✅ 2. FIX BUG GIỎ HÀNG TỰ ĐỘNG CÓ SẢN PHẨM KHI ĐĂNG NHẬP
+## 3. Admin Dashboard — Kết Nối Dữ Liệu Thực Từ Database
 
-**File:** `angular-app/src/app/core/services/cart.service.ts`  
-- Xoá hardcoded mock cart item "Bó Hồng Phấn" khỏi signal khởi tạo
-- Giỏ hàng ban đầu luôn rỗng khi đăng ký/đăng nhập mới
+### Trước khi sửa:
+- Admin dashboard dùng **dữ liệu giả (mock/hardcoded)** cho danh sách đơn hàng, thống kê doanh thu.
 
----
+### Sau khi sửa:
+- **`admin-dashboard.component.ts`**: Gọi API thực `/api/orders` để lấy danh sách đơn hàng từ MySQL.
+- **`admin-dashboard.component.html`**: Cập nhật template binding dùng `getStatus()` helper method.
+- Fix lỗi **TypeScript TS7053** — lỗi `statusConfig[o.status]` không thể index bằng `any` type → tạo method `getStatus(status: any)` với type guard.
 
-## ✅ 3. FIX GIỎ HÀNG MẤT KHI F5 (RELOAD TRANG)
+## 4. Frontend (Storefront) — Thay Dữ Liệu Ảo Bằng Dữ Liệu Thực
 
-**File:** `angular-app/src/app/core/services/cart.service.ts`  
-- Thêm `effect()` của Angular để **tự động lưu giỏ hàng vào `localStorage`** mỗi khi có thay đổi
-- Thêm hàm `loadCart()` để đọc lại từ `localStorage` khi trang tải lại
-- Key lưu: `kflower_cart`
+### Trước khi sửa:
+- `ProductService` dùng mảng `PRODUCTS[]` hardcoded trong `core/data/products.ts`.
+- Cart, Checkout dùng dữ liệu local, không gọi API.
 
----
+### Sau khi sửa:
+- **`product.service.ts`**: Gọi `ProductApiService.getProducts()` lấy sản phẩm từ MySQL, map backend model → frontend model.
+- **`cart.service.ts`**: Gọi API `/cart`, `/cart/add`, `/cart/items/:id` để đồng bộ giỏ hàng với backend.
+- **`checkout.component.ts`**: Gọi `OrderApiService` để đặt hàng qua API `/orders/checkout` thay vì mock alert.
+- **Trang Home, Shop, Product Detail**: Tất cả đều hiển thị dữ liệu thực từ database.
 
-## ✅ 4. HỆ THỐNG THANH TOÁN QR VIETQR + WEBHOOK
+## 5. Sửa Lỗi API Mount Path
 
-### Database
-- Thêm cột `expires_at` (thời hạn thanh toán) vào bảng `orders`
-- Thêm cột `paid_at` (thời gian đã thanh toán) vào bảng `orders`
-- **Đã chạy migration thành công** — DB đã được cập nhật
-- Gộp 2 cột vào file migration gốc `create-orders.js` cho gọn
+### Vấn đề:
+- Backend mount routes tại `app.use("/", router)` → API path thực là `/products`, `/orders`...
+- Frontend gọi `/api/products` → Angular proxy strip `/api` → gửi `/products` → hoạt động khi dev.
+- **Nhưng khi chạy production** (serve từ `public/`), gọi `/api/products` → không khớp route → fallback SPA trả HTML thay vì JSON.
 
-### Backend — Payment Module mới (`modules/payment/`)
+### Fix:
+- **`index.js`**: Đổi `app.use("/", router)` → `app.use("/api", router)`.
+- **`proxy.conf.json`**: Bỏ `pathRewrite: {"^/api": ""}` vì backend giờ đã nhận `/api` trực tiếp.
+- Thêm middleware catch-all `/api` 404 để tránh rơi vào SPA fallback.
 
-#### `paymentService.js`
-- `buildVietQrUrl(orderNumber, amount)`: Tạo URL QR VietQR động theo từng đơn
-- `handleWebhook(headers, body)`: Xử lý webhook từ SePay/Casso
-  - Xác thực API Key bằng `crypto.timingSafeEqual` (chống timing attack)
-  - Nhận dạng mã đơn `FLW-xxx` trong nội dung chuyển khoản
-  - Dùng **Database Transaction + `SELECT ... FOR UPDATE`** chống race condition
-  - **Idempotency**: kiểm tra trùng `provider_transaction_id`
-  - Không tự duyệt khi thiếu tiền (UNDERPAID)
-- `getPaymentStatus(orderNumber)`: Lấy trạng thái + kiểm tra hết hạn
-- `expireStaleOrders()`: Cron — đánh dấu đơn hết hạn chưa thanh toán
+## 6. Build & Deploy Angular → Backend `public/`
 
-#### `paymentController.js`
-- `POST /api/payments/webhook` — Public, dùng API Key
-- `GET /api/payments/status/:orderNumber` — Yêu cầu JWT (để poll)
+- Build Angular production: `ng build` → output `dist/angular-app/`.
+- Copy toàn bộ build mới vào `NodeJS-Core-main/public/` thay thế bản build cũ (ngày 06/10).
+- Giờ chỉ cần `npm start` trong `NodeJS-Core-main` → serve cả API + frontend trên cùng port 3000.
 
-### Backend — Cập nhật `orderService.js`
-- Tính và lưu `expires_at` khi tạo đơn (mặc định 15 phút, từ `ORDER_TTL_MINUTES`)
-- Nếu `payment_method === 'bank_transfer'` → tạo và trả về `qrUrl` trong response
+## 7. Các Cải Tiến Do User Tự Thực Hiện (Dựa Trên Gợi Ý)
 
-### Backend — Cron Job (`server.js`)
-- `setInterval` mỗi **5 phút** gọi `expireStaleOrders()` để dọn đơn hết hạn
-- Log SQL mỗi lần chạy để dễ debug
+> Sau khi AI fix xong, user đã tự refactor thêm các file sau:
 
-### Frontend — `QrPaymentComponent` mới
-- Hiển thị ảnh QR VietQR với số tiền đúng của đơn
-- **Poll API** `GET /payments/status/:orderNumber` mỗi **3 giây** bằng `rxjs interval`
-- Tự động `unsubscribe` khi `payment_status === 'paid'`
-- Dùng `ApiService` (có Bearer token) để poll
-
-### Frontend — Cập nhật `checkout-page`
-- Khi chọn "Chuyển khoản ngân hàng" và xác nhận đặt hoa → gọi API backend thật (`POST /orders/checkout`)
-- Backend trả về `qrUrl` → hiển thị `QrPaymentComponent`
-- Khi poll phát hiện `paid` → tự chuyển sang màn hình "Đặt hoa thành công"
-- Fix lỗi Angular compile: thay `[class.border-[...]]` bằng `[ngClass]`
-
-### Biến môi trường mới (.env)
-```
-VIETQR_BANK_ID=MB
-VIETQR_ACCOUNT_NO=0123456789
-VIETQR_ACCOUNT_NAME=KFLOWERVN
-WEBHOOK_API_KEY=your_secret_key
-ORDER_TTL_MINUTES=15
-```
+- **`server.js`**: Viết lại hoàn toàn — thêm graceful shutdown, SIGINT/SIGTERM handling, cron job chống chạy chồng, error handler cho `EADDRINUSE`.
+- **`index.js`**: Refactor CORS (dùng `Set`, regex gộp), bỏ `body-parser` (dùng `express.json()`), thêm error handler cuối cùng, thêm API 404 catch-all, cache static files.
+- **`package.json`**: Gỡ `body-parser`, xóa script `start:clean`.
 
 ---
 
-## 📌 VIỆC BẠN CẦN LÀM TIẾP
-
-### Cấu hình tài khoản ngân hàng thật
-Mở file `.env` (local) và `.env.production` (hosting), điền:
-- `VIETQR_BANK_ID` — Mã ngân hàng (VD: VCB, MB, TCB, ACB...)
-- `VIETQR_ACCOUNT_NO` — Số tài khoản thật của bạn
-- `VIETQR_ACCOUNT_NAME` — Tên chủ tài khoản (không dấu)
-
-> Tra cứu mã ngân hàng tại: https://api.vietqr.io/v2/banks
-
-### Đăng ký dịch vụ Webhook (1 trong 3)
-| Dịch vụ | Link | Xác thực |
-|---|---|---|
-| **SePay** (khuyên dùng) | https://sepay.vn | API Key (Header) |
-| **Casso** | https://casso.vn | API Key (Header) |
-| **payOS** | https://payos.vn | Checksum (cần đổi logic xác thực) |
-
-**Cấu hình webhook:**
-- URL: `https://kflowervn.site/api/payments/webhook`
-- Method: POST
-- API Key: giá trị bạn đặt trong `WEBHOOK_API_KEY`
-
-### Test thử
-1. Thêm sản phẩm vào giỏ, đăng nhập, vào trang thanh toán
-2. Chọn "Chuyển khoản ngân hàng" → Xác nhận đặt hoa
-3. Màn hình QR hiện ra
-4. Mở DataGrip/MySQL Workbench → sửa `payment_status = 'paid'` trong bảng `orders`
-5. Sau 3 giây, web tự động chuyển sang "Đặt hoa thành công" ✅
-
----
-
-## 📂 DANH SÁCH FILE ĐÃ THAY ĐỔI
+## Tóm Tắt File Đã Chỉnh Sửa
 
 | File | Loại thay đổi |
-|---|---|
-| `NodeJS-Core-main/server.js` | Cập nhật PORT động + thêm cron |
-| `NodeJS-Core-main/index.js` | CORS production + serve Angular |
-| `NodeJS-Core-main/.env` | Thêm biến VietQR/Webhook |
-| `NodeJS-Core-main/.env.production` | Thêm biến VietQR/Webhook |
-| `NodeJS-Core-main/.env.example` | Thêm biến VietQR/Webhook |
-| `NodeJS-Core-main/models/order.js` | Thêm `expires_at`, `paid_at` |
-| `NodeJS-Core-main/database/migrations/20260921000018-create-orders.js` | Thêm `expires_at`, `paid_at` |
-| `NodeJS-Core-main/modules/order/services/orderService.js` | Thêm QR URL + expires_at khi tạo đơn |
-| `NodeJS-Core-main/modules/payment/services/paymentService.js` | **Tạo mới** — Logic QR + Webhook |
-| `NodeJS-Core-main/modules/payment/controllers/paymentController.js` | **Tạo mới** |
-| `NodeJS-Core-main/routes/api.js` | Thêm payment routes |
-| `NodeJS-Core-main/thuong_mai_hoa.sql` | Thêm `expires_at`, `paid_at` vào schema |
-| `angular-app/src/app/core/services/cart.service.ts` | Fix giỏ hàng: localStorage persist + xoá mock data |
-| `angular-app/src/app/cart/qr-payment/qr-payment.component.ts` | **Tạo mới** — Component QR poll |
-| `angular-app/src/app/cart/qr-payment/qr-payment.component.html` | **Tạo mới** |
-| `angular-app/src/app/cart/checkout-page/checkout-page.component.ts` | Gọi API thật + xử lý QR flow |
-| `angular-app/src/app/cart/checkout-page/checkout-page.component.html` | Tích hợp QrPaymentComponent + fix lỗi compile |
-| `angular-app/src/app/cart/cart.module.ts` | Đăng ký QrPaymentComponent |
-| `angular-app/angular.json` | Cấu hình production build |
-| `angular-app/src/environments/environment.production.ts` | URL production |
-| `build-deploy.ps1` | Script build & deploy |
-| `DEPLOY_GUIDE.md` | Hướng dẫn deploy cPanel |
+|------|---------------|
+| `NodeJS-Core-main/index.js` | Mount API tại `/api`, refactor CORS, error handler |
+| `NodeJS-Core-main/server.js` | Graceful shutdown, cron job cải tiến |
+| `NodeJS-Core-main/package.json` | Bỏ `body-parser`, cập nhật scripts |
+| `NodeJS-Core-main/database/migrations/20261008000000-add-payment-method-to-orders.js` | **Tạo mới** — thêm cột `payment_method` |
+| `angular-app/proxy.conf.json` | Bỏ `pathRewrite` |
+| `angular-app/src/app/admin/admin-dashboard/admin-dashboard.component.ts` | Kết nối API thực, fix TS7053 |
+| `angular-app/src/app/admin/admin-dashboard/admin-dashboard.component.html` | Dùng `getStatus()` helper |
+| `angular-app/src/app/core/services/product.service.ts` | Gọi API thay vì mock data |
+| `angular-app/src/app/core/services/cart.service.ts` | Đồng bộ cart với backend API |
+| `angular-app/src/app/features/checkout/checkout.component.ts` | Gọi order API khi checkout |
+
+---
+
+## Trạng Thái Hiện Tại
+
+- ✅ Backend chạy bình thường trên `http://localhost:3000`
+- ✅ API `/api/products`, `/api/orders`, `/api/cart` hoạt động, trả JSON đúng
+- ✅ Frontend build thành công, không có lỗi TypeScript
+- ✅ Database MySQL có 24 sản phẩm, categories, occasions, coupons
+- ✅ Đặt hàng COD hoạt động (đã test thành công)
+- ✅ Đã tạo thêm file seeder `20260921000108-demo-orders.js` chứa dữ liệu đơn hàng thực tế (có đầy đủ orders và order_items) để admin dashboard hiển thị danh sách đơn hàng.

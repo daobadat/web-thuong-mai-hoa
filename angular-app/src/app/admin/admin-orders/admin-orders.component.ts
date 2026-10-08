@@ -33,18 +33,21 @@ export class AdminOrdersComponent implements OnInit {
   loadOrders() {
     this.orderApi.getAllOrders({ limit: 100 }).subscribe({
       next: (res: any) => {
-        this.orders = (res.data?.data || res.data || []).map((o: any) => ({
+        // Backend returns: { success: true, data: { total, page, orders: [...] } }
+        const rawOrders = res.data?.orders || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+        this.orders = rawOrders.map((o: any) => ({
           ...o,
           id: o.id.toString(),
           status: o.status === 'pending' ? 'new' : o.status === 'processing' ? 'preparing' : o.status === 'shipping' ? 'delivering' : o.status === 'delivered' ? 'done' : o.status,
           customer: o.recipient_name,
           phone: o.recipient_phone,
           address: o.delivery_address,
-          city: 'Hà Nội',
+          city: o.delivery_address || '',
           date: new Date(o.created_at).toLocaleDateString('vi-VN'),
           time: new Date(o.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}),
-          deliveryTime: o.delivery_date || 'Giao ngay',
-          payment: o.payment_method === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản',
+          deliveryTime: o.scheduled_delivery_at ? new Date(o.scheduled_delivery_at).toLocaleDateString('vi-VN') : 'Giao ngay',
+          payment: o.payment_method === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : o.payment_method === 'bank_transfer' ? 'Chuyển khoản' : o.payment_method || 'Chưa rõ',
+          paymentStatus: o.payment_status === 'paid' ? 'paid' : 'unpaid',
           total: o.total_amount,
           products: o.items?.map((i: any) => ({
             name: i.product_name_snapshot || 'Sản phẩm',
@@ -52,7 +55,7 @@ export class AdminOrdersComponent implements OnInit {
             price: i.unit_price
           })) || [],
           message: o.card_message || '',
-          note: o.note || ''
+          note: o.notes || ''
         }));
       }
     });
@@ -88,7 +91,7 @@ export class AdminOrdersComponent implements OnInit {
     if (status === 'delivering') backendStatus = 'shipping' as any;
     if (status === 'done') backendStatus = 'delivered' as any;
 
-    this.orderApi.updateOrderStatus(Number(id), backendStatus).subscribe({
+    this.orderApi.updateOrderStatus(id as any, backendStatus).subscribe({
       next: () => {
         this.orders = this.orders.map(o => o.id === id ? { ...o, status } : o);
         if (this.selected?.id === id) {
@@ -105,7 +108,7 @@ export class AdminOrdersComponent implements OnInit {
 
   deleteOrder(id: string) {
     if(confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
-      this.orderApi.deleteOrder(Number(id)).subscribe({
+      this.orderApi.deleteOrder(id as any).subscribe({
         next: () => {
           this.orders = this.orders.filter(o => o.id !== id);
           if(this.selected?.id === id) {

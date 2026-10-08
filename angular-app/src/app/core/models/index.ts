@@ -1,6 +1,6 @@
 export type Lang = 'vi' | 'ko';
 export type Page = 'home' | 'shop' | 'cart' | 'checkout' | 'product' | 'order-tracking' | 'custom';
-export type OccasionKey = 'birthday' | 'opening' | 'wedding' | 'corporate' | 'chuseok' | 'valentine';
+export type OccasionKey = string;
 
 export interface Product {
   id: string;
@@ -9,7 +9,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   occasions: OccasionKey[];
-  category: 'bouquet' | 'box' | 'basket' | 'stand';
+  category: string;
   img: string;
   descVi: string;
   descKo: string;

@@ -4,7 +4,6 @@ import { LangService } from '../../core/services/lang.service';
 import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
 import { OccasionKey, Product } from '../../core/models';
-import { OCC, OCCASION_KEYS, OCC_ICONS } from '../../core/data/products';
 
 @Component({
   selector: 'app-home-page',
@@ -18,7 +17,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
   productService = inject(ProductService);
   router = inject(Router);
 
-  occasionKeys = OCCASION_KEYS;
+  get occasionKeys(): string[] {
+    return this.productService.occasionKeys();
+  }
 
   // Hero carousel state
   currentSlideIdx = 0;
@@ -33,28 +34,28 @@ export class HomePageComponent implements OnInit, OnDestroy {
         sub: vi ? 'Giao trong ngày' : '당일 배달',
         color: 'from-[#D9A6A0] to-[#C07E78]',
         img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=640&h=640&fit=crop&auto=format',
-        key: 'birthday' as OccasionKey | 'sale',
+        key: 'sinh-nhat',
       },
       {
         label: vi ? 'Hoa Khai Trương' : '개업 꽃',
         sub: vi ? 'Kệ hoa lớn' : '대형 화환',
         color: 'from-[#5F6F52] to-[#3D4D33]',
         img: 'https://images.unsplash.com/photo-1487530811015-780f5d82f80c?w=640&h=640&fit=crop&auto=format',
-        key: 'opening' as OccasionKey | 'sale',
+        key: 'khai-truong',
       },
       {
         label: vi ? 'SALE -30%' : '세일 -30%',
         sub: vi ? 'Hoa đặc biệt' : '특별 할인',
         color: 'from-[#6E2A34] to-[#4A1A22]',
         img: 'https://images.unsplash.com/photo-1490750967868-88df5691cc09?w=640&h=640&fit=crop&auto=format',
-        key: 'sale' as OccasionKey | 'sale',
+        key: 'sale',
       },
       {
         label: vi ? 'Hoa Cưới Hỏi' : '결혼 꽃',
         sub: vi ? 'Sang trọng · Tinh tế' : '우아하고 세련된',
         color: 'from-[#E4D9C8] to-[#C9B9A2]',
         img: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=640&h=640&fit=crop&auto=format',
-        key: 'wedding' as OccasionKey | 'sale',
+        key: 'cuoi-hoi',
       },
     ];
   }
@@ -80,12 +81,12 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   get occasionSections() {
-    return OCCASION_KEYS.map((k, i) => ({
+    return this.occasionKeys.map((k, i) => ({
       key: k,
-      title: OCC[k][this.langService.currentLang()],
+      title: this.productService.getOccasionName(k, this.langService.currentLang()),
       sub: this.langService.currentLang() === 'vi'
-        ? `— Dành cho dịp ${OCC[k].vi.toLowerCase()}`
-        : `— ${OCC[k].ko} 선물`,
+        ? `— Dành cho dịp ${this.productService.getOccasionName(k, 'vi').toLowerCase()}`
+        : `— ${this.productService.getOccasionName(k, 'ko')} 선물`,
       products: this.productService.products().filter(p => p.occasions.includes(k)),
       bgClass: i % 2 === 0 ? 'bg-[#F4EDE3]' : 'bg-[#FBF6EF]',
     }));
@@ -138,17 +139,17 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.resetAutoSlide();
   }
 
-  filterOccasion(key: OccasionKey | 'sale') {
+  filterOccasion(key: string) {
     this.productService.selectedOccasion.set(key);
     this.router.navigate(['/shop']);
   }
 
-  getOccasionLabel(key: OccasionKey) {
-    return OCC[key] ? OCC[key][this.langService.currentLang()] : key;
+  getOccasionLabel(key: string) {
+    return this.productService.getOccasionName(key, this.langService.currentLang());
   }
 
-  getOccasionIcon(key: OccasionKey) {
-    return OCC_ICONS[key] || '🌸';
+  getOccasionIcon(key: string) {
+    return this.productService.getOccasionIcon(key);
   }
 
   discountPct(p: Product): number {

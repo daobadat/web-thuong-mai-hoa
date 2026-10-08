@@ -108,6 +108,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      payment_method: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+        defaultValue: "bank_transfer",
+      },
       paid_at: {
         type: DataTypes.DATE,
         allowNull: true,

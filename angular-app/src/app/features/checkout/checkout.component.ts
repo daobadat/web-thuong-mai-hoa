@@ -1,9 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LangService } from '../../core/services/lang.service';
 import { CartService } from '../../core/services/cart.service';
+import { OrderApiService } from '../../core/services/order-api.service';
+import { AuthApiService } from '../../core/services/auth-api.service';
 import { CurrencyVndPipe } from '../../shared/pipes/currency-vnd.pipe';
 
 @Component({
@@ -35,9 +37,19 @@ import { CurrencyVndPipe } from '../../shared/pipes/currency-vnd.pipe';
             </div>
 
             <div>
+              <label class="block font-semibold text-gray-700 mb-1">Phương thức thanh toán *</label>
+              <select [(ngModel)]="paymentMethod" name="paymentMethod" required class="w-full px-4 py-2.5 bg-rose-50/40 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-400 focus:outline-none">
+                <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                <option value="bank_transfer">Chuyển khoản ngân hàng</option>
+              </select>
+            </div>
+
+            <div>
               <label class="block font-semibold text-gray-700 mb-1">{{ langService.t.checkout.message }}</label>
               <textarea [(ngModel)]="cardMessage" name="cardMessage" rows="3" [placeholder]="langService.t.checkout.messageHint" class="w-full px-4 py-2.5 bg-rose-50/40 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-400 focus:outline-none"></textarea>
             </div>
+            
+            <div *ngIf="errorMessage" class="text-red-500 font-semibold">{{ errorMessage }}</div>
           </div>
         </div>
 
@@ -72,8 +84,8 @@ import { CurrencyVndPipe } from '../../shared/pipes/currency-vnd.pipe';
               </div>
             </div>
 
-            <button type="submit" class="w-full py-4 bg-[#7A2838] hover:bg-[#5C2129] text-white font-bold rounded-2xl shadow-lg transition-all">
-              {{ langService.t.checkout.confirm }}
+            <button type="submit" [disabled]="isSubmitting || cartService.cartItems().length === 0" class="w-full py-4 bg-[#7A2838] hover:bg-[#5C2129] disabled:opacity-50 text-white font-bold rounded-2xl shadow-lg transition-all">
+              {{ isSubmitting ? 'Đang xử lý...' : langService.t.checkout.confirm }}
             </button>
           </div>
         </div>
@@ -82,20 +94,56 @@ import { CurrencyVndPipe } from '../../shared/pipes/currency-vnd.pipe';
     </main>
   `
 })
-export class CheckoutComponent {
+export class CheckoutComponent implements OnInit {
   langService = inject(LangService);
   cartService = inject(CartService);
+  orderApi = inject(OrderApiService);
+  authApi = inject(AuthApiService);
   router = inject(Router);
 
-  name = 'Nguyễn Thùy Linh';
-  phone = '0908 123 456';
-  address = 'Tầng 12, Tòa nhà Bitexco, Q.1, TP.HCM';
-  cardMessage = 'Chúc mừng sinh nhật em yêu!';
+  name = '';
+  phone = '';
+  address = '';
+  cardMessage = '';
+  paymentMethod: 'cod' | 'bank_transfer' = 'cod';
+  
+  isSubmitting = false;
+  errorMessage = '';
+
+  ngOnInit() {
+    const user = this.authApi.currentUser();
+    if (user) {
+      this.name = user.full_name || '';
+      this.phone = user.phone || '';
+    }
+  }
 
   placeOrder(e: Event) {
     e.preventDefault();
-    alert(this.langService.t.checkout.successMsg);
-    this.cartService.clearCart();
-    this.router.navigate(['/order-tracking']);
+    if (this.cartService.cartItems().length === 0) {
+      this.errorMessage = this.langService.currentLang() === 'vi' ? 'Giỏ hàng trống!' : '장바구니가 비어 있습니다!';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+
+    this.orderApi.checkout({
+      recipient_name: this.name,
+      recipient_phone: this.phone,
+      delivery_address: this.address,
+      card_message: this.cardMessage,
+      payment_method: this.paymentMethod
+    }).subscribe({
+      next: (res) => {
+        alert(this.langService.t.checkout.successMsg);
+        this.cartService.clearCart();
+        this.router.navigate(['/order-tracking']);
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        this.errorMessage = err.message || 'Có lỗi xảy ra khi đặt hàng';
+      }
+    });
   }
 }

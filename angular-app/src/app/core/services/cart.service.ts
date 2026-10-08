@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { Injectable, signal, computed, inject, effect, untracked } from '@angular/core';
 import { CartItem, Product } from '../models';
 import { ToastService } from './toast.service';
 import { LangService } from './lang.service';
@@ -18,6 +18,7 @@ export class CartService {
 
   public cartItems = signal<CartItem[]>([]);
   public isCartOpen = signal<boolean>(false);
+  private rawBackendCart = signal<any>(null); // Store raw cart
   
   constructor() {
     effect(() => {
@@ -25,40 +26,48 @@ export class CartService {
       const user = this.authApi.currentUser();
       this.loadCartFromBackend();
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      // Trigger whenever products or raw backend cart changes
+      const backendCart = this.rawBackendCart();
+      const products = this.productService.products();
+      
+      if (!backendCart || !backendCart.items || products.length === 0) {
+        if (!backendCart?.items) this.cartItems.set([]);
+        return;
+      }
+      
+      // Dùng untracked để tránh infinite loop khi vừa read vừa write cùng một signal trong effect
+      const currentLocal = untracked(() => this.cartItems());
+      const newItems: CartItem[] = backendCart.items.map((bItem: any) => {
+        const prod = products.find(p => String(p.id) === String(bItem.product_id));
+        if (prod) {
+          const existing = currentLocal.find(i => String(i.product.id) === String(bItem.product_id));
+          return {
+            id: bItem.id,
+            product: prod,
+            qty: bItem.quantity,
+            note: existing?.note || ''
+          };
+        }
+        return null;
+      }).filter((i: any) => i !== null);
+      
+      this.cartItems.set(newItems);
+    }, { allowSignalWrites: true });
   }
 
   public loadCartFromBackend() {
     this.api.get<any>('/cart').subscribe({
       next: (res) => {
-        this.syncCartFromBackend(res.data);
+        this.rawBackendCart.set(res.data);
       },
       error: (err) => console.error('Failed to load cart', err)
     });
   }
 
   private syncCartFromBackend(backendCart: any) {
-    if (!backendCart || !backendCart.items) {
-      this.cartItems.set([]);
-      return;
-    }
-    const products = this.productService.products();
-    const currentLocal = this.cartItems();
-    
-    const newItems: CartItem[] = backendCart.items.map((bItem: any) => {
-      const prod = products.find(p => String(p.id) === String(bItem.product_id));
-      if (prod) {
-        const existing = currentLocal.find(i => String(i.product.id) === String(bItem.product_id));
-        return {
-          id: bItem.id,
-          product: prod,
-          qty: bItem.quantity,
-          note: existing?.note || ''
-        };
-      }
-      return null;
-    }).filter((i: any) => i !== null);
-    
-    this.cartItems.set(newItems);
+    this.rawBackendCart.set(backendCart);
   }
 
   public totalItems = computed(() =>

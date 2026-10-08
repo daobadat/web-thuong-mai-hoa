@@ -95,17 +95,27 @@ const orderService = {
       const shipping_fee = parseFloat(data.shipping_fee || 0);
       const total_amount = Math.max(0, subtotal + shipping_fee - discount_amount);
 
+      const paymentMethod = data.payment_method || "bank_transfer";
+      const isCod = paymentMethod === "cod";
+
       const orderNumber = `FLW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const orderTtl = parseInt(process.env.ORDER_TTL_MINUTES || "15");
-      const expiresAt = new Date(Date.now() + orderTtl * 60 * 1000);
+
+      // COD không cần expires_at vì KH trả tiền khi nhận — không timeout
+      let expiresAt = null;
+      if (!isCod) {
+        const orderTtl = parseInt(process.env.ORDER_TTL_MINUTES || "15");
+        expiresAt = new Date(Date.now() + orderTtl * 60 * 1000);
+      }
 
       const order = await Order.create(
         {
           order_number: orderNumber,
           user_id: userId,
           coupon_id,
-          status: "pending",
-          payment_status: "unpaid",
+          // COD: xác nhận ngay, chờ thu tiền khi giao
+          // Bank transfer: pending cho đến khi nhận được tiền
+          status: isCod ? "confirmed" : "pending",
+          payment_status: isCod ? "pending" : "unpaid",
           subtotal,
           discount_amount,
           shipping_fee,
@@ -116,6 +126,7 @@ const orderService = {
           recipient_name: data.recipient_name,
           recipient_phone: data.recipient_phone,
           delivery_address: data.delivery_address,
+          payment_method: paymentMethod,
           card_message: data.card_message || null,
           notes: data.notes || null,
           expires_at: expiresAt,
@@ -131,9 +142,9 @@ const orderService = {
       await OrderStatusHistory.create(
         {
           order_id: order.id,
-          status: "pending",
+          status: isCod ? "confirmed" : "pending",
           changed_by: userId,
-          note: "Order placed",
+          note: isCod ? "COD order placed - confirmed immediately" : "Order placed, awaiting payment",
         },
         { transaction }
       );

@@ -6,7 +6,6 @@ import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
 import { CurrencyVndPipe } from '../../shared/pipes/currency-vnd.pipe';
 import { OccasionKey } from '../../core/models';
-import { OCC, OCC_ICONS, OCCASION_KEYS } from '../../core/data/products';
 
 @Component({
   selector: 'app-shop',
@@ -71,14 +70,14 @@ import { OCC, OCC_ICONS, OCCASION_KEYS } from '../../core/data/products';
           {{ langService.t.filterAll }}
         </button>
         <button
-          *ngFor="let cat of ['bouquet', 'box', 'basket', 'stand']"
-          (click)="setCategory(cat)"
-          [class.text-[#6E2A34]]="productService.selectedCategory() === cat"
-          [class.border-[#6E2A34]]="productService.selectedCategory() === cat"
-          [class.border-b-2]="productService.selectedCategory() === cat"
+          *ngFor="let slug of productService.CATEGORY_SLUGS"
+          (click)="setCategory(slug)"
+          [class.text-[#6E2A34]]="productService.selectedCategory() === slug"
+          [class.border-[#6E2A34]]="productService.selectedCategory() === slug"
+          [class.border-b-2]="productService.selectedCategory() === slug"
           class="pb-3 text-gray-500 hover:text-gray-900 whitespace-nowrap transition-colors"
         >
-          {{ getCategoryName(cat) }}
+          {{ productService.getCategoryName(slug, langService.currentLang()) }}
         </button>
       </div>
 
@@ -137,7 +136,9 @@ export class ShopComponent {
   cartService = inject(CartService);
   productService = inject(ProductService);
 
-  occasionKeys: OccasionKey[] = OCCASION_KEYS;
+  get occasionKeys(): string[] {
+    return this.productService.occasionKeys();
+  }
 
   setOccasion(occ: any) {
     this.productService.selectedOccasion.set(occ);
@@ -147,30 +148,16 @@ export class ShopComponent {
     this.productService.selectedCategory.set(cat);
   }
 
-  getOccasionIcon(k: OccasionKey): string {
-    return OCC_ICONS[k] || '🌸';
+  getOccasionIcon(k: string): string {
+    return this.productService.getOccasionIcon(k);
   }
 
-  getOccasionTitle(k: OccasionKey): string {
-    const lang = this.langService.currentLang();
-    return OCC[k] ? OCC[k][lang] : k;
+  getOccasionTitle(k: string): string {
+    return this.productService.getOccasionName(k, this.langService.currentLang());
   }
 
-  getCategoryName(cat: string) {
-    const vi: Record<string, string> = {
-      bouquet: 'Bó hoa',
-      box: 'Hộp hoa',
-      basket: 'Giỏ hoa',
-      stand: 'Kệ hoa'
-    };
-    const ko: Record<string, string> = {
-      bouquet: '꽃다발',
-      box: '플라워 박스',
-      basket: '꽃바구니',
-      stand: '화환'
-    };
-    const map = this.langService.currentLang() === 'ko' ? ko : vi;
-    return map[cat] || cat;
+  getCategoryName(slug: string) {
+    return this.productService.getCategoryName(slug, this.langService.currentLang());
   }
 }
 

@@ -200,10 +200,18 @@ router.group("/notifications", middlewares([authenticated]), (router) => {
 // PAYMENT ROUTES - /payments
 // =====================================================================
 router.group("/payments", (router) => {
-  // Webhook từ provider (SePay, Casso...) - Public endpoint (sử dụng API Key validation bên trong)
+  // ── Bank Transfer Webhook (SePay / Casso) ──
   router.post("/webhook", paymentController.webhook);
-  
-  // Endpoint để frontend poll trạng thái thanh toán
+
+  // ── MoMo ──
+  router.post("/momo-create", middlewares([authenticated]), paymentController.momoCreate);
+  router.post("/momo-ipn", paymentController.momoIpn);
+
+  // ── VNPay ──
+  router.post("/vnpay-create", middlewares([authenticated]), paymentController.vnpayCreate);
+  router.get("/vnpay-return", paymentController.vnpayReturn);
+
+  // ── Poll trạng thái ──
   router.get("/status/:orderNumber", middlewares([authenticated]), paymentController.status);
 });
 
