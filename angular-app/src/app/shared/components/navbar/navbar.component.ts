@@ -50,6 +50,18 @@ export class NavbarComponent {
     return this.productService.getOccasionName(key, this.langService.currentLang());
   }
 
+  /** Tên rút gọn cho navbar — bỏ phần trong ngoặc và ngày tháng thừa */
+  getOccasionShortName(key: string): string {
+    const full = this.getOccasionName(key);
+    // Bỏ phần trong ngoặc đơn: "(Valentine 14/2)", "(Chuseok)", ...
+    let short = full.replace(/\s*\(.*?\)/g, '').trim();
+    // Bỏ ngày tháng dạng "8/3", "20/10", "14/2" ở cuối hoặc đầu
+    short = short.replace(/\s*\d{1,2}\/\d{1,2}/g, '').trim();
+    // Bỏ "Hàn Quốc" khỏi tên Chuseok để ngắn hơn
+    short = short.replace(/\s*Hàn Quốc/gi, '').trim();
+    return short || full;
+  }
+
   getOccasionIcon(key: string): string {
     return this.productService.getOccasionIcon(key);
   }

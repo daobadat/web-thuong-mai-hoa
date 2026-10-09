@@ -166,20 +166,20 @@
 
   <!-- ── Sub nav (occasion links) ── -->
   <div class="hidden md:block bg-[#FBF6EF] border-b border-[#E4D9C8]">
-    <div class="site-container flex items-stretch overflow-x-auto">
-      <!-- Each nav item gets equal flex width so spacing is identical regardless of VI/KR label length -->
+    <div class="site-container flex items-stretch overflow-x-auto no-scrollbar">
+      <!-- Each nav item gets equal flex width. Text được phép xuống 2 dòng thay vì bị truncate -->
       <button *ngFor="let k of occasionKeys" (click)="filterOccasion(k)"
-        class="nav-item flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide hover:text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors whitespace-nowrap relative group min-w-0"
+        class="nav-item flex flex-1 flex-col items-center justify-center gap-0.5 px-2 py-2 text-[10.5px] font-semibold uppercase tracking-wide hover:text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors relative group min-w-[80px]"
         [class.text-[#6E2A34]]="productService.selectedOccasion() === k"
         [class.text-[#2B2A26]]="productService.selectedOccasion() !== k">
-        <span class="text-sm shrink-0">{{ getOccasionIcon(k) }}</span>
-        <span class="truncate">{{ getOccasionName(k) }}</span>
+        <span class="text-base leading-none shrink-0">{{ getOccasionIcon(k) }}</span>
+        <span class="text-center leading-tight line-clamp-2 break-words w-full" [title]="getOccasionName(k)">{{ getOccasionShortName(k) }}</span>
         <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6E2A34] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-200 rounded-full"></span>
       </button>
       <button (click)="filterOccasion('sale')"
-        class="nav-item flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-bold uppercase tracking-wide text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors whitespace-nowrap relative group min-w-0">
-        <span class="shrink-0">🔥</span>
-        <span>{{ langService.t.navSale }}</span>
+        class="nav-item flex flex-1 flex-col items-center justify-center gap-0.5 px-2 py-2 text-[10.5px] font-bold uppercase tracking-wide text-[#6E2A34] hover:bg-[#F4EDE3] transition-colors relative group min-w-[80px]">
+        <span class="text-base leading-none">🔥</span>
+        <span class="text-center leading-tight">{{ langService.t.navSale }}</span>
         <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6E2A34] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-200 rounded-full"></span>
       </button>
     </div>
