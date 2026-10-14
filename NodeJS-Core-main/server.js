@@ -1,9 +1,10 @@
+﻿const logger = require('./utils/logger');
 "use strict";
 
 const http = require("http");
 const app = require("./index");
 const paymentService = require("modules/payment/services/paymentService");
-// Chỉnh đường dẫn cho khớp project của bạn:
+// Chá»‰nh Ä‘Æ°á»ng dáº«n cho khá»›p project cá»§a báº¡n:
 const { sequelize } = require("models");
 
 const PORT = Number.parseInt(process.env.PORT || "3000", 10);
@@ -15,23 +16,23 @@ server.keepAliveTimeout = 65_000;
 server.headersTimeout = 66_000;
 
 // ---------------------------------------------------------------------
-// Cron: dọn đơn hết hạn (chống chạy chồng)
+// Cron: dá»n Ä‘Æ¡n háº¿t háº¡n (chá»‘ng cháº¡y chá»“ng)
 // ---------------------------------------------------------------------
 let expireJobRunning = false;
 let expireTimer = null;
 
 async function runExpireJob() {
   if (expireJobRunning) {
-    console.warn("[Cron] Lần chạy trước chưa xong, bỏ qua tick này.");
+    logger.warn("[Cron] Láº§n cháº¡y trÆ°á»›c chÆ°a xong, bá» qua tick nÃ y.");
     return;
   }
   expireJobRunning = true;
   const startedAt = Date.now();
   try {
     await paymentService.expireStaleOrders();
-    console.log(`[Cron] expireStaleOrders OK (${Date.now() - startedAt}ms)`);
+    logger.info(`[Cron] expireStaleOrders OK (${Date.now() - startedAt}ms)`);
   } catch (err) {
-    console.error("[Cron] expireStaleOrders lỗi:", err);
+    logger.error("[Cron] expireStaleOrders lá»—i:", err);
   } finally {
     expireJobRunning = false;
   }
@@ -42,19 +43,19 @@ async function runExpireJob() {
 // ---------------------------------------------------------------------
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
-    console.error(`[server] Port ${PORT} đang bị chiếm. Chạy "npm run start:clean" hoặc đổi PORT trong .env.`);
+    logger.error(`[server] Port ${PORT} Ä‘ang bá»‹ chiáº¿m. Cháº¡y "npm run start:clean" hoáº·c Ä‘á»•i PORT trong .env.`);
   } else if (err.code === "EACCES") {
-    console.error(`[server] Không đủ quyền bind port ${PORT}.`);
+    logger.error(`[server] KhÃ´ng Ä‘á»§ quyá»n bind port ${PORT}.`);
   } else {
-    console.error("[server] Lỗi khởi động:", err);
+    logger.error("[server] Lá»—i khá»Ÿi Ä‘á»™ng:", err);
   }
   process.exit(1);
 });
 
 server.listen(PORT, () => {
-  console.log(`[server] Running on http://localhost:${PORT} (pid ${process.pid})`);
+  logger.info(`[server] Running on http://localhost:${PORT} (pid ${process.pid})`);
   expireTimer = setInterval(runExpireJob, EXPIRE_JOB_INTERVAL_MS);
-  console.log("[Cron] Expire stale orders job scheduled (every 5 min).");
+  logger.info("[Cron] Expire stale orders job scheduled (every 5 min).");
 });
 
 let shuttingDown = false;
@@ -62,10 +63,10 @@ let shuttingDown = false;
 async function shutdown(signal, exitCode = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
-  console.log(`[server] Nhận ${signal}, đang shutdown...`);
+  logger.info(`[server] Nháº­n ${signal}, Ä‘ang shutdown...`);
 
   const forceTimer = setTimeout(() => {
-    console.error("[server] Shutdown quá thời gian, ép thoát.");
+    logger.error("[server] Shutdown quÃ¡ thá»i gian, Ã©p thoÃ¡t.");
     process.exit(1);
   }, SHUTDOWN_TIMEOUT_MS);
   forceTimer.unref();
@@ -77,10 +78,10 @@ async function shutdown(signal, exitCode = 0) {
     );
     server.closeAllConnections?.();
     await sequelize.close();
-    console.log("[server] Shutdown hoàn tất.");
+    logger.info("[server] Shutdown hoÃ n táº¥t.");
     process.exit(exitCode);
   } catch (err) {
-    console.error("[server] Lỗi khi shutdown:", err);
+    logger.error("[server] Lá»—i khi shutdown:", err);
     process.exit(1);
   }
 }
@@ -88,10 +89,10 @@ async function shutdown(signal, exitCode = 0) {
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("unhandledRejection", (reason) => {
-  console.error("[process] unhandledRejection:", reason);
+  logger.error("[process] unhandledRejection:", reason);
   shutdown("unhandledRejection", 1);
 });
 process.on("uncaughtException", (err) => {
-  console.error("[process] uncaughtException:", err);
+  logger.error("[process] uncaughtException:", err);
   shutdown("uncaughtException", 1);
 });

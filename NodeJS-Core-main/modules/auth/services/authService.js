@@ -101,6 +101,79 @@ const authService = {
     delete userObj.password_hash;
     return userObj;
   },
+
+  forgotPassword: async (email) => {
+    const crypto = require("crypto");
+    const emailUtils = require("utils/emailUtils");
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      // Return success anyway to prevent email enumeration
+      return { message: "If that email exists, we sent a password reset link." };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hash = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    user.reset_password_token = hash;
+    user.reset_password_expires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    await user.save();
+
+    const resetUrl = `${process.env.APP_BASE_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
+
+    await emailUtils.sendEmail({
+      to: user.email,
+      subject: "Password Reset Request",
+      html: `<p>You requested a password reset. Click the link below to set a new password:</p>
+             <p><a href="${resetUrl}">${resetUrl}</a></p>
+             <p>This link will expire in 15 minutes.</p>`,
+    });
+
+    return { message: "If that email exists, we sent a password reset link." };
+  },
+
+  resetPassword: async ({ token, password }) => {
+    const crypto = require("crypto");
+    const hash = crypto.createHash("sha256").update(token).digest("hex");
+    const { Op } = require("sequelize");
+
+    const user = await User.findOne({
+      where: {
+        reset_password_token: hash,
+        reset_password_expires: { [Op.gt]: new Date() },
+      },
+    });
+
+    if (!user) {
+      const error = new Error("Token is invalid or has expired");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const bcrypt = require("bcryptjs");
+    const salt = await bcrypt.genSalt(10);
+    user.password_hash = await bcrypt.hash(password, salt);
+    user.reset_password_token = null;
+    user.reset_password_expires = null;
+    await user.save();
+
+    return { message: "Password has been successfully reset" };
+  },
+
+  verifyEmail: async (token) => {
+    const user = await User.findOne({ where: { verify_email_token: token } });
+    if (!user) {
+      const error = new Error("Invalid or expired verification token");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    user.email_verified_at = new Date();
+    user.verify_email_token = null;
+    await user.save();
+
+    return { message: "Email has been successfully verified" };
+  },
 };
 
 module.exports = authService;

@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "G:\\Thương mại điện tử hoa (1)\\NodeJS-Core-main\\logs\\.3480c2fd573841a19b02aa13f27f80ed500a7b2e-audit.json",
+    "files": [
+        {
+            "date": 1791534931041,
+            "name": "G:\\Thương mại điện tử hoa (1)\\NodeJS-Core-main\\logs\\combined-2026-10-09.log",
+            "hash": "e73f8a87591d638a99b3a1b1f5e0bc117f04b88e314a15409f2abd8aeba71625"
+        },
+        {
+            "date": 1791964470395,
+            "name": "G:\\Thương mại điện tử hoa (1)\\NodeJS-Core-main\\logs\\combined-2026-10-14.log",
+            "hash": "44ac3da537d8ebd5300eb5a6b256de93f7174c8f276069aec2a4950389d39305"
+        }
+    ],
+    "hashType": "sha256"
+}

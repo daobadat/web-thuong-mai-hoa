@@ -3,11 +3,11 @@
 -- =====================================================================
 
 -- Xoa sach database cu neu co, tranh warning 1007 va dam bao chay lai idempotent.
--- Luu y: DROP toan bo DB se mat het du lieu hien co - chi dung cho moi truong dev/test.
-DROP DATABASE IF EXISTS `flower_shop`;
-CREATE DATABASE `flower_shop`
-  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `flower_shop`;
+-- Khi chạy trên Local: có thể bỏ comment các dòng DROP/CREATE nếu muốn reset DB.
+-- Khi import trên cPanel (phpMyAdmin): giữ nguyên comment (đã chọn sẵn DB trên web).
+-- DROP DATABASE IF EXISTS `flower_shop`;
+-- CREATE DATABASE IF NOT EXISTS `flower_shop` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE `flower_shop`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -64,6 +64,9 @@ CREATE TABLE `users` (
   `is_active` boolean NOT NULL DEFAULT true,
   `email_verified_at` datetime NULL,
   `last_login_at` datetime NULL,
+  `reset_password_token` varchar(255) NULL,
+  `reset_password_expires` datetime NULL,
+  `verify_email_token` varchar(255) NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -249,6 +252,7 @@ CREATE TABLE `orders` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `expires_at` datetime NULL,
+  `payment_method` varchar(30) NULL DEFAULT 'bank_transfer',
   `paid_at` datetime NULL,
   PRIMARY KEY (`id`)
 ) COMMENT = 'recipient_* fields tach rieng khoi user_id - nguoi mua va nguoi nhan thuong khac nhau trong flower gifting.';

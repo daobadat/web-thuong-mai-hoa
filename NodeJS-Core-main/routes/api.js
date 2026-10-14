@@ -17,6 +17,7 @@ const reviewController = require("modules/review/controllers/reviewController");
 const wishlistController = require("modules/wishlist/controllers/wishlistController");
 const notificationController = require("modules/notification/controllers/notificationController");
 const paymentController = require("modules/payment/controllers/paymentController");
+const aiChatController = require("modules/ai-chat/controllers/aiChatController");
 
 // ===== Validations =====
 const authValidation = require("modules/auth/validations/authValidation");
@@ -38,6 +39,9 @@ router.group("/auth", (router) => {
   router.post("/register", validate([authValidation.register]), authController.register);
   router.post("/login", validate([authValidation.login]), authController.login);
   router.get("/me", middlewares([authenticated]), authController.me);
+  router.post("/forgot-password", authController.forgotPassword);
+  router.post("/reset-password", authController.resetPassword);
+  router.get("/verify-email", authController.verifyEmail);
 });
 
 // =====================================================================
@@ -213,6 +217,14 @@ router.group("/payments", (router) => {
 
   // ── Poll trạng thái ──
   router.get("/status/:orderNumber", middlewares([authenticated]), paymentController.status);
+});
+
+// =====================================================================
+// AI CHAT ROUTES - /chat
+// =====================================================================
+router.group("/chat", (router) => {
+  router.post("/message", middlewares([optionalAuthenticated]), aiChatController.chat);
+  router.get("/suggestions", aiChatController.suggestions);
 });
 
 module.exports = router;

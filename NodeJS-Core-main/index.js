@@ -8,8 +8,36 @@ const cors = require("cors");
 const router = require("routes/api");
 const { swaggerUIServe, swaggerUISetup } = require("kernels/api-docs");
 
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
+const logger = require("utils/logger");
+
 const app = express();
 app.disable("x-powered-by");
+
+// Ghi log mọi request HTTP qua winston
+app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+
+// Bật các HTTP headers bảo mật
+app.use(helmet({
+  contentSecurityPolicy: false, // Tạm tắt CSP để không block script/style của Angular
+}));
+
+// Phòng chống XSS cơ bản (lọc payload req.body, req.query, req.params)
+app.use(xss());
+
+// Rate limit: chống brute force, spam API (100 req / 15 min / IP)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+});
+// Chỉ áp dụng cho route API
+app.use("/api", apiLimiter);
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -60,7 +88,7 @@ if (fs.existsSync(angularDistPath)) {
 // Error handler cuối cùng: tránh lộ stack trace
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error(`[error] ${req.method} ${req.originalUrl}:`, err);
+  logger.error(`[error] ${req.method} ${req.originalUrl}: %O`, err);
   if (res.headersSent) return next(err);
   const status = Number.isInteger(err.status) ? err.status : 500;
   res.status(status).json({ message: status === 500 ? "Internal Server Error" : err.message });
