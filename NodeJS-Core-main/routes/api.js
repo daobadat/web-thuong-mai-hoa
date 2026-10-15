@@ -18,6 +18,7 @@ const wishlistController = require("modules/wishlist/controllers/wishlistControl
 const notificationController = require("modules/notification/controllers/notificationController");
 const paymentController = require("modules/payment/controllers/paymentController");
 const aiChatController = require("modules/ai-chat/controllers/aiChatController");
+const analyticsController = require("modules/analytics/controllers/analyticsController");
 
 // ===== Validations =====
 const authValidation = require("modules/auth/validations/authValidation");
@@ -225,6 +226,13 @@ router.group("/payments", (router) => {
 router.group("/chat", (router) => {
   router.post("/message", middlewares([optionalAuthenticated]), aiChatController.chat);
   router.get("/suggestions", aiChatController.suggestions);
+});
+
+// =====================================================================
+// ADMIN ANALYTICS - /admin/stats
+// =====================================================================
+router.group("/admin", middlewares([authenticated, role("admin")]), (router) => {
+  router.get("/stats", analyticsController.getStats);
 });
 
 module.exports = router;

@@ -106,7 +106,19 @@ const productService = {
       is_active: data.is_active !== undefined ? data.is_active : true,
     });
 
-    if (data.name) {
+    if (data.translations && Array.isArray(data.translations)) {
+      for (const t of data.translations) {
+        if (t.name) {
+          await ProductTranslation.create({
+            product_id: product.id,
+            language_code: t.language_code || "vi",
+            name: t.name,
+            description: t.description || "",
+            care_instructions: t.care_instructions || "",
+          });
+        }
+      }
+    } else if (data.name) {
       await ProductTranslation.create({
         product_id: product.id,
         language_code: data.language_code || "vi",
@@ -144,7 +156,27 @@ const productService = {
 
     await product.update(data);
 
-    if (data.name) {
+    if (data.translations && Array.isArray(data.translations)) {
+      for (const t of data.translations) {
+        if (t.name) {
+          const [translation] = await ProductTranslation.findOrCreate({
+            where: { product_id: id, language_code: t.language_code || "vi" },
+            defaults: {
+              name: t.name,
+              description: t.description || "",
+              care_instructions: t.care_instructions || "",
+            },
+          });
+          if (translation) {
+            await translation.update({
+              name: t.name,
+              description: t.description !== undefined ? t.description : translation.description,
+              care_instructions: t.care_instructions !== undefined ? t.care_instructions : translation.care_instructions,
+            });
+          }
+        }
+      }
+    } else if (data.name) {
       const [translation] = await ProductTranslation.findOrCreate({
         where: { product_id: id, language_code: data.language_code || "vi" },
         defaults: {
@@ -164,6 +196,28 @@ const productService = {
 
     if (data.occasion_ids !== undefined) {
       await product.setOccasions(data.occasion_ids);
+    }
+
+    if (data.images && Array.isArray(data.images)) {
+      await ProductImage.destroy({ where: { product_id: id } });
+      for (let img of data.images) {
+        if (img && img.url) {
+          await ProductImage.create({
+            product_id: id,
+            url: img.url,
+            is_primary: img.is_primary !== undefined ? img.is_primary : true,
+            display_order: img.display_order || 0,
+          });
+        }
+      }
+    } else if (data.img && typeof data.img === "string") {
+      await ProductImage.destroy({ where: { product_id: id } });
+      await ProductImage.create({
+        product_id: id,
+        url: data.img,
+        is_primary: true,
+        display_order: 0,
+      });
     }
 
     return productService.getById(id, data.language_code || "vi");

@@ -1,11 +1,13 @@
 const orderService = require("modules/order/services/orderService");
 const responseUtils = require("utils/responseUtils");
+const analyticsService = require("modules/analytics/services/analyticsService");
 
 const orderController = {
   checkout: async (req, res) => {
     try {
       const userId = req.user.userId;
       const order = await orderService.checkout(userId, req.body);
+      analyticsService.clearCache();
       return responseUtils.ok(res, order);
     } catch (err) {
       if (err.statusCode === 400) return responseUtils.invalidated(res, { message: err.message });
@@ -52,6 +54,7 @@ const orderController = {
         changedById,
         req.body.note || null
       );
+      analyticsService.clearCache();
       return responseUtils.ok(res, order);
     } catch (err) {
       if (err.statusCode === 404) return responseUtils.notFound(res);
@@ -71,6 +74,7 @@ const orderController = {
   destroy: async (req, res) => {
     try {
       await orderService.destroyOrder(req.params.id);
+      analyticsService.clearCache();
       return responseUtils.ok(res, { message: "Order deleted successfully" });
     } catch (err) {
       if (err.statusCode === 404) return responseUtils.notFound(res);

@@ -5,7 +5,6 @@ const productValidation = {
     new BodyWithLocale("sku").notEmpty(),
     new BodyWithLocale("category_id").notEmpty(),
     new BodyWithLocale("base_price").notEmpty().isNumeric(),
-    new BodyWithLocale("name").notEmpty(),
   ],
 };
 
