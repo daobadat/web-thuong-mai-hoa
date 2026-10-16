@@ -1,0 +1,256 @@
+<!-- Floating Trigger Button -->
+<div class="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+  <!-- Interactive Callout Pill (Desktop only, hidden when chat is open) -->
+  <button
+    *ngIf="!chatService.isOpen()"
+    (click)="chatService.openChat()"
+    class="hidden md:flex items-center gap-2 px-3.5 py-2 bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-[#E4D9C8] text-[#2B2A26] text-xs font-medium hover:border-[#6E2A34] hover:shadow-xl transition-all duration-300 animate-bounce-subtle cursor-pointer group"
+  >
+    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+    <span class="group-hover:text-[#6E2A34] transition-colors">
+      {{ langService.currentLang() === 'ko' ? 'AI 꽃 상담원과 대화하기 🌸' : 'Chat tư vấn hoa cùng AI 🌸' }}
+    </span>
+  </button>
+
+  <!-- Main Floating Action Button (FAB) -->
+  <button
+    (click)="chatService.toggleChat()"
+    [attr.aria-label]="chatService.isOpen() ? 'Đóng chat' : 'Mở chat AI'"
+    class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-[#551E26] via-[#6E2A34] to-[#8C3A46] text-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer border-2 border-white/40 focus:outline-none"
+  >
+    <!-- Ripple ring animation -->
+    <span *ngIf="!chatService.isOpen()" class="absolute inset-0 rounded-full bg-[#6E2A34]/30 animate-ping -z-10"></span>
+
+    <!-- Unread Badge -->
+    <span
+      *ngIf="chatService.unreadCount() > 0 && !chatService.isOpen()"
+      class="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md animate-pulse"
+    >
+      {{ chatService.unreadCount() }}
+    </span>
+
+    <!-- Icon: Open state vs Closed state -->
+    <svg
+      *ngIf="!chatService.isOpen()"
+      class="w-7 h-7 transform transition-transform duration-300 group-hover:rotate-12"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.8"
+        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
+    </svg>
+
+    <svg
+      *ngIf="chatService.isOpen()"
+      class="w-6 h-6"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+</div>
+
+<!-- AI Chat Window -->
+<div
+  *ngIf="chatService.isOpen()"
+  class="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-32px)] sm:w-[420px] h-[600px] max-h-[calc(100vh-120px)] bg-[#FDFBF7] rounded-2xl shadow-2xl border border-[#E4D9C8] flex flex-col z-50 overflow-hidden animate-slide-up"
+>
+  <!-- Window Header -->
+  <div class="px-4 py-3.5 bg-gradient-to-r from-[#6E2A34] via-[#7D323E] to-[#551E26] text-white flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <!-- AI Avatar -->
+      <div class="relative w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center text-xl shadow-inner">
+        🌸
+        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#6E2A34]"></span>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h3 class="font-serif font-bold text-sm tracking-wide">KFlower AI Stylist</h3>
+          <span class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono text-amber-200">Gemini</span>
+        </div>
+        <p class="text-[11px] text-white/80 flex items-center gap-1">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          {{ langService.currentLang() === 'ko' ? '온라인 상담 중 (24/7)' : 'Trực tuyến tư vấn (24/7)' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-1 text-white/80">
+      <!-- Clear history button -->
+      <button
+        (click)="chatService.clearHistory()"
+        [title]="langService.currentLang() === 'ko' ? '대화 내용 지우기' : 'Làm mới cuộc trò chuyện'"
+        class="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+
+      <!-- Close button -->
+      <button
+        (click)="chatService.closeChat()"
+        [title]="langService.currentLang() === 'ko' ? '닫기' : 'Đóng'"
+        class="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages Scroll Container -->
+  <div #scrollContainer class="flex-1 overflow-y-auto p-4 space-y-4 bg-pattern-dots">
+    <!-- Welcome Info Badge -->
+    <div class="text-center my-1">
+      <span class="inline-block px-3 py-1 bg-[#F4EDE3] text-[#7A7163] text-[11px] rounded-full border border-[#E4D9C8]/60">
+        {{ langService.currentLang() === 'ko' ? '✨ KFlower AI가 맞춤 꽃을 추천해 드립니다' : '✨ KFlower AI tư vấn chọn hoa dựa trên sản phẩm thật tại tiệm' }}
+      </span>
+    </div>
+
+    <!-- Messages list -->
+    <div *ngFor="let msg of chatService.messages()" class="flex flex-col">
+      <!-- Assistant Message -->
+      <div *ngIf="msg.role === 'assistant'" class="flex items-start gap-2.5 max-w-[92%]">
+        <div class="w-7 h-7 rounded-full bg-[#6E2A34] text-white flex-shrink-0 flex items-center justify-center text-xs shadow-sm mt-0.5">
+          🌺
+        </div>
+        <div class="space-y-2">
+          <!-- Text Bubble -->
+          <div class="p-3.5 bg-white text-[#2B2A26] rounded-2xl rounded-tl-sm shadow-sm border border-[#E4D9C8] text-xs leading-relaxed whitespace-pre-line">
+            {{ msg.text }}
+          </div>
+
+          <!-- Recommended Products (if any) -->
+          <div *ngIf="msg.products && msg.products.length > 0" class="space-y-2 pt-1">
+            <div class="text-[11px] font-semibold text-[#6E2A34] flex items-center gap-1">
+              <span>💐</span>
+              <span>{{ langService.currentLang() === 'ko' ? '추천 꽃 상품:' : 'Gợi ý hoa phù hợp cho bạn:' }}</span>
+            </div>
+
+            <!-- Product Cards -->
+            <div class="grid grid-cols-1 gap-2">
+              <div
+                *ngFor="let prod of msg.products"
+                class="flex items-center gap-3 p-2 bg-white rounded-xl border border-[#E4D9C8] shadow-sm hover:border-[#6E2A34] hover:shadow-md transition-all group"
+              >
+                <!-- Product Thumbnail -->
+                <img
+                  [src]="prod.img || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=500&h=620&fit=crop&auto=format'"
+                  [alt]="prod.nameVi"
+                  class="w-16 h-16 object-cover rounded-lg flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
+                />
+
+                <!-- Product Info -->
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-xs font-bold text-[#2B2A26] truncate">
+                    {{ langService.currentLang() === 'ko' && prod.nameKo ? prod.nameKo : prod.nameVi }}
+                  </h4>
+                  <p class="text-xs font-bold text-[#6E2A34] mt-0.5">
+                    {{ prod.price | currencyVnd:(langService.currentLang() === 'ko') }}
+                  </p>
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-1.5 mt-2">
+                    <button
+                      (click)="viewProduct(prod)"
+                      class="px-2 py-1 bg-[#F4EDE3] text-[#2B2A26] hover:bg-[#6E2A34] hover:text-white rounded text-[10px] font-medium transition-colors cursor-pointer"
+                    >
+                      {{ langService.currentLang() === 'ko' ? '상세보기' : 'Xem chi tiết' }}
+                    </button>
+                    <button
+                      (click)="addProductToCart(prod)"
+                      class="px-2 py-1 bg-[#6E2A34] text-white hover:bg-[#551E26] rounded text-[10px] font-medium transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>+🛒</span>
+                      <span>{{ langService.currentLang() === 'ko' ? '담기' : 'Thêm giỏ' }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <span class="text-[10px] text-[#A89E90] block pl-1">{{ msg.time }}</span>
+        </div>
+      </div>
+
+      <!-- User Message -->
+      <div *ngIf="msg.role === 'user'" class="flex flex-col items-end max-w-[85%] self-end">
+        <div class="p-3 bg-gradient-to-r from-[#6E2A34] to-[#7D323E] text-white rounded-2xl rounded-tr-sm shadow-sm text-xs leading-relaxed whitespace-pre-line">
+          {{ msg.text }}
+        </div>
+        <span class="text-[10px] text-[#A89E90] mt-1 pr-1">{{ msg.time }}</span>
+      </div>
+    </div>
+
+    <!-- AI Typing Indicator -->
+    <div *ngIf="chatService.isLoading()" class="flex items-center gap-2 max-w-[80%]">
+      <div class="w-7 h-7 rounded-full bg-[#6E2A34] text-white flex-shrink-0 flex items-center justify-center text-xs shadow-sm">
+        🌺
+      </div>
+      <div class="px-4 py-2.5 bg-white rounded-2xl rounded-tl-sm border border-[#E4D9C8] shadow-sm flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#6E2A34] animate-bounce" style="animation-delay: 0ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#6E2A34] animate-bounce" style="animation-delay: 150ms"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#6E2A34] animate-bounce" style="animation-delay: 300ms"></span>
+        <span class="text-[11px] text-[#7A7163] ml-1.5">
+          {{ langService.currentLang() === 'ko' ? 'AI 답변 작성 중...' : 'KFlower AI đang trả lời...' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Suggestions Bar (Pills) -->
+  <div *ngIf="chatService.suggestions().length > 0" class="px-3 py-2 bg-[#F4EDE3]/80 border-t border-[#E4D9C8]/60 overflow-x-auto no-scrollbar flex items-center gap-1.5">
+    <button
+      *ngFor="let s of chatService.suggestions()"
+      (click)="handleSelectSuggestion(s.prompt)"
+      [disabled]="chatService.isLoading()"
+      class="px-2.5 py-1 bg-white hover:bg-[#6E2A34] hover:text-white text-[#2B2A26] rounded-full text-[11px] font-medium border border-[#E4D9C8] transition-all whitespace-nowrap cursor-pointer flex-shrink-0 disabled:opacity-50"
+    >
+      {{ s.label }}
+    </button>
+  </div>
+
+  <!-- Footer Input Area -->
+  <div class="p-3 bg-white border-t border-[#E4D9C8]">
+    <div class="flex items-center gap-2">
+      <input
+        type="text"
+        [(ngModel)]="inputText"
+        (keydown)="handleKeydown($event)"
+        [disabled]="chatService.isLoading()"
+        [placeholder]="langService.currentLang() === 'ko' ? '꽃 추천, 가격, 행사 등을 물어보세요...' : 'Hỏi KFlower AI về mẫu hoa, dịp tặng, giá cả...'"
+        class="flex-1 px-3.5 py-2.5 bg-[#FBF6EF] border border-[#E4D9C8] rounded-xl text-xs text-[#2B2A26] placeholder-[#A89E90] focus:outline-none focus:border-[#6E2A34] focus:bg-white transition-all"
+      />
+
+      <button
+        (click)="handleSend()"
+        [disabled]="!inputText.trim() || chatService.isLoading()"
+        class="w-10 h-10 rounded-xl bg-[#6E2A34] hover:bg-[#551E26] disabled:bg-gray-200 disabled:text-gray-400 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm disabled:cursor-not-allowed flex-shrink-0"
+        title="Gửi"
+      >
+        <svg class="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Small Disclaimer Note -->
+    <div class="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-[#A89E90]">
+      <span>🌸 KFlowerVN Smart AI Store</span>
+      <span>•</span>
+      <span>{{ langService.currentLang() === 'ko' ? '실시간 맞춤 안내' : 'Tư vấn theo thời gian thực' }}</span>
+    </div>
+  </div>
+</div>

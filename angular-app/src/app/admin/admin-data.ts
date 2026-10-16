@@ -2,6 +2,7 @@ export type OrderStatus = 'new' | 'confirmed' | 'preparing' | 'delivering' | 'do
 
 export interface Order {
   id: string;
+  orderNumber?: string;
   customer: string;
   phone: string;
   address: string;

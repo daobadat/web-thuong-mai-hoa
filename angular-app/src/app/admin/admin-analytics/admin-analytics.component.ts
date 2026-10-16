@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OrderApiService } from '../../core/services/order-api.service';
-import { ProductApiService } from '../../core/services/product-api.service';
+import { Subscription } from 'rxjs';
+import { AnalyticsApiService, AnalyticsData, MonthlyRevenueItem } from '../../core/services/analytics-api.service';
+import { LangService } from '../../core/services/lang.service';
 
 @Component({
   selector: 'app-admin-analytics',
@@ -10,99 +11,112 @@ import { ProductApiService } from '../../core/services/product-api.service';
   templateUrl: './admin-analytics.component.html',
   styleUrls: ['./admin-analytics.component.css']
 })
-export class AdminAnalyticsComponent implements OnInit {
-  monthData: any[] = [];
-  maxRev = 0;
-  topProducts: any[] = [];
-  cityData: any[] = [];
-  stats: any[] = [];
+export class AdminAnalyticsComponent implements OnInit, OnDestroy {
+  langService = inject(LangService);
+  private analyticsApi = inject(AnalyticsApiService);
 
-  constructor(
-    private orderApi: OrderApiService,
-    private productApi: ProductApiService
-  ) {}
+  selectedMonths: number = 6;
+  loading: boolean = true;
+  error: boolean = false;
+  data: AnalyticsData | null = null;
+  hoveredMonth: MonthlyRevenueItem | null = null;
+
+  maxRev: number = 1;
+  maxSold: number = 1;
+  hasRevenueData: boolean = false;
+
+  private sub?: Subscription;
+
+  constructor() {
+    // Re-fetch automatically when user toggles language
+    effect(() => {
+      const _ = this.langService.currentLang();
+      this.loadData();
+    });
+  }
 
   ngOnInit() {
     this.loadData();
   }
 
+  ngOnDestroy() {
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
+  }
+
+  get t() {
+    return this.langService.t.analytics;
+  }
+
+  get currentYear(): number {
+    return new Date().getFullYear();
+  }
+
+  setMonths(months: number) {
+    if (this.selectedMonths === months) return;
+    this.selectedMonths = months;
+    this.loadData();
+  }
+
   loadData() {
-    this.orderApi.getAllOrders({ limit: 1000 }).subscribe({
-      next: (res: any) => {
-        const rawOrders = res.data?.orders || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-        this.calculateAnalytics(rawOrders);
-      }
-    });
+    this.loading = true;
+    this.error = false;
+    if (this.sub) this.sub.unsubscribe();
 
-    this.productApi.getProducts({ limit: 100 }).subscribe({
-      next: (res: any) => {
-        const products = res.data?.products || [];
-        this.topProducts = products
-          .map((p: any) => ({
-            name: p.translations?.find((t:any) => t.language_code==='vi')?.name || p.sku,
-            sold: Math.floor(Math.random() * 50) + 10, // Mock sold count for now since it's not tracked directly on product
-            rev: Number(p.base_price) * 10,
-            img: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop'
-          }))
-          .sort((a: any, b: any) => b.sold - a.sold)
-          .slice(0, 5);
-      }
-    });
+    this.sub = this.analyticsApi
+      .getStats(this.selectedMonths, this.langService.currentLang())
+      .subscribe({
+        next: (res) => {
+          this.data = res.data;
+          this.loading = false;
+          this.error = false;
+
+          const revenues = this.data?.monthlyRevenue?.map((m) => m.revenue) || [];
+          this.maxRev = Math.max(...revenues, 1);
+          this.hasRevenueData = revenues.some((r) => r > 0);
+
+          const solds = this.data?.topProducts?.map((p) => p.sold) || [];
+          this.maxSold = Math.max(...solds, 1);
+        },
+        error: (err) => {
+          console.error('[AdminAnalytics] Load error:', err);
+          this.loading = false;
+          this.error = true;
+        },
+      });
   }
 
-  calculateAnalytics(orders: any[]) {
-    const validOrders = orders.filter(o => o.status !== 'cancelled' && o.status !== 'pending');
-    const totalRev = validOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
-    const totalOrders = orders.length;
-    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
-    const cancelRate = totalOrders ? (cancelledOrders / totalOrders * 100).toFixed(1) : 0;
-
-    this.stats = [
-      { label: 'Tổng doanh thu', value: this.fmt(totalRev) + 'đ', change: 'Mới', up: true },
-      { label: 'Tổng đơn hàng', value: totalOrders.toString(), change: 'Mới', up: true },
-      { label: 'Đơn hoàn thành', value: validOrders.length.toString(), change: 'Mới', up: true },
-      { label: 'Tỷ lệ huỷ', value: cancelRate + '%', change: 'Mới', up: false },
-    ];
-
-    // Calculate month data for the current year
-    const currentYear = new Date().getFullYear();
-    const months = Array(6).fill(0).map((_, i) => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - (5 - i));
-      return { monthIndex: d.getMonth(), year: d.getFullYear(), month: `T${d.getMonth() + 1}`, rev: 0, orders: 0 };
-    });
-
-    validOrders.forEach(o => {
-      const d = new Date(o.created_at);
-      const m = months.find(x => x.monthIndex === d.getMonth() && x.year === d.getFullYear());
-      if (m) {
-        m.rev += Number(o.total_amount);
-        m.orders += 1;
-      }
-    });
-
-    this.monthData = months;
-    this.maxRev = Math.max(...this.monthData.map(d => d.rev), 1000000);
-
-    // Calculate city data
-    const cityCounts: Record<string, number> = {};
-    validOrders.forEach(o => {
-      const city = o.delivery_address || 'Khác';
-      cityCounts[city] = (cityCounts[city] || 0) + 1;
-    });
-
-    const totalValid = validOrders.length || 1;
-    this.cityData = Object.entries(cityCounts)
-      .map(([name, count]) => ({
-        name: name.length > 15 ? name.substring(0, 15) + '...' : name,
-        pct: Math.round((count / totalValid) * 100),
-        orders: count
-      }))
-      .sort((a, b) => b.orders - a.orders)
-      .slice(0, 4);
+  fmt(amount: number | null | undefined): string {
+    if (amount == null) return '0đ';
+    const isKo = this.langService.currentLang() === 'ko';
+    const num = new Intl.NumberFormat(isKo ? 'ko-KR' : 'vi-VN').format(Math.round(amount));
+    return `${num}${isKo ? '원' : 'đ'}`;
   }
 
-  fmt(n: number) {
-    return new Intl.NumberFormat('vi-VN').format(n);
+  fmtShort(amount: number): string {
+    if (!amount) return '0';
+    if (amount >= 1_000_000) {
+      return (amount / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+    }
+    if (amount >= 1_000) {
+      return (amount / 1_000).toFixed(0) + 'K';
+    }
+    return amount.toString();
+  }
+
+  onImgError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    const fallback =
+      'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop';
+    if (img && img.src !== fallback) {
+      img.src = fallback;
+    }
+  }
+
+  getBarHeightPct(rev: number): string {
+    if (!this.maxRev || rev <= 0) return '4px';
+    const pct = Math.max(Math.round((rev / this.maxRev) * 100), 4);
+    return `${pct}%`;
   }
 }

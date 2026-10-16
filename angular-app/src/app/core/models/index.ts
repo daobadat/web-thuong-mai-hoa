@@ -17,6 +17,7 @@ export interface Product {
   meaningKo?: string;
   isNew?: boolean;
   isPopular?: boolean;
+  createdAt?: number;
   stock: number;
 }
 

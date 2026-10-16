@@ -1,83 +1,253 @@
-<div class="space-y-6">
-  <div class="flex flex-wrap items-end justify-between gap-3">
+<div class="space-y-6" [ngClass]="isKo ? 'font-display-ko' : ''">
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl p-6 border border-[#EDE5DF] shadow-sm">
     <div>
-      <h1 class="font-serif text-3xl text-[#2C1A2E]">Tổng quan</h1>
-      <p class="text-sm text-[#7A6870] mt-1">Trung tâm điều hành · Thứ Hai, 17 tháng 8 năm 2026</p>
+      <div class="flex items-center gap-2">
+        <h1 class="font-serif text-2xl md:text-3xl text-[#2C1A2E] font-bold">{{ t.title }}</h1>
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {{ t.online }}
+        </span>
+      </div>
+      <p class="text-xs md:text-sm text-[#7A6870] mt-1">
+        {{ currentDateFormatted }} · <span class="tabular-nums">{{ t.lastUpdated }} {{ lastUpdatedTime }}</span>
+      </p>
     </div>
-    <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-100">
-      <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Cập nhật thời gian thực
-    </span>
-  </div>
 
-  <!-- Today snapshot -->
-  <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="rounded-2xl p-5 bg-[#8B4A5C] text-white">
-      <div class="flex justify-between items-start">
-        <div class="text-xs font-medium opacity-70 mb-1">Doanh thu hôm nay</div>
-        <span class="text-xl">💰</span>
-      </div>
-      <div class="font-serif text-3xl leading-none mt-1">{{ fmt(todayRevenue) }}đ</div>
-      <div class="text-xs opacity-60 mt-1">{{ todayOrders.length }} đơn trong ngày</div>
-    </div>
-    <div class="rounded-2xl p-5 bg-[#8B4A5C] text-white">
-      <div class="flex justify-between items-start">
-        <div class="text-xs font-medium opacity-70 mb-1">Đơn cần giao hôm nay</div>
-        <span class="text-xl">📋</span>
-      </div>
-      <div class="font-serif text-3xl leading-none mt-1">{{ getPendingToday() }}</div>
-      <div class="text-xs opacity-60 mt-1">Đang trong quy trình</div>
-    </div>
-    <div class="rounded-2xl p-5 bg-[#8B4A5C] text-white">
-      <div class="flex justify-between items-start">
-        <div class="text-xs font-medium opacity-70 mb-1">Đã hoàn thành hôm nay</div>
-        <span class="text-xl">✅</span>
-      </div>
-      <div class="font-serif text-3xl leading-none mt-1">{{ getCompletedToday() }}</div>
-      <div class="text-xs opacity-60 mt-1">Giao thành công</div>
-    </div>
-  </div>
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2.5">
+      <button (click)="refreshData()"
+              [disabled]="isRefreshing"
+              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#FAF7F2] hover:bg-[#F3ECE7] text-[#2C1A2E] border border-[#DDD4CC] transition-all active:scale-95 disabled:opacity-50">
+        <svg class="w-3.5 h-3.5 text-[#8B4A5C]" [ngClass]="isRefreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <span>{{ isRefreshing ? t.refreshing : t.refresh }}</span>
+      </button>
 
-  <!-- Action queue -->
-  <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="font-medium text-[#2C1A2E]">Việc cần xử lý ngay</h3>
-      <a routerLink="/admin/orders" class="text-xs text-[#8B4A5C] hover:underline">Tới đơn hàng →</a>
-    </div>
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <a *ngFor="let a of actionQueue"
-         [routerLink]="a.link"
-         class="text-left rounded-xl p-4 border transition-transform hover:-translate-y-0.5"
-         [ngClass]="a.cls">
-        <div class="flex items-center justify-between">
-          <span class="text-lg">{{ a.icon }}</span>
-          <span class="font-serif text-2xl leading-none">{{ a.count }}</span>
-        </div>
-        <div class="text-xs font-medium mt-2 leading-snug">{{ a.label }}</div>
+      <a routerLink="/admin/analytics"
+         class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#8B4A5C] hover:bg-[#743B4B] text-white shadow-sm transition-all hover:shadow">
+        <span>{{ t.analyticsReport }}</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
       </a>
     </div>
   </div>
 
-  <!-- Today delivery schedule -->
-  <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="font-medium text-[#2C1A2E]">🕐 Lịch giao hàng hôm nay</h3>
-      <span class="text-xs text-[#7A6870]">{{ todayOrders.length }} đơn theo khung giờ</span>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div *ngFor="let s of schedule" class="rounded-xl border border-[#EDE5DF] bg-[#FAF7F2] p-3">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-[#2C1A2E]">{{ s.slot }}</span>
-          <span class="text-xs font-semibold text-[#8B4A5C] bg-white rounded-full px-2 py-0.5 border border-[#EDE5DF]">{{ s.orders.length }} đơn</span>
+  <!-- Today KPI Snapshot (3 Cards) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Doanh thu hôm nay -->
+    <div class="kpi-card rounded-2xl p-5 bg-gradient-to-br from-[#8B4A5C] to-[#6E2A34] text-white shadow-md relative overflow-hidden">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs font-semibold tracking-wider text-rose-100 uppercase">{{ t.todayRevenue }}</span>
+          <div class="stat-number text-3xl font-bold tracking-tight mt-1.5 tabular-nums">
+            {{ fmt(todayRevenue) }}đ
+          </div>
         </div>
+        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white backdrop-blur-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs">
+        <span class="text-white/90 font-medium tabular-nums">{{ todayOrders.length }} {{ t.ordersInDay }}</span>
+        <span class="inline-flex items-center gap-0.5 text-emerald-300 font-semibold bg-emerald-950/30 px-1.5 py-0.5 rounded text-[11px]">
+          ▲ +{{ revenueDeltaPercent }}% {{ t.vsYesterday }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Đơn cần giao hôm nay -->
+    <div class="kpi-card rounded-2xl p-5 bg-gradient-to-br from-[#8B4A5C] to-[#6E2A34] text-white shadow-md relative overflow-hidden">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs font-semibold tracking-wider text-rose-100 uppercase">{{ t.pendingToday }}</span>
+          <div class="stat-number text-3xl font-bold tracking-tight mt-1.5 tabular-nums">
+            {{ pendingDeliveryCount }}
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white backdrop-blur-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs">
+        <span class="text-white/90 font-medium">{{ t.inProgress }}</span>
+        <span class="text-rose-200/90 text-[11px]">{{ t.monitorNote }}</span>
+      </div>
+    </div>
+
+    <!-- Đã hoàn thành hôm nay -->
+    <div class="kpi-card rounded-2xl p-5 bg-gradient-to-br from-[#8B4A5C] to-[#6E2A34] text-white shadow-md relative overflow-hidden">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs font-semibold tracking-wider text-rose-100 uppercase">{{ t.completedToday }}</span>
+          <div class="stat-number text-3xl font-bold tracking-tight mt-1.5 tabular-nums">
+            {{ completedTodayCount }}
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white backdrop-blur-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs">
+        <span class="text-white/90 font-medium">{{ t.deliverySuccess }}</span>
+        <span class="text-emerald-300 font-semibold text-[11px]">{{ t.onSchedule }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Queue: Việc cần xử lý ngay -->
+  <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-serif font-bold text-lg text-[#2C1A2E]">{{ t.actionTitle }}</h3>
+        <p class="text-xs text-[#7A6870]">{{ t.actionSub }}</p>
+      </div>
+      <a routerLink="/admin/orders" class="text-xs font-semibold text-[#8B4A5C] hover:underline flex items-center gap-1">
+        {{ t.allOrdersLink }}
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <a *ngFor="let item of actionQueue"
+         [routerLink]="item.link"
+         [queryParams]="item.queryParam"
+         class="action-card group p-4 rounded-xl border transition-all duration-200 block text-left"
+         [ngClass]="[
+           item.count === 0 ? 'opacity-60 bg-gray-50/70 border-gray-200' : 'shadow-sm hover:shadow-md hover:-translate-y-0.5',
+           item.tone === 'danger' && item.count > 0 ? 'bg-rose-50/70 border-rose-200 hover:border-rose-300' : '',
+           item.tone === 'warning' && item.count > 0 ? 'bg-amber-50/70 border-amber-200 hover:border-amber-300' : '',
+           item.tone === 'info' && item.count > 0 ? 'bg-indigo-50/70 border-indigo-200 hover:border-indigo-300' : ''
+         ]">
+        <div class="flex items-center justify-between">
+          <!-- Icon -->
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+               [ngClass]="[
+                 item.count === 0 ? 'bg-gray-200/70 text-gray-500' : '',
+                 item.tone === 'danger' && item.count > 0 ? 'bg-rose-100 text-rose-700' : '',
+                 item.tone === 'warning' && item.count > 0 ? 'bg-amber-100 text-amber-700' : '',
+                 item.tone === 'info' && item.count > 0 ? 'bg-indigo-100 text-indigo-700' : ''
+               ]">
+            <!-- Sparkles -->
+            <svg *ngIf="item.icon === 'sparkles'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+            <!-- Credit Card -->
+            <svg *ngIf="item.icon === 'credit_card'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            <!-- Clock -->
+            <svg *ngIf="item.icon === 'clock'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <!-- Alert Triangle -->
+            <svg *ngIf="item.icon === 'alert'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+
+          <!-- Big Stat Number & Navigation Arrow -->
+          <div class="flex items-center gap-2">
+            <span class="stat-number text-2xl font-bold tabular-nums"
+                  [ngClass]="[
+                    item.count === 0 ? 'text-gray-400' : 'text-[#2C1A2E]',
+                    item.tone === 'danger' && item.count > 0 ? 'text-rose-700' : '',
+                    item.tone === 'warning' && item.count > 0 ? 'text-amber-800' : '',
+                    item.tone === 'info' && item.count > 0 ? 'text-indigo-800' : ''
+                  ]">
+              {{ item.count }}
+            </span>
+            <span class="text-sm text-gray-400 group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <div class="text-xs font-bold text-[#2C1A2E] leading-snug">{{ getActionLabel(item.labelKey) }}</div>
+          <div class="text-[11px] text-[#7A6870] mt-0.5 truncate">{{ getActionLabel(item.hintKey) }}</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Delivery Schedule: Lịch giao hàng hôm nay -->
+  <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-[#8B4A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <h3 class="font-serif font-bold text-lg text-[#2C1A2E]">{{ t.scheduleTitle }}</h3>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-[#7A6870]">
+        <span class="tabular-nums font-semibold text-[#8B4A5C]">{{ todayOrders.length }} {{ t.ordersInDay }}</span>
+      </div>
+    </div>
+
+    <!-- Empty State when all 3 slots have 0 scheduled deliveries -->
+    <div *ngIf="allSlotsEmpty" class="py-8 px-4 text-center rounded-xl bg-[#FAF7F2] border border-dashed border-[#DDD4CC]">
+      <div class="w-12 h-12 rounded-full bg-rose-50 text-[#8B4A5C] flex items-center justify-center mx-auto mb-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <p class="text-sm font-semibold text-[#2C1A2E]">{{ t.emptyScheduleTitle }}</p>
+      <p class="text-xs text-[#7A6870] mt-0.5">{{ t.emptyScheduleSub }}</p>
+      <div class="mt-3">
+        <a routerLink="/admin/orders" class="inline-block text-xs font-semibold text-[#8B4A5C] hover:underline">
+          {{ t.viewAllOrders }}
+        </a>
+      </div>
+    </div>
+
+    <!-- Active Schedule Cards -->
+    <div *ngIf="!allSlotsEmpty" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div *ngFor="let s of schedule"
+           class="rounded-xl border p-3.5 transition-all"
+           [ngClass]="[
+             s.isCurrent ? 'bg-rose-50/40 border-[#8B4A5C] ring-1 ring-[#8B4A5C]/30 shadow-sm' : 'bg-[#FAF7F2] border-[#EDE5DF]',
+             s.hasOverdue ? 'border-red-400 bg-red-50/30' : ''
+           ]">
+        <div class="flex items-center justify-between mb-2 pb-2 border-b border-[#EDE5DF]">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-bold text-[#2C1A2E] tabular-nums">{{ s.label }}</span>
+            <span *ngIf="s.isCurrent" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#8B4A5C] text-white">
+              {{ t.currentSlot }}
+            </span>
+          </div>
+          <span class="text-xs font-semibold text-[#8B4A5C] bg-white rounded-full px-2 py-0.5 border border-[#EDE5DF] tabular-nums">
+            {{ s.orders.length }} {{ t.ordersInDay }}
+          </span>
+        </div>
+
+        <!-- Overdue alert -->
+        <div *ngIf="s.hasOverdue" class="mb-2 px-2 py-1 rounded bg-red-100 text-red-700 text-[11px] font-semibold flex items-center gap-1">
+          <span>⚠️</span> {{ t.overdueAlert }}
+        </div>
+
+        <!-- Slot orders list -->
         <div class="space-y-2">
-          <p *ngIf="s.orders.length === 0" class="text-xs text-[#7A6870] py-2 text-center">Chưa có đơn</p>
-          <a *ngFor="let o of s.orders" routerLink="/admin/orders"
-             class="w-full flex items-center justify-between gap-2 bg-white rounded-lg px-2.5 py-2 border border-[#EDE5DF] hover:border-[#8B4A5C] transition-colors text-left">
+          <p *ngIf="s.orders.length === 0" class="text-xs text-[#7A6870] py-3 text-center italic">
+            {{ t.noSlotOrders }}
+          </p>
+          <a *ngFor="let o of s.orders"
+             routerLink="/admin/orders"
+             class="w-full flex items-center justify-between gap-2 bg-white rounded-lg px-2.5 py-2 border border-[#EDE5DF] hover:border-[#8B4A5C] hover:shadow-xs transition-all text-left">
             <div class="min-w-0">
-              <div class="text-xs font-medium text-[#2C1A2E] truncate">{{ o.customer }}</div>
-              <div class="text-[10px] text-[#7A6870]">{{ o.city }}</div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-mono font-bold text-[#8B4A5C]">{{ o.displayOrderNumber }}</span>
+                <span class="text-xs font-medium text-[#2C1A2E] truncate">{{ o.customer }}</span>
+              </div>
+              <div class="text-[10px] text-[#7A6870] truncate mt-0.5">
+                📍 {{ o.district }}
+              </div>
             </div>
-            <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full" [ngClass]="getStatus(o.status).cls">
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0" [ngClass]="getStatus(o.status).cls">
               <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatus(o.status).dot"></span>
               {{ getStatus(o.status).label }}
             </span>
@@ -87,54 +257,168 @@
     </div>
   </div>
 
+  <!-- Bottom Grid: Recent Orders & Stock Alert -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Recent orders -->
-    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+    <!-- Recent orders Widget -->
+    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-medium text-[#2C1A2E]">Đơn hàng gần đây</h3>
-        <a routerLink="/admin/orders" class="text-xs text-[#8B4A5C] hover:underline">Xem tất cả →</a>
+        <div>
+          <h3 class="font-serif font-bold text-lg text-[#2C1A2E]">{{ t.recentTitle }}</h3>
+          <p class="text-xs text-[#7A6870]">{{ t.recentSub }}</p>
+        </div>
+        <a routerLink="/admin/orders" class="text-xs font-semibold text-[#8B4A5C] hover:underline flex items-center gap-1">
+          {{ t.viewAllRecent }}
+        </a>
       </div>
-      <div class="space-y-3">
-        <div *ngFor="let o of recentOrders" class="flex items-center justify-between">
+
+      <!-- Loading Skeleton -->
+      <div *ngIf="loadingOrders" class="space-y-3">
+        <div *ngFor="let i of [1,2,3,4]" class="animate-pulse flex items-center justify-between p-2.5 rounded-xl bg-gray-50">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-[#F3ECE7] flex items-center justify-center text-sm font-serif text-[#8B4A5C]">
-              {{ o.customer[0] }}
-            </div>
-            <div>
-              <div class="text-sm font-medium text-[#2C1A2E]">{{ o.customer }}</div>
-              <div class="text-xs text-[#7A6870]">{{ o.id }} · {{ o.time }}</div>
+            <div class="w-9 h-9 rounded-full bg-gray-200"></div>
+            <div class="space-y-1.5">
+              <div class="w-28 h-3.5 bg-gray-200 rounded"></div>
+              <div class="w-20 h-2.5 bg-gray-200 rounded"></div>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-sm font-medium text-[#2C1A2E]">{{ fmt(o.total) }}đ</div>
-            <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full" [ngClass]="getStatus(o.status).cls">
-              <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatus(o.status).dot"></span>
-              {{ getStatus(o.status).label }}
-            </span>
+          <div class="w-16 h-4 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="!loadingOrders && ordersError" class="py-6 text-center text-xs text-red-600">
+        Không thể tải đơn hàng gần đây.
+        <button (click)="loadOrders()" class="ml-2 font-semibold underline text-[#8B4A5C]">Thử lại</button>
+      </div>
+
+      <!-- Orders List -->
+      <div *ngIf="!loadingOrders && !ordersError" class="space-y-2.5">
+        <div *ngFor="let o of recentOrders"
+             routerLink="/admin/orders"
+             class="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#EDE5DF] cursor-pointer transition-all">
+          <div class="flex items-center gap-3 min-w-0">
+            <!-- Avatar: Company vs Personal -->
+            <div *ngIf="o.isCompany" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-base font-bold flex-shrink-0 shadow-xs border border-blue-200" [title]="t.enterpriseBadge">
+              🏢
+            </div>
+            <div *ngIf="!o.isCompany" class="w-9 h-9 rounded-full bg-[#F3ECE7] flex items-center justify-center text-sm font-serif font-bold text-[#8B4A5C] flex-shrink-0">
+              {{ o.customer[0]?.toUpperCase() }}
+            </div>
+
+            <!-- Customer & Order details -->
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-semibold text-[#2C1A2E] truncate">{{ o.customer }}</span>
+                <span *ngIf="o.isCompany" class="text-[10px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-600 font-semibold border border-blue-100 flex-shrink-0">
+                  {{ t.enterpriseBadge }}
+                </span>
+              </div>
+              <div class="text-xs text-[#7A6870] flex items-center gap-1.5 flex-wrap mt-0.5">
+                <span class="font-mono text-[11px] font-bold text-[#8B4A5C]">{{ o.displayOrderNumber }}</span>
+                <span *ngIf="o.relativeTime">· {{ o.relativeTime }}</span>
+                <span *ngIf="o.itemCount">· {{ o.itemCount }} {{ t.itemsCount }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total & Status Badges -->
+          <div class="text-right flex-shrink-0 pl-2">
+            <div class="stat-number text-sm font-bold text-[#2C1A2E] tabular-nums">{{ fmt(o.total) }}đ</div>
+            <div class="flex items-center justify-end gap-1.5 mt-1">
+              <span class="text-[10px] font-bold px-1.5 py-0.2 rounded"
+                    [ngClass]="o.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'">
+                {{ o.paymentStatus === 'paid' ? t.paidBadge : t.unpaidBadge }}
+              </span>
+              <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" [ngClass]="getStatus(o.status).cls">
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatus(o.status).dot"></span>
+                {{ getStatus(o.status).label }}
+              </span>
+            </div>
           </div>
         </div>
+
+        <p *ngIf="recentOrders.length === 0" class="text-xs text-[#7A6870] py-6 text-center">
+          {{ t.noRecentOrders }}
+        </p>
       </div>
     </div>
 
-    <!-- Low stock alert -->
-    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
+    <!-- Low Stock Alert Widget -->
+    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-medium text-[#2C1A2E]">⚠️ Cảnh báo tồn kho</h3>
-        <a routerLink="/admin/products" class="text-xs text-[#8B4A5C] hover:underline">Quản lý →</a>
-      </div>
-      <div class="space-y-3">
-        <div *ngFor="let p of lowStock" class="flex items-center gap-3">
-          <img [src]="p.img" [alt]="p.nameVi" class="w-10 h-10 rounded-lg object-cover bg-[#F3ECE7]" />
-          <div class="flex-1">
-            <div class="text-sm font-medium text-[#2C1A2E] line-clamp-1">{{ p.nameVi }}</div>
-            <div class="text-xs text-[#7A6870]">{{ p.category }}</div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h3 class="font-serif font-bold text-lg text-[#2C1A2E]">{{ t.stockAlertTitle }}</h3>
+            <span *ngIf="lowStockProducts.length > 0" class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+              {{ lowStockProducts.length }}
+            </span>
           </div>
-          <span class="text-xs font-semibold px-2 py-1 rounded-full"
-                [ngClass]="p.stock === 0 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-700'">
-            {{ p.stock === 0 ? 'Hết hàng' : 'Còn ' + p.stock }}
-          </span>
+          <p class="text-xs text-[#7A6870]">{{ t.stockAlertSub }}</p>
         </div>
-        <p *ngIf="lowStock.length === 0" class="text-sm text-[#7A6870] py-4 text-center">Tất cả sản phẩm còn hàng ✓</p>
+        <a routerLink="/admin/products" class="text-xs font-semibold text-[#8B4A5C] hover:underline flex items-center gap-1">
+          {{ t.manageStockLink }}
+        </a>
+      </div>
+
+      <!-- Loading Skeleton -->
+      <div *ngIf="loadingProducts" class="space-y-3">
+        <div *ngFor="let i of [1,2,3,4]" class="animate-pulse flex items-center justify-between p-2 rounded-xl bg-gray-50">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-lg bg-gray-200"></div>
+            <div class="space-y-1.5">
+              <div class="w-32 h-3.5 bg-gray-200 rounded"></div>
+              <div class="w-16 h-2.5 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+          <div class="w-16 h-5 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="!loadingProducts && productsError" class="py-6 text-center text-xs text-red-600">
+        Không thể tải danh sách cảnh báo tồn kho.
+        <button (click)="loadProducts()" class="ml-2 font-semibold underline text-[#8B4A5C]">Thử lại</button>
+      </div>
+
+      <!-- Products List -->
+      <div *ngIf="!loadingProducts && !productsError" class="space-y-2.5">
+        <div *ngFor="let p of lowStockProducts"
+             class="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#EDE5DF] transition-all">
+          <div class="flex items-center gap-3 min-w-0">
+            <!-- Product Thumbnail with Placeholder Fallback -->
+            <img [src]="p.img"
+                 (error)="onImgError($event)"
+                 [alt]="p.name"
+                 class="w-11 h-11 rounded-lg object-cover bg-[#F3ECE7] flex-shrink-0 border border-[#EDE5DF]" />
+            <div class="min-w-0">
+              <div class="text-sm font-semibold text-[#2C1A2E] truncate" [title]="p.name">
+                {{ p.name }}
+              </div>
+              <div class="text-xs text-[#7A6870] flex items-center gap-1.5 mt-0.5">
+                <span>{{ p.categoryName }}</span>
+                <span>·</span>
+                <span class="tabular-nums font-medium">{{ fmt(p.price) }}đ</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock Status Badge & Quick Edit Button -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full tabular-nums"
+                  [ngClass]="p.stock === 0 ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
+              {{ p.stock === 0 ? t.outOfStock : t.remaining + ' ' + p.stock + ' ' + t.remainingSuffix }}
+            </span>
+            <a routerLink="/admin/products"
+               class="text-xs font-semibold px-2 py-1 rounded-lg bg-[#FAF7F2] text-[#8B4A5C] hover:bg-[#8B4A5C] hover:text-white border border-[#DDD4CC] transition-colors"
+               [title]="t.restockBtn">
+              {{ t.restockBtn }}
+            </a>
+          </div>
+        </div>
+
+        <div *ngIf="lowStockProducts.length === 0" class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl py-6 text-center">
+          <span class="text-lg">✓</span> {{ t.allStockSafe }}
+        </div>
       </div>
     </div>
   </div>

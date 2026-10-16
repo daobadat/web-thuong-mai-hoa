@@ -1,70 +1,334 @@
-<div class="space-y-6">
-  <div>
-    <h1 class="font-serif text-3xl text-[#2C1A2E]">Thống kê</h1>
-    <p class="text-sm text-[#7A6870] mt-0.5">Phân tích xu hướng & hiệu quả kinh doanh 6 tháng gần nhất</p>
-  </div>
+<div class="max-w-6xl mx-auto space-y-6">
+  <!-- Header: Title & Dynamic Period Filter -->
+  <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 pb-1 border-b border-[#EDE5DF]">
+    <div>
+      <h1 class="font-serif text-3xl sm:text-4xl text-[#2C1A2E] tracking-tight">{{ t.title }}</h1>
+      <p class="text-sm text-[#7A6870] mt-1">{{ t.subtitle(selectedMonths) }}</p>
+    </div>
 
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div *ngFor="let s of stats" class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-      <div class="text-xs text-[#7A6870] mb-1">{{ s.label }}</div>
-      <div class="font-serif text-2xl text-[#2C1A2E]">{{ s.value }}</div>
-      <div class="text-xs mt-1 font-medium" [ngClass]="s.up ? 'text-green-600' : 'text-red-500'">
-        {{ s.change }} so với kỳ trước
-      </div>
+    <!-- Segmented Control Period Filter -->
+    <div class="inline-flex p-1 bg-[#F3ECE7] rounded-xl self-start sm:self-auto border border-[#DDD4CC]"
+         role="tablist" aria-label="Bộ lọc kỳ thống kê">
+      <button *ngFor="let m of [3, 6, 12]"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="selectedMonths === m"
+              (click)="setMonths(m)"
+              class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all"
+              [ngClass]="selectedMonths === m ? 'bg-[#8B4A5C] text-white shadow-sm' : 'text-[#7A6870] hover:text-[#2C1A2E]'">
+        {{ m === 3 ? t.period.m3 : (m === 6 ? t.period.m6 : t.period.m12) }}
+      </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Monthly revenue -->
-    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-      <h3 class="font-medium text-[#2C1A2E] mb-4">Doanh thu theo tháng (2026)</h3>
-      <div class="flex items-end gap-3 h-44">
-        <div *ngFor="let d of monthData" class="flex-1 flex flex-col items-center gap-1">
-          <div class="text-xs text-[#7A6870]">{{ (d.rev / 1000000).toFixed(0) }}M</div>
-          <div class="w-full bg-gradient-to-t from-[#8B4A5C] to-[#C07E8E] rounded-t-lg transition-all hover:opacity-80"
-               [style.height]="(d.rev / maxRev * 100) + '%'"></div>
-          <div class="text-xs font-medium text-[#2C1A2E] mt-1">{{ d.month }}</div>
+  <!-- Loading Skeleton State -->
+  <div *ngIf="loading" class="space-y-6 animate-pulse">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div *ngFor="let i of [1,2,3,4]" class="bg-white rounded-2xl border border-[#EDE5DF] p-5 h-28 flex flex-col justify-between">
+        <div class="h-3 bg-[#EDE5DF] rounded w-24"></div>
+        <div class="h-7 bg-[#EDE5DF] rounded w-36"></div>
+        <div class="h-3 bg-[#EDE5DF] rounded w-20"></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 h-80"></div>
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 h-80"></div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 h-72"></div>
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 h-72"></div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-3">
+    <div class="w-12 h-12 mx-auto bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    <p class="text-sm text-red-700 font-medium">{{ t.error }}</p>
+    <button (click)="loadData()" class="px-4 py-2 bg-[#8B4A5C] text-white text-xs font-semibold rounded-xl hover:bg-[#7A3D4F] transition-colors">
+      {{ t.retry }}
+    </button>
+  </div>
+
+  <!-- Main Content When Ready -->
+  <div *ngIf="!loading && !error && data" class="space-y-6">
+
+    <!-- Row 1: 4 KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-live="polite">
+      <!-- 1. Total Revenue -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm hover:shadow transition-shadow">
+        <div class="flex items-center justify-between text-[#7A6870] mb-2">
+          <span class="text-xs font-medium uppercase tracking-wide">{{ t.kpi.revenue }}</span>
+          <span class="w-7 h-7 rounded-lg bg-[#FAF7F2] text-[#8B4A5C] flex items-center justify-center text-xs">₫</span>
+        </div>
+        <div class="font-serif text-2xl sm:text-3xl text-[#2C1A2E] tabular-nums font-semibold">
+          {{ fmt(data.kpi.current.revenue) }}
+        </div>
+        <div class="text-xs mt-2.5 flex items-center gap-1.5 flex-wrap">
+          <ng-container *ngIf="data.kpi.delta.revenue !== null; else noPrevRev">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md font-semibold text-[11px]"
+                  [ngClass]="data.kpi.delta.revenue >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'">
+              {{ data.kpi.delta.revenue >= 0 ? '▲ +' : '▼ ' }}{{ data.kpi.delta.revenue }}%
+            </span>
+            <span class="text-[#7A6870] text-[11px]">{{ t.kpi.vsPrev }}</span>
+          </ng-container>
+          <ng-template #noPrevRev>
+            <span class="text-[#7A6870] text-[11px] font-medium">— {{ t.kpi.noPrev }}</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- 2. Total Orders -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm hover:shadow transition-shadow">
+        <div class="flex items-center justify-between text-[#7A6870] mb-2">
+          <span class="text-xs font-medium uppercase tracking-wide">{{ t.kpi.orders }}</span>
+          <span class="w-7 h-7 rounded-lg bg-[#FAF7F2] text-[#8B4A5C] flex items-center justify-center text-xs">📦</span>
+        </div>
+        <div class="font-serif text-2xl sm:text-3xl text-[#2C1A2E] tabular-nums font-semibold">
+          {{ data.kpi.current.totalOrders }}
+        </div>
+        <div class="text-xs mt-2.5 flex items-center gap-1.5 flex-wrap">
+          <ng-container *ngIf="data.kpi.delta.totalOrders !== null; else noPrevOrders">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md font-semibold text-[11px]"
+                  [ngClass]="data.kpi.delta.totalOrders >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'">
+              {{ data.kpi.delta.totalOrders >= 0 ? '▲ +' : '▼ ' }}{{ data.kpi.delta.totalOrders }}%
+            </span>
+            <span class="text-[#7A6870] text-[11px]">{{ t.kpi.vsPrev }}</span>
+          </ng-container>
+          <ng-template #noPrevOrders>
+            <span class="text-[#7A6870] text-[11px] font-medium">— {{ t.kpi.noPrev }}</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- 3. Completed Orders -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm hover:shadow transition-shadow">
+        <div class="flex items-center justify-between text-[#7A6870] mb-2">
+          <span class="text-xs font-medium uppercase tracking-wide">{{ t.kpi.completed }}</span>
+          <span class="w-7 h-7 rounded-lg bg-[#FAF7F2] text-[#22c55e] flex items-center justify-center text-xs">✓</span>
+        </div>
+        <div class="font-serif text-2xl sm:text-3xl text-[#2C1A2E] tabular-nums font-semibold">
+          {{ data.kpi.current.completedOrders }}
+        </div>
+        <div class="text-xs mt-2.5 flex items-center gap-1.5 flex-wrap">
+          <ng-container *ngIf="data.kpi.delta.completedOrders !== null; else noPrevCompleted">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md font-semibold text-[11px]"
+                  [ngClass]="data.kpi.delta.completedOrders >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'">
+              {{ data.kpi.delta.completedOrders >= 0 ? '▲ +' : '▼ ' }}{{ data.kpi.delta.completedOrders }}%
+            </span>
+            <span class="text-[#7A6870] text-[11px]">{{ t.kpi.vsPrev }}</span>
+          </ng-container>
+          <ng-template #noPrevCompleted>
+            <span class="text-[#7A6870] text-[11px] font-medium">— {{ t.kpi.noPrev }}</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- 4. Cancel Rate (Inverted colors: increase is bad!) -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm hover:shadow transition-shadow">
+        <div class="flex items-center justify-between text-[#7A6870] mb-2">
+          <span class="text-xs font-medium uppercase tracking-wide">{{ t.kpi.cancelRate }}</span>
+          <span class="w-7 h-7 rounded-lg bg-[#FAF7F2] text-rose-600 flex items-center justify-center text-xs">✕</span>
+        </div>
+        <div class="font-serif text-2xl sm:text-3xl text-[#2C1A2E] tabular-nums font-semibold">
+          {{ data.kpi.current.cancelRate }}%
+        </div>
+        <div class="text-xs mt-2.5 flex items-center gap-1.5 flex-wrap">
+          <ng-container *ngIf="data.kpi.delta.cancelRate !== null; else noPrevCancel">
+            <!-- Inverse: cancel rate going up is bad (rose), going down is good (emerald) -->
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md font-semibold text-[11px]"
+                  [ngClass]="data.kpi.delta.cancelRate <= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'">
+              {{ data.kpi.delta.cancelRate <= 0 ? '▼ ' : '▲ +' }}{{ data.kpi.delta.cancelRate }}%
+            </span>
+            <span class="text-[#7A6870] text-[11px]">{{ t.kpi.vsPrev }}</span>
+          </ng-container>
+          <ng-template #noPrevCancel>
+            <span class="text-[#7A6870] text-[11px] font-medium">— {{ t.kpi.noPrev }}</span>
+          </ng-template>
         </div>
       </div>
     </div>
 
-    <!-- Top selling products -->
-    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-      <h3 class="font-medium text-[#2C1A2E] mb-4">Sản phẩm bán chạy nhất</h3>
-      <div class="space-y-4">
-        <div *ngFor="let p of topProducts; let i = index" class="flex items-center gap-3">
-          <span class="text-lg font-serif font-bold w-4 text-center"
-                [ngClass]="i === 0 ? 'text-[#D4AF37]' : i === 1 ? 'text-[#C0C0C0]' : i === 2 ? 'text-[#CD7F32]' : 'text-[#7A6870]'">
-            {{ i + 1 }}
+    <!-- Row 2: Monthly Revenue Chart + Top Selling Products -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Chart: Monthly Revenue (Fixed height container) -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-medium text-[#2C1A2E] text-base">{{ t.charts.revenueTitle(currentYear) }}</h3>
+          <span class="text-xs text-[#7A6870] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#EDE5DF]">
+            {{ selectedMonths }} {{ t.period.m3.split(' ')[1] || 'tháng' }}
           </span>
-          <img [src]="p.img" [alt]="p.nameVi" class="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-[#2C1A2E] truncate">{{ p.nameVi }}</div>
-            <div class="w-full bg-[#EDE5DF] h-1.5 rounded-full mt-1">
-              <div class="bg-[#8B4A5C] h-1.5 rounded-full" [style.width]="(p.sold / topProducts[0].sold * 100) + '%'"></div>
+        </div>
+
+        <!-- Chart Graphic Area with Fixed Height -->
+        <div class="relative h-60 w-full pt-6 pb-2" role="img" [attr.aria-label]="t.charts.revenueTitle(currentYear)">
+          <!-- Horizontal Guidelines (Dashed) -->
+          <div class="absolute inset-x-0 top-6 bottom-8 flex flex-col justify-between pointer-events-none opacity-40">
+            <div class="border-b border-dashed border-[#DDD4CC] w-full"></div>
+            <div class="border-b border-dashed border-[#DDD4CC] w-full"></div>
+            <div class="border-b border-dashed border-[#DDD4CC] w-full"></div>
+            <div class="border-b border-[#DDD4CC] w-full"></div>
+          </div>
+
+          <!-- Empty State for Chart -->
+          <div *ngIf="!hasRevenueData" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <p class="text-xs text-[#7A6870]">{{ t.charts.noData }}</p>
+          </div>
+
+          <!-- Bar Columns Container -->
+          <div class="relative h-full flex items-end justify-between gap-2 sm:gap-4 z-10">
+            <div *ngFor="let d of data.monthlyRevenue"
+                 (mouseenter)="hoveredMonth = d"
+                 (mouseleave)="hoveredMonth = null"
+                 class="flex-1 h-full flex flex-col items-center justify-end relative group cursor-pointer">
+
+              <!-- Value Tag above bar -->
+              <span class="text-[11px] font-semibold text-[#8B4A5C] mb-1 tabular-nums transition-opacity"
+                    [ngClass]="d.revenue > 0 ? 'opacity-100' : 'opacity-0'">
+                {{ fmtShort(d.revenue) }}
+              </span>
+
+              <!-- Bar Track & Bar Fill -->
+              <div class="w-full max-w-[42px] h-[calc(100%-48px)] flex items-end justify-center bg-[#FAF7F2] rounded-t-lg overflow-hidden">
+                <div class="w-full rounded-t-lg transition-all duration-500 ease-out"
+                     [style.height]="getBarHeightPct(d.revenue)"
+                     [ngClass]="d.isCurrentMonth
+                       ? 'bg-gradient-to-t from-[#6E2A34] to-[#8B4A5C] shadow-sm'
+                       : (d.revenue > 0 ? 'bg-gradient-to-t from-[#8B4A5C] to-[#D9A6A0]' : 'bg-[#EDE5DF]')">
+                </div>
+              </div>
+
+              <!-- Month Label -->
+              <div class="mt-2 text-xs font-medium text-center truncate flex items-center gap-1"
+                   [ngClass]="d.isCurrentMonth ? 'text-[#6E2A34] font-bold' : 'text-[#7A6870]'">
+                <span>{{ d.label }}</span>
+                <span *ngIf="d.isCurrentMonth" class="w-1.5 h-1.5 rounded-full bg-[#6E2A34] inline-block" title="Tháng hiện tại"></span>
+              </div>
+
+              <!-- Interactive Floating Tooltip -->
+              <div *ngIf="hoveredMonth === d"
+                   class="absolute bottom-[calc(100%-30px)] z-30 px-3 py-1.5 bg-[#2C1A2E] text-white text-xs rounded-xl shadow-xl pointer-events-none whitespace-nowrap text-center transform -translate-y-2 transition-all">
+                <div class="font-semibold">{{ d.month }} ({{ d.label }})</div>
+                <div class="text-[#D9A6A0] font-bold tabular-nums">{{ fmt(d.revenue) }}</div>
+                <div class="text-[10px] text-white/80">{{ d.orders }} đơn hàng</div>
+              </div>
             </div>
           </div>
-          <span class="text-sm font-semibold text-[#2C1A2E] flex-shrink-0">{{ p.sold }}</span>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- City breakdown -->
-    <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-      <h3 class="font-medium text-[#2C1A2E] mb-4">Phân bố theo thành phố</h3>
-      <div class="space-y-4">
-        <div *ngFor="let c of cityData" class="flex items-center gap-4">
-          <div class="w-16 text-sm font-medium text-[#2C1A2E]">{{ c.name }}</div>
-          <div class="flex-1 h-3 bg-[#EDE5DF] rounded-full overflow-hidden">
-            <div class="h-full bg-[#8B4A5C]" [style.width]="c.pct + '%'"></div>
-          </div>
-          <div class="w-12 text-right">
-            <div class="text-sm font-bold text-[#2C1A2E]">{{ c.pct }}%</div>
+      <!-- Card: Top Selling Products -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm flex flex-col justify-between">
+        <h3 class="font-medium text-[#2C1A2E] text-base mb-4">{{ t.charts.topProductsTitle }}</h3>
+
+        <!-- Empty Products State -->
+        <div *ngIf="data.topProducts.length === 0" class="flex-1 flex flex-col items-center justify-center text-center py-10">
+          <p class="text-xs text-[#7A6870]">{{ t.charts.emptyProducts }}</p>
+        </div>
+
+        <!-- Product List -->
+        <div *ngIf="data.topProducts.length > 0" class="space-y-4">
+          <div *ngFor="let p of data.topProducts; let i = index" class="flex items-center gap-3">
+            <!-- Rank / Medal -->
+            <span class="text-base font-serif font-bold w-6 text-center flex-shrink-0">
+              <ng-container [ngSwitch]="i">
+                <span *ngSwitchCase="0" class="text-amber-500" title="Top 1">🥇</span>
+                <span *ngSwitchCase="1" class="text-slate-400" title="Top 2">🥈</span>
+                <span *ngSwitchCase="2" class="text-amber-700" title="Top 3">🥉</span>
+                <span *ngSwitchDefault class="text-xs text-[#7A6870]">#{{ i + 1 }}</span>
+              </ng-container>
+            </span>
+
+            <!-- Product Image -->
+            <img [src]="p.img"
+                 [alt]="p.name"
+                 (error)="onImgError($event)"
+                 class="w-10 h-10 rounded-full object-cover bg-[#F3ECE7] border border-[#DDD4CC] flex-shrink-0" />
+
+            <!-- Name & Progress Bar -->
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-[#2C1A2E] truncate" [title]="p.name">{{ p.name }}</div>
+              <div class="w-full bg-[#EDE5DF] h-2 rounded-full mt-1.5 overflow-hidden">
+                <div class="bg-gradient-to-r from-[#8B4A5C] to-[#D9A6A0] h-full rounded-full transition-all duration-500"
+                     [style.width]="(p.sold / maxSold * 100) + '%'"></div>
+              </div>
+            </div>
+
+            <!-- Sold Count -->
+            <div class="text-right flex-shrink-0 pl-2">
+              <span class="text-sm font-bold text-[#8B4A5C] tabular-nums">{{ p.sold }}</span>
+              <span class="text-[10px] text-[#7A6870] block whitespace-nowrap">{{ t.charts.soldCount(p.sold).replace(p.sold.toString(), '').trim() }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Row 3: Regional Breakdown + Order Status Breakdown -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Card: Regional Breakdown -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+        <h3 class="font-medium text-[#2C1A2E] text-base mb-4">{{ t.charts.regionsTitle }}</h3>
+
+        <div *ngIf="data.regions.length === 0" class="py-8 text-center text-xs text-[#7A6870]">
+          {{ t.charts.emptyRegions }}
+        </div>
+
+        <div *ngIf="data.regions.length > 0" class="space-y-3.5">
+          <div *ngFor="let c of data.regions" class="flex items-center gap-3">
+            <div class="w-32 text-xs sm:text-sm font-medium text-[#2C1A2E] truncate" [title]="c.name">
+              {{ c.name }}
+            </div>
+            <div class="flex-1 h-2.5 bg-[#EDE5DF] rounded-full overflow-hidden">
+              <div class="h-full bg-[#8B4A5C] rounded-full transition-all duration-500"
+                   [style.width]="c.percentage + '%'"></div>
+            </div>
+            <div class="w-16 text-right tabular-nums">
+              <span class="text-xs sm:text-sm font-bold text-[#2C1A2E]">{{ c.percentage }}%</span>
+              <span class="text-[10px] text-[#7A6870] block">({{ c.count }} đơn)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Order Status Distribution (NEW) -->
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+        <h3 class="font-medium text-[#2C1A2E] text-base mb-4">{{ t.charts.statusesTitle }}</h3>
+
+        <div *ngIf="data.orderStatuses.length === 0" class="py-8 text-center text-xs text-[#7A6870]">
+          {{ t.charts.noData }}
+        </div>
+
+        <div *ngIf="data.orderStatuses.length > 0" class="space-y-3.5">
+          <div *ngFor="let s of data.orderStatuses" class="flex items-center gap-3">
+            <!-- Status indicator & Label -->
+            <div class="w-32 flex items-center gap-2 truncate">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" [style.backgroundColor]="s.color"></span>
+              <span class="text-xs sm:text-sm font-medium text-[#2C1A2E] truncate" [title]="s.label">{{ s.label }}</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="flex-1 h-2.5 bg-[#EDE5DF] rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500"
+                   [style.backgroundColor]="s.color"
+                   [style.width]="s.percentage + '%'"></div>
+            </div>
+
+            <!-- Percentage & Count -->
+            <div class="w-16 text-right tabular-nums">
+              <span class="text-xs sm:text-sm font-bold text-[#2C1A2E]">{{ s.percentage }}%</span>
+              <span class="text-[10px] text-[#7A6870] block">({{ s.count }} đơn)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </div>

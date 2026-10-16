@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "node --disable-warning=DEP0060 ./node_modules/@angular/cli/bin/ng.js serve",
-    "build": "ng build",
+    "build": "ng build && powershell -Command \"Copy-Item -Path 'dist/angular-app/*' -Destination '../NodeJS-Core-main/public/' -Recurse -Force\"",
     "watch": "ng build --watch --configuration development",
     "test": "node --disable-warning=DEP0060 ./node_modules/@angular/cli/bin/ng.js test"
   },

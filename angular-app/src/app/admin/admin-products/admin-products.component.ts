@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductApiService } from '../../core/services/product-api.service';
@@ -17,6 +17,9 @@ export class AdminProductsComponent implements OnInit {
   editId: number | null = null;
   showAdd = false;
   
+  showNewOccDropdown = false;
+  rowOccDropdownId: number | null = null;
+
   newProd = {
     nameVi: '',
     nameKo: '',
@@ -117,6 +120,27 @@ export class AdminProductsComponent implements OnInit {
     this.productApi.updateProduct(id, payload).subscribe();
   }
 
+  saveEditImage(id: number, url: string) {
+    const p = this.products.find(x => x.id === id);
+    if (!p) return;
+    p.img = url ? url.trim() : '';
+    
+    const payload = {
+      images: p.img ? [{ url: p.img, is_primary: true }] : []
+    };
+    
+    this.productApi.updateProduct(id, payload).subscribe({
+      error: (err) => alert('Lỗi khi cập nhật ảnh: ' + (err.error?.message || err.message))
+    });
+  }
+
+  changeImagePrompt(p: any) {
+    const newUrl = prompt('Nhập URL ảnh mới cho sản phẩm:', p.img || '');
+    if (newUrl !== null && newUrl.trim() !== p.img) {
+      this.saveEditImage(p.id, newUrl.trim());
+    }
+  }
+
   saveEditCategory(id: number, slug: string) {
     const p = this.products.find(x => x.id === id);
     if (!p) return;
@@ -165,6 +189,36 @@ export class AdminProductsComponent implements OnInit {
     } else {
       this.newProd.occasions.push(slug);
     }
+  }
+
+  toggleNewOccDropdown(event: Event) {
+    event.stopPropagation();
+    this.showNewOccDropdown = !this.showNewOccDropdown;
+    this.rowOccDropdownId = null;
+  }
+
+  toggleRowOccDropdown(id: number, event: Event) {
+    event.stopPropagation();
+    this.rowOccDropdownId = this.rowOccDropdownId === id ? null : id;
+    this.showNewOccDropdown = false;
+  }
+
+  @HostListener('document:click')
+  closeDropdowns() {
+    this.showNewOccDropdown = false;
+    this.rowOccDropdownId = null;
+  }
+
+  getOccasionNames(slugs: string[]): string {
+    if (!slugs || slugs.length === 0) return 'Chọn dịp tặng...';
+    const names = slugs.map(s => this.getOccasionDisplayName(s));
+    if (names.length <= 2) return names.join(', ');
+    return `${names.slice(0, 2).join(', ')} (+${names.length - 2})`;
+  }
+
+  getOccasionDisplayName(slug: string): string {
+    const occ = this.occasionsList.find(o => o.slug === slug);
+    return occ?.translations?.[0]?.name || occ?.name || slug;
   }
 
   addProduct() {

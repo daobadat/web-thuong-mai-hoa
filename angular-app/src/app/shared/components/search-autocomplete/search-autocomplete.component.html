@@ -1,0 +1,120 @@
+<!-- Search Autocomplete Component — với dropdown gợi ý -->
+<div class="search-ac-wrapper">
+  <div class="search-ac-input-box">
+    <input
+      #searchInput
+      type="text"
+      role="combobox"
+      autocomplete="off"
+      [attr.aria-expanded]="showDropdown"
+      aria-haspopup="listbox"
+      aria-autocomplete="list"
+      [attr.aria-activedescendant]="activeIndex >= 0 ? 'suggest-item-' + activeIndex : null"
+      aria-controls="search-suggest-listbox"
+      [placeholder]="lang === 'vi' ? 'Tìm kiếm hoa, dịp tặng...' : '꽃, 행사 검색...'"
+      [(ngModel)]="searchVal"
+      (input)="onInputChange()"
+      (keydown)="onKeydown($event)"
+      (focus)="onFocus()"
+      class="search-ac-input"
+      id="search-ac-input"
+    />
+    <button
+      type="button"
+      (click)="onSubmit()"
+      class="search-ac-btn"
+      [attr.aria-label]="lang === 'vi' ? 'Tìm kiếm' : '검색'"
+    >
+      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Dropdown gợi ý -->
+  <div *ngIf="showDropdown"
+    id="search-suggest-listbox"
+    role="listbox"
+    class="search-ac-dropdown">
+
+      <!-- Loading -->
+      <div *ngIf="state === 'loading'" class="search-ac-status">
+        <svg class="animate-spin w-4 h-4 text-[#6E2A34]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <span class="text-sm text-[#7A7163]">{{ lang === 'vi' ? 'Đang tìm kiếm...' : '검색 중...' }}</span>
+      </div>
+
+      <!-- Không tìm thấy -->
+      <div *ngIf="state === 'empty'" class="search-ac-status">
+        <svg class="w-5 h-5 text-[#C4B8A8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm text-[#7A7163]">{{ lang === 'vi' ? 'Không tìm thấy sản phẩm phù hợp' : '일치하는 상품이 없습니다' }}</span>
+      </div>
+
+      <!-- Lỗi mạng -->
+      <div *ngIf="state === 'error'" class="search-ac-status">
+        <svg class="w-5 h-5 text-[#C4B8A8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+        <span class="text-sm text-[#7A7163]">{{ lang === 'vi' ? 'Không thể tải gợi ý. Vui lòng thử lại.' : '제안을 불러올 수 없습니다.' }}</span>
+      </div>
+
+      <!-- Danh sách kết quả -->
+      <ng-container *ngIf="state === 'results'">
+        <a *ngFor="let item of suggestions; let i = index"
+          role="option"
+          [id]="'suggest-item-' + i"
+          [attr.aria-selected]="i === activeIndex"
+          class="search-ac-item"
+          [class.search-ac-item--active]="i === activeIndex"
+          (mouseenter)="activeIndex = i"
+          (mousedown)="$event.preventDefault()"
+          (click)="goToProduct(item)"
+        >
+          <!-- Ảnh thumbnail -->
+          <img
+            [src]="item.image"
+            [alt]="item.name"
+            loading="lazy"
+            class="search-ac-thumb"
+            (error)="onImgError($event)"
+          />
+
+          <!-- Thông tin sản phẩm -->
+          <div class="flex-1 min-w-0">
+            <div class="search-ac-name">
+              <ng-container *ngFor="let part of highlightParts(item.name)">
+                <span *ngIf="part.isMatch" class="search-ac-highlight">{{ part.text }}</span>
+                <span *ngIf="!part.isMatch">{{ part.text }}</span>
+              </ng-container>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="search-ac-price">{{ formatPrice(item.price) }}</span>
+              <span *ngIf="!item.is_in_stock" class="search-ac-outofstock">
+                {{ lang === 'vi' ? 'Hết hàng' : '품절' }}
+              </span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Dòng xem tất cả -->
+        <button
+          class="search-ac-viewall"
+          [class.search-ac-item--active]="activeIndex === suggestions.length"
+          (mouseenter)="activeIndex = suggestions.length"
+          (mousedown)="$event.preventDefault()"
+          (click)="onSubmit()"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span>{{ lang === 'vi' ? 'Xem tất cả kết quả cho' : '모든 검색 결과 보기' }}
+            "<strong>{{ searchVal }}</strong>"
+          </span>
+        </button>
+      </ng-container>
+    </div>
+</div>

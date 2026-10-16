@@ -1,0 +1,216 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.search-ac-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.search-ac-input-box {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.search-ac-input-box:focus-within {
+  box-shadow: 0 0 0 2px rgba(217, 166, 160, 0.6), inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-color: #D9A6A0;
+}
+
+.search-ac-input {
+  flex: 1;
+  height: 100%;
+  padding: 0 16px 0 20px;
+  font-size: 0.875rem;
+  color: #2B2A26;
+  background: transparent;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  min-width: 0;
+}
+
+.search-ac-input::placeholder {
+  color: #B0A699;
+}
+
+.search-ac-input:focus,
+.search-ac-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.search-ac-btn {
+  height: 100%;
+  padding: 0 20px;
+  background-color: #5C2129;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.search-ac-btn:hover {
+  background-color: #4A1A22;
+}
+
+.search-ac-btn:focus,
+.search-ac-btn:focus-visible {
+  outline: none !important;
+}
+
+.search-ac-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #FBF6EF;
+  border: 1px solid #E4D9C8;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -8px rgba(43, 42, 38, 0.22),
+              0 8px 16px -4px rgba(110, 42, 52, 0.12);
+  z-index: 110;
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #E4D9C8 transparent;
+  animation: search-ac-slideDown 0.15s ease-out;
+}
+
+.search-ac-dropdown::-webkit-scrollbar {
+  width: 5px;
+}
+.search-ac-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+.search-ac-dropdown::-webkit-scrollbar-thumb {
+  background: #E4D9C8;
+  border-radius: 99px;
+}
+
+@keyframes search-ac-slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Status messages (loading / empty / error) ── */
+.search-ac-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 16px;
+}
+
+/* ── Each suggestion item ── */
+.search-ac-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #2B2A26;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+  border-bottom: 1px solid rgba(228, 217, 200, 0.5);
+}
+.search-ac-item:last-of-type {
+  border-bottom: none;
+}
+.search-ac-item:hover,
+.search-ac-item--active {
+  background-color: rgba(110, 42, 52, 0.07);
+}
+
+/* ── Thumbnail ── */
+.search-ac-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #F4EDE3;
+  border: 1px solid rgba(228, 217, 200, 0.6);
+}
+
+/* ── Name with highlight ── */
+.search-ac-name {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.search-ac-highlight {
+  font-weight: 700;
+  color: #6E2A34;
+}
+
+/* ── Price ── */
+.search-ac-price {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #6E2A34;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Out of stock badge ── */
+.search-ac-outofstock {
+  font-size: 0.625rem; /* 10px */
+  font-weight: 600;
+  color: #fff;
+  background: #C4B8A8;
+  padding: 1px 6px;
+  border-radius: 99px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── "Xem tất cả kết quả" row ── */
+.search-ac-viewall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6E2A34;
+  background: transparent;
+  border: none;
+  border-top: 1px solid #E4D9C8;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.search-ac-viewall:hover,
+.search-ac-viewall.search-ac-item--active {
+  background-color: rgba(110, 42, 52, 0.07);
+}
+.search-ac-viewall strong {
+  font-weight: 700;
+}

@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Order, OrderStatus, STATUS_CONFIG } from '../admin-data';
 import { OrderApiService } from '../../core/services/order-api.service';
+import { LangService } from '../../core/services/lang.service';
 
 @Component({
   selector: 'app-admin-orders',
@@ -24,9 +26,31 @@ export class AdminOrdersComponent implements OnInit {
 
   statusKeys: (OrderStatus | 'all')[] = ['all', 'new', 'confirmed', 'preparing', 'delivering', 'done', 'cancelled'];
 
-  constructor(private orderApi: OrderApiService) {}
+  constructor(
+    private orderApi: OrderApiService,
+    private route: ActivatedRoute,
+    public langService: LangService
+  ) {}
+
+  get t() {
+    return this.langService.t.admin.ordersView;
+  }
+
+  get isKo() {
+    return this.langService.currentLang() === 'ko';
+  }
+
+  getStatusLabel(s: OrderStatus | 'all'): string {
+    if (s === 'all') return this.t.filterAll;
+    return this.langService.t.admin.status[s] || (this.statusConfig as any)[s]?.label || s;
+  }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['status'] && this.statusKeys.includes(params['status'])) {
+        this.statusFilter = params['status'];
+      }
+    });
     this.loadOrders();
   }
 
@@ -35,28 +59,33 @@ export class AdminOrdersComponent implements OnInit {
       next: (res: any) => {
         // Backend returns: { success: true, data: { total, page, orders: [...] } }
         const rawOrders = res.data?.orders || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-        this.orders = rawOrders.map((o: any) => ({
-          ...o,
-          id: o.id.toString(),
-          status: o.status === 'pending' ? 'new' : o.status === 'processing' ? 'preparing' : o.status === 'shipping' ? 'delivering' : o.status === 'delivered' ? 'done' : o.status,
-          customer: o.recipient_name,
-          phone: o.recipient_phone,
-          address: o.delivery_address,
-          city: o.delivery_address || '',
-          date: new Date(o.created_at).toLocaleDateString('vi-VN'),
-          time: new Date(o.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}),
-          deliveryTime: o.scheduled_delivery_at ? new Date(o.scheduled_delivery_at).toLocaleDateString('vi-VN') : 'Giao ngay',
-          payment: o.payment_method === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : o.payment_method === 'bank_transfer' ? 'Chuyển khoản' : o.payment_method || 'Chưa rõ',
-          paymentStatus: o.payment_status === 'paid' ? 'paid' : 'unpaid',
-          total: o.total_amount,
-          products: o.items?.map((i: any) => ({
-            name: i.product_name_snapshot || 'Sản phẩm',
-            qty: i.quantity,
-            price: i.unit_price
-          })) || [],
-          message: o.card_message || '',
-          note: o.notes || ''
-        }));
+        this.orders = rawOrders.map((o: any) => {
+          const rawNum = o.order_number || ('#HT-' + o.id.toString().slice(-4).toUpperCase());
+          const displayNum = rawNum.startsWith('#') ? rawNum : '#' + rawNum;
+          return {
+            ...o,
+            id: o.id.toString(),
+            orderNumber: displayNum,
+            status: o.status === 'pending' ? 'new' : o.status === 'processing' ? 'preparing' : o.status === 'shipping' ? 'delivering' : o.status === 'delivered' ? 'done' : o.status,
+            customer: o.recipient_name,
+            phone: o.recipient_phone,
+            address: o.delivery_address,
+            city: o.delivery_address || '',
+            date: new Date(o.created_at).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+            time: new Date(o.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute:'2-digit', timeZone: 'Asia/Ho_Chi_Minh' }),
+            deliveryTime: o.scheduled_delivery_at ? new Date(o.scheduled_delivery_at).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Giao ngay',
+            payment: o.payment_method === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : o.payment_method === 'bank_transfer' ? 'Chuyển khoản' : o.payment_method || 'Chưa rõ',
+            paymentStatus: o.payment_status === 'paid' ? 'paid' : 'unpaid',
+            total: Number(o.total_amount),
+            products: o.items?.map((i: any) => ({
+              name: i.product_name_snapshot || (i.product?.translations?.[0]?.name) || 'Sản phẩm',
+              qty: i.quantity,
+              price: Number(i.unit_price)
+            })) || [],
+            message: o.card_message || '',
+            note: o.notes || ''
+          };
+        });
       }
     });
   }
@@ -64,8 +93,13 @@ export class AdminOrdersComponent implements OnInit {
   get filteredOrders() {
     return this.orders.filter(o => {
       const matchStatus = this.statusFilter === 'all' || o.status === this.statusFilter;
-      const q = this.search.toLowerCase();
-      return matchStatus && (!q || o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q));
+      const q = this.search.toLowerCase().trim();
+      return matchStatus && (!q ||
+        o.customer.toLowerCase().includes(q) ||
+        (o.orderNumber && o.orderNumber.toLowerCase().includes(q)) ||
+        o.id.toLowerCase().includes(q) ||
+        (o.phone && o.phone.includes(q))
+      );
     });
   }
 

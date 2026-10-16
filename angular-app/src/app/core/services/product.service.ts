@@ -78,7 +78,8 @@ export class ProductService {
       meaningVi: vi?.flower_meaning || '',
       meaningKo: ko?.flower_meaning || '',
       isPopular: Number(p.avg_rating || 0) > 4.5 || Math.random() > 0.7,
-      isNew: Math.random() > 0.8,
+      isNew: p.created_at ? (Date.now() - new Date(p.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000 : false,
+      createdAt: p.created_at ? new Date(p.created_at).getTime() : 0,
       stock: p.stock_quantity,
     };
   }

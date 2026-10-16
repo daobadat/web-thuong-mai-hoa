@@ -1,46 +1,52 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LangService } from '../core/services/lang.service';
 
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="space-y-6 max-w-3xl">
-      <h1 class="font-serif text-3xl text-[#2C1A2E]">Cài đặt</h1>
+    <div class="space-y-6 max-w-3xl" [ngClass]="isKo ? 'font-display-ko' : ''">
+      <div class="flex items-center justify-between">
+        <h1 class="font-serif text-3xl text-[#2C1A2E] font-bold">{{ t.title }}</h1>
+        <span *ngIf="savedMessage" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 animate-fade-in">
+          ✓ {{ t.savedSuccess }}
+        </span>
+      </div>
 
-      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-        <h3 class="font-medium text-[#2C1A2E] mb-4">Thông tin cửa hàng</h3>
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+        <h3 class="font-medium text-[#2C1A2E] mb-4 font-bold">{{ t.shopInfo }}</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Tên cửa hàng', k: 'shopName'}"></ng-container>
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Số điện thoại', k: 'phone', type: 'tel'}"></ng-container>
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Zalo', k: 'zalo'}"></ng-container>
-          <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: 'Địa chỉ Hà Nội', k: 'addressHN'}"></ng-container></div>
-          <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: 'Địa chỉ TP.HCM', k: 'addressHCM'}"></ng-container></div>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.shopName, k: 'shopName'}"></ng-container>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.phone, k: 'phone', type: 'tel'}"></ng-container>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.zalo, k: 'zalo'}"></ng-container>
+          <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: t.addressHN, k: 'addressHN'}"></ng-container></div>
+          <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: t.addressHCM, k: 'addressHCM'}"></ng-container></div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-        <h3 class="font-medium text-[#2C1A2E] mb-4">Giờ hoạt động & Vận chuyển</h3>
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+        <h3 class="font-medium text-[#2C1A2E] mb-4 font-bold">{{ t.hoursAndShipping }}</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Mở cửa', k: 'openTime', type: 'time'}"></ng-container>
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Đóng cửa', k: 'closeTime', type: 'time'}"></ng-container>
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Phí ship HN (đ)', k: 'deliveryFeeHN', type: 'number'}"></ng-container>
-          <ng-container *ngTemplateOutlet="field; context: {label: 'Phí ship HCM (đ)', k: 'deliveryFeeHCM', type: 'number'}"></ng-container>
-          <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: 'Miễn phí ship từ (đ)', k: 'freeShipFrom', type: 'number'}"></ng-container></div>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.openTime, k: 'openTime', type: 'time'}"></ng-container>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.closeTime, k: 'closeTime', type: 'time'}"></ng-container>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.feeHN, k: 'deliveryFeeHN', type: 'number'}"></ng-container>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.feeHCM, k: 'deliveryFeeHCM', type: 'number'}"></ng-container>
+          <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: t.freeShipFrom, k: 'freeShipFrom', type: 'number'}"></ng-container></div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5">
-        <h3 class="font-medium text-[#2C1A2E] mb-2">Thông báo & Tự động hoá</h3>
-        <ng-container *ngTemplateOutlet="toggle; context: {label: 'Thông báo qua Email', desc: 'Gửi email khi có đơn mới', k: 'notifyEmail'}"></ng-container>
-        <ng-container *ngTemplateOutlet="toggle; context: {label: 'Thông báo qua Zalo', desc: 'Gửi Zalo khi có đơn mới', k: 'notifyZalo'}"></ng-container>
-        <ng-container *ngTemplateOutlet="toggle; context: {label: 'Tự động xác nhận đơn', desc: 'Xác nhận đơn hàng tự động sau 5 phút', k: 'autoConfirm'}"></ng-container>
+      <div class="bg-white rounded-2xl border border-[#EDE5DF] p-5 shadow-sm">
+        <h3 class="font-medium text-[#2C1A2E] mb-2 font-bold">{{ t.notifyTitle }}</h3>
+        <ng-container *ngTemplateOutlet="toggle; context: {label: t.notifyEmail, desc: t.notifyEmailDesc, k: 'notifyEmail'}"></ng-container>
+        <ng-container *ngTemplateOutlet="toggle; context: {label: t.notifyZalo, desc: t.notifyZaloDesc, k: 'notifyZalo'}"></ng-container>
+        <ng-container *ngTemplateOutlet="toggle; context: {label: t.autoConfirm, desc: t.autoConfirmDesc, k: 'autoConfirm'}"></ng-container>
       </div>
 
-      <button class="px-6 py-3 bg-[#8B4A5C] text-white font-medium rounded-xl hover:bg-[#7A3D4F] transition-colors">
-        Lưu thay đổi
+      <button (click)="saveSettings()" class="px-6 py-3 bg-[#8B4A5C] text-white font-medium rounded-xl hover:bg-[#7A3D4F] transition-all shadow-sm active:scale-95">
+        {{ t.saveBtn }}
       </button>
 
       <ng-template #field let-label="label" let-k="k" let-type="type">
@@ -49,7 +55,7 @@ import { FormsModule } from '@angular/forms';
           <input
             [type]="type || 'text'"
             [(ngModel)]="settings[k]"
-            class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#8B4A5C] bg-white"
+            class="mt-1 w-full border border-[#DDD4CC] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#8B4A5C] bg-white transition-colors"
           />
         </div>
       </ng-template>
@@ -74,6 +80,8 @@ import { FormsModule } from '@angular/forms';
   `
 })
 export class AdminSettingsComponent {
+  savedMessage = false;
+
   settings: Record<string, any> = {
     shopName: 'Hoa Tươi Việt Nam',
     phone: '0901 234 567',
@@ -90,7 +98,24 @@ export class AdminSettingsComponent {
     autoConfirm: false,
   };
 
+  constructor(public langService: LangService) {}
+
+  get t() {
+    return this.langService.t.admin.settingsView;
+  }
+
+  get isKo() {
+    return this.langService.currentLang() === 'ko';
+  }
+
   toggleSetting(k: string) {
     this.settings[k] = !this.settings[k];
+  }
+
+  saveSettings() {
+    this.savedMessage = true;
+    setTimeout(() => {
+      this.savedMessage = false;
+    }, 3000);
   }
 }

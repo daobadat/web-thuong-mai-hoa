@@ -73,7 +73,11 @@ export class NavbarComponent {
 
   onSearch(query: string) {
     this.productService.searchQuery.set(query);
-    this.router.navigate(['/shop']);
+    if (query.trim()) {
+      this.router.navigate(['/shop'], { queryParams: { q: query.trim() } });
+    } else {
+      this.router.navigate(['/shop']);
+    }
   }
 
   logout() {

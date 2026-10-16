@@ -77,7 +77,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
   }
 
   get newProducts() {
-    return this.productService.products().filter(p => p.isNew);
+    const allProducts = this.productService.products();
+    let newOnes = allProducts.filter(p => p.isNew);
+    if (newOnes.length === 0) {
+      // Fallback: show the 10 most recently created products
+      newOnes = [...allProducts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 10);
+    } else {
+      newOnes = [...newOnes].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+    return newOnes;
   }
 
   get occasionSections() {

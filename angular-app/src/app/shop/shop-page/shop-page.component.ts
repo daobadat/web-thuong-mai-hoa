@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { LangService } from '../../core/services/lang.service';
 import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
@@ -9,10 +10,20 @@ import { ProductService } from '../../core/services/product.service';
   styleUrls: ['./shop-page.component.css'],
   standalone: false
 })
-export class ShopPageComponent {
+export class ShopPageComponent implements OnInit {
   langService = inject(LangService);
   cartService = inject(CartService);
   productService = inject(ProductService);
+  private route = inject(ActivatedRoute);
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      const q = params['q'];
+      if (q) {
+        this.productService.searchQuery.set(q);
+      }
+    });
+  }
 
   get occasions(): string[] {
     return this.productService.occasionKeys();

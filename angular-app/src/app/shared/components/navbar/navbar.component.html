@@ -26,22 +26,13 @@
         </a>
       </div>
 
-      <!-- Center: Search bar (takes remaining space and centers its content) -->
-      <div class="flex-1 flex justify-center px-2">
-        <div class="w-full max-w-lg flex items-center bg-white rounded-lg overflow-hidden h-9 shadow-inner">
-          <input
-            #searchInput
-            type="text"
-            [placeholder]="langService.currentLang() === 'vi' ? 'Tìm kiếm hoa, dịp tặng...' : '꽃, 행사 검색...'"
-            (keyup.enter)="onSearch(searchInput.value)"
-            class="flex-1 px-4 py-0 text-sm text-[#2B2A26] focus:outline-none placeholder:text-[#B0A699] bg-transparent min-w-0"
-          />
-          <button (click)="onSearch(searchInput.value)" class="px-3 h-full bg-[#5C2129] hover:bg-[#4A1A22] flex items-center justify-center transition-colors shrink-0">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </div>
+      <!-- Center: Search bar with autocomplete -->
+      <div class="flex-1 flex justify-center px-2 sm:px-4">
+        <app-search-autocomplete
+          class="w-full max-w-xl lg:max-w-2xl"
+          [lang]="langService.currentLang()"
+          (searchSubmit)="onSearch($event)"
+        ></app-search-autocomplete>
       </div>
 
       <!-- Right icons -->
