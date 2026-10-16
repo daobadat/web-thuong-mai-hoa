@@ -237,6 +237,83 @@ const productService = {
     await product.destroy();
     return true;
   },
+
+  suggest: async ({ keyword, lang = "vi", limit = 8 }) => {
+    const cleanKeyword = (keyword || "").trim();
+    if (!cleanKeyword || cleanKeyword.length < 2) {
+      return [];
+    }
+
+    const escapedKeyword = cleanKeyword.replace(/[%_\\]/g, "\\$&");
+    const maxLimit = Math.min(Math.max(parseInt(limit, 10) || 8, 1), 10);
+
+    // Tìm tất cả sản phẩm is_active = true có bản dịch (ở bất kỳ ngôn ngữ nào) chứa từ khóa
+    const matchingTranslations = await ProductTranslation.findAll({
+      where: {
+        name: { [Op.like]: `%${escapedKeyword}%` },
+      },
+      attributes: ["product_id"],
+      raw: true,
+    });
+
+    const productIds = [...new Set(matchingTranslations.map((t) => t.product_id))];
+    if (productIds.length === 0) {
+      return [];
+    }
+
+    const products = await Product.findAll({
+      where: {
+        id: { [Op.in]: productIds },
+        is_active: true,
+      },
+      include: [
+        {
+          model: ProductTranslation,
+          as: "translations",
+          required: false,
+        },
+        {
+          model: ProductImage,
+          as: "images",
+          required: false,
+        },
+      ],
+    });
+
+    const slugify = require("slugify");
+
+    // Format và chuẩn hóa kết quả
+    const items = products.map((p) => {
+      const transCurrent = p.translations?.find((t) => t.language_code === lang);
+      const transFallback = p.translations?.find((t) => t.language_code !== lang) || p.translations?.[0];
+      const name = transCurrent?.name || transFallback?.name || p.sku;
+      const primaryImg = p.images?.find((img) => img.is_primary) || p.images?.[0];
+      const slug = slugify(name, { lower: true, locale: "vi", remove: /[*+~.()'"!:@]/g });
+
+      return {
+        id: p.id,
+        name,
+        slug,
+        price: Number(p.base_price),
+        is_in_stock: p.stock_quantity > 0,
+        image: primaryImg?.url || "https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=120&h=120&fit=crop",
+      };
+    });
+
+    // Sắp xếp:
+    // 1. Tên bắt đầu bằng từ khóa lên trước
+    // 2. Sau đó theo thứ tự chữ cái (localeCompare)
+    const lowerKeyword = cleanKeyword.toLowerCase();
+    items.sort((a, b) => {
+      const aStarts = a.name.toLowerCase().startsWith(lowerKeyword);
+      const bStarts = b.name.toLowerCase().startsWith(lowerKeyword);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      return a.name.localeCompare(b.name, lang === "ko" ? "ko" : "vi");
+    });
+
+    return items.slice(0, maxLimit);
+  },
 };
 
 module.exports = productService;

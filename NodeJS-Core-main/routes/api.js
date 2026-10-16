@@ -100,10 +100,24 @@ router.group("/occasions", (router) => {
   router.delete("/:id", middlewares([authenticated, role("admin")]), occasionController.destroy);
 });
 
+const rateLimit = require("express-rate-limit");
+const suggestLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: {
+    success: false,
+    status: 429,
+    message: "Bạn đã gửi quá nhiều yêu cầu tìm kiếm. Vui lòng thử lại sau giây lát.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // =====================================================================
 // PRODUCT ROUTES - /products
 // =====================================================================
 router.group("/products", (router) => {
+  router.get("/suggest", suggestLimiter, productController.suggest);
   router.get("/", productController.index);
   router.get("/:id", productController.show);
   router.post(
