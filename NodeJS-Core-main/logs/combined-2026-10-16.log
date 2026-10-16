@@ -113,3 +113,7 @@
 {"level":"info","message":"::1 - - [16/Oct/2026:02:54:23 +0000] \"POST /api/chat/message HTTP/1.1\" 200 1578 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 09:54:23"}
 {"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 09:58:19"}
 {"level":"info","message":"[server] Nháº­n SIGINT, Ä‘ang shutdown...","timestamp":"2026-10-16 10:02:10"}
+{"level":"info","message":"[server] Running on http://localhost:3000 (pid 10252)","timestamp":"2026-10-16 11:11:21"}
+{"level":"info","message":"[Cron] Expire stale orders job scheduled (every 5 min).","timestamp":"2026-10-16 11:11:21"}
+{"level":"info","message":"[server] Running on http://localhost:3000 (pid 28384)","timestamp":"2026-10-16 11:11:23"}
+{"level":"info","message":"[Cron] Expire stale orders job scheduled (every 5 min).","timestamp":"2026-10-16 11:11:23"}

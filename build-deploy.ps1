@@ -20,7 +20,7 @@ $Root       = $PSScriptRoot
 $AngularDir = Join-Path $Root $AngularDirName
 $NodeDir    = Join-Path $Root $NodeDirName
 $NodePublic = Join-Path $NodeDir 'public'
-$ZipOutput  = Join-Path $Root 'kflowervn-deploy.zip'
+$ZipOutput  = Join-Path $Root 'NodeJS-Core-main.zip'
 
 function Write-Step([string]$Msg) { Write-Host "`n$Msg" -ForegroundColor Yellow }
 
@@ -43,7 +43,7 @@ try {
     Write-Step '[1/4] Build Angular production...'
     Push-Location -LiteralPath $AngularDir
     try {
-        Invoke-Native 'Angular build' { npm run build -- --configuration production }
+        Invoke-Native 'Angular build' { npx ng build --configuration production }
     }
     finally { Pop-Location }
 
