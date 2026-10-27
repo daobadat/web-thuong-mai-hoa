@@ -117,3 +117,90 @@
 {"level":"info","message":"[Cron] Expire stale orders job scheduled (every 5 min).","timestamp":"2026-10-16 11:11:21"}
 {"level":"info","message":"[server] Running on http://localhost:3000 (pid 28384)","timestamp":"2026-10-16 11:11:23"}
 {"level":"info","message":"[Cron] Expire stale orders job scheduled (every 5 min).","timestamp":"2026-10-16 11:11:23"}
+{"level":"info","message":"[server] Running on http://localhost:3000 (pid 20140)","timestamp":"2026-10-16 11:11:58"}
+{"level":"info","message":"[Cron] Expire stale orders job scheduled (every 5 min).","timestamp":"2026-10-16 11:11:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (37ms)","timestamp":"2026-10-16 11:16:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (13ms)","timestamp":"2026-10-16 11:21:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (11ms)","timestamp":"2026-10-16 11:26:58"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:06 +0000] \"GET /api/cart HTTP/1.1\" 200 215 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:06"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"POST /api/auth/login HTTP/1.1\" 200 687 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"GET /common.159342f413c1a236.js HTTP/1.1\" 200 1828 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"GET /180.c5115db68841c8e9.js HTTP/1.1\" 200 144908 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"GET /api/cart HTTP/1.1\" 200 249 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"GET /api/orders?limit=50 HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"GET /api/orders?limit=100 HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"::1 - - [16/Oct/2026:04:27:14 +0000] \"GET /api/products?limit=100 HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\"","timestamp":"2026-10-16 11:27:14"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (19ms)","timestamp":"2026-10-16 11:31:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (12ms)","timestamp":"2026-10-16 11:36:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 11:41:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 11:46:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 11:51:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 11:56:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 12:01:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (10ms)","timestamp":"2026-10-16 12:06:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (15ms)","timestamp":"2026-10-16 12:11:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (10ms)","timestamp":"2026-10-16 12:16:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (10ms)","timestamp":"2026-10-16 12:21:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (11ms)","timestamp":"2026-10-16 12:26:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (13ms)","timestamp":"2026-10-16 12:31:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (13ms)","timestamp":"2026-10-16 12:36:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (14ms)","timestamp":"2026-10-16 12:41:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 12:46:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 12:51:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (15ms)","timestamp":"2026-10-16 12:56:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (13ms)","timestamp":"2026-10-16 13:01:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (12ms)","timestamp":"2026-10-16 13:06:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (10ms)","timestamp":"2026-10-16 13:11:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 13:16:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 13:21:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 13:26:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 13:31:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (12ms)","timestamp":"2026-10-16 13:36:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 13:41:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 13:46:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 13:51:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (10ms)","timestamp":"2026-10-16 13:56:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (11ms)","timestamp":"2026-10-16 14:01:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 14:06:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 14:11:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 14:16:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 14:21:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 14:26:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 14:31:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 14:36:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 14:41:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (11ms)","timestamp":"2026-10-16 14:46:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 14:51:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 14:56:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 15:01:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 15:06:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 15:11:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 15:16:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 15:21:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 15:26:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 15:31:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (18ms)","timestamp":"2026-10-16 15:36:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 15:41:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (18ms)","timestamp":"2026-10-16 15:46:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 15:51:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 15:56:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 16:01:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 16:06:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 16:11:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 16:16:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 16:21:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 16:26:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 16:31:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 16:36:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (6ms)","timestamp":"2026-10-16 16:41:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (7ms)","timestamp":"2026-10-16 16:46:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (14ms)","timestamp":"2026-10-16 16:51:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 16:56:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (13ms)","timestamp":"2026-10-16 17:01:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 17:06:58"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 17:11:59"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (4ms)","timestamp":"2026-10-16 17:16:59"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (8ms)","timestamp":"2026-10-16 17:21:59"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (5ms)","timestamp":"2026-10-16 17:26:59"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (9ms)","timestamp":"2026-10-16 17:31:59"}
+{"level":"info","message":"[Cron] expireStaleOrders OK (12ms)","timestamp":"2026-10-16 17:36:59"}
