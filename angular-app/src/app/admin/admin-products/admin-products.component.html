@@ -175,32 +175,32 @@
       <table class="w-full text-sm border-collapse">
         <thead class="bg-[#F3ECE7]">
           <tr>
-            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[220px]">
+            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide min-w-[280px] lg:min-w-[320px]">
               Sản phẩm
             </th>
-            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[110px] w-[120px]">
               Danh mục
             </th>
-            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[150px]">
+            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide min-w-[160px] max-w-[220px]">
               Dịp tặng
             </th>
-            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[110px] w-[115px]">
               Giá bán
             </th>
-            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+            <th class="text-left px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[125px] w-[130px]">
               Giá gốc (Sale)
             </th>
-            <th class="text-center px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+            <th class="text-center px-3 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[75px] w-[80px]">
               Tồn kho
             </th>
-            <th class="text-center px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+            <th class="text-center px-3 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[70px] w-[75px]">
               Đã bán
             </th>
-            <th class="text-center px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+            <th class="text-center px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap min-w-[115px] w-[120px]">
               Trạng thái
             </th>
             <!-- Pinned Sticky Right Action Column -->
-            <th class="text-center px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap sticky right-0 bg-[#F3ECE7] z-20 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)]">
+            <th class="text-center px-4 py-3.5 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap sticky right-0 bg-[#F3ECE7] z-20 min-w-[110px] w-[115px] shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)]">
               Thao tác
             </th>
           </tr>
@@ -208,16 +208,16 @@
         <tbody class="divide-y divide-[#EDE5DF]">
           <tr *ngFor="let p of displayedProducts" class="group hover:bg-[#FAF7F2] transition-colors">
             <!-- Sản phẩm & Ảnh -->
-            <td class="px-4 py-3">
+            <td class="px-4 py-3 min-w-[280px]">
               <div class="flex items-center gap-3">
                 <img [src]="p.img || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop'"
                      [alt]="p.nameVi"
                      class="w-12 h-12 rounded-xl object-cover bg-[#F3ECE7] border border-[#DDD4CC] flex-shrink-0 group-hover:scale-105 transition-transform" />
-                <div class="min-w-0">
-                  <div class="font-semibold text-[#2C1A2E] text-sm line-clamp-1 group-hover:text-[#8B4A5C] transition-colors">
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold text-[#2C1A2E] text-sm line-clamp-2 leading-snug group-hover:text-[#8B4A5C] transition-colors" [title]="p.nameVi">
                     {{ p.nameVi }}
                   </div>
-                  <div class="text-xs text-[#7A6870] line-clamp-1 mt-0.5">
+                  <div class="text-xs text-[#7A6870] line-clamp-1 mt-0.5" [title]="p.nameKo">
                     {{ p.nameKo || '—' }}
                   </div>
                   <div class="text-[10px] text-[#A89E90] font-mono mt-0.5">
@@ -228,17 +228,17 @@
             </td>
 
             <!-- Danh mục -->
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td class="px-4 py-3 whitespace-nowrap min-w-[110px]">
               <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#F3ECE7] text-[#2C1A2E] text-xs font-medium">
                 {{ getCategoryDisplayName(p.category) }}
               </span>
             </td>
 
             <!-- Dịp tặng -->
-            <td class="px-4 py-3 min-w-[150px]">
-              <div class="flex flex-wrap gap-1" *ngIf="p.occasions && p.occasions.length > 0; else noOcc">
+            <td class="px-4 py-3 min-w-[160px] max-w-[220px]">
+              <div class="flex flex-wrap gap-1 items-center" *ngIf="p.occasions && p.occasions.length > 0; else noOcc">
                 <span *ngFor="let occ of p.occasions" 
-                      class="px-2 py-0.5 bg-[#FAF7F2] border border-[#EDE5DF] rounded-full text-[11px] text-[#7A6870]">
+                      class="px-2 py-0.5 bg-[#FAF7F2] border border-[#EDE5DF] rounded-full text-[11px] text-[#7A6870] whitespace-nowrap">
                   {{ getOccasionDisplayName(occ) }}
                 </span>
               </div>
@@ -248,14 +248,14 @@
             </td>
 
             <!-- Giá bán -->
-            <td class="px-4 py-3 whitespace-nowrap">
-              <span class="font-serif font-bold text-[#8B4A5C] text-sm">
+            <td class="px-4 py-3 whitespace-nowrap min-w-[110px]">
+              <span class="font-serif font-bold text-[#8B4A5C] text-sm tabular-nums">
                 {{ fmt(p.price) }}đ
               </span>
             </td>
 
             <!-- Giá gốc (Sale) -->
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td class="px-4 py-3 whitespace-nowrap min-w-[125px]">
               <div *ngIf="p.originalPrice && p.originalPrice > p.price" class="flex flex-col items-start gap-0.5">
                 <span class="text-xs text-[#7A6870] line-through font-serif tabular-nums">
                   {{ fmt(p.originalPrice) }}đ
@@ -273,7 +273,7 @@
             </td>
 
             <!-- Tồn kho -->
-            <td class="px-4 py-3 text-center whitespace-nowrap">
+            <td class="px-3 py-3 text-center whitespace-nowrap min-w-[75px]">
               <span class="font-medium px-2 py-0.5 rounded-full text-xs" 
                     [ngClass]="p.stock <= 5 ? 'bg-red-50 text-red-600 font-bold' : 'text-[#2C1A2E]'">
                 {{ p.stock }}
@@ -281,12 +281,12 @@
             </td>
 
             <!-- Đã bán -->
-            <td class="px-4 py-3 text-center text-[#7A6870] whitespace-nowrap">
+            <td class="px-3 py-3 text-center text-[#7A6870] whitespace-nowrap tabular-nums min-w-[70px]">
               {{ p.sold || 0 }}
             </td>
 
             <!-- Trạng thái bán -->
-            <td class="px-4 py-3 text-center whitespace-nowrap">
+            <td class="px-4 py-3 text-center whitespace-nowrap min-w-[115px]">
               <button (click)="toggleActive(p.id)"
                       [title]="p.active ? 'Đang mở bán (Nhấp để tạm ngưng)' : 'Đang tạm ngưng (Nhấp để mở bán)'"
                       class="relative inline-block w-10 h-5 rounded-full transition-colors cursor-pointer"
@@ -297,7 +297,7 @@
             </td>
 
             <!-- Sticky Right Action Column -->
-            <td class="px-4 py-3 whitespace-nowrap text-center sticky right-0 bg-white group-hover:bg-[#FAF7F2] z-10 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] transition-colors">
+            <td class="px-4 py-3 whitespace-nowrap text-center sticky right-0 bg-white group-hover:bg-[#FAF7F2] z-10 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] min-w-[110px] transition-colors">
               <div class="flex items-center justify-center gap-2">
                 <button (click)="openEditModal(p)"
                         title="Chỉnh sửa sản phẩm"

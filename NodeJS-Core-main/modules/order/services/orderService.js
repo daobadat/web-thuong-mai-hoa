@@ -269,16 +269,26 @@ const orderService = {
       throw error;
     }
 
+    // Map các alias phổ biến sang ENUM hợp lệ của DB MySQL
+    const STATUS_MAP = {
+      shipping: "out_for_delivery",
+      delivering: "out_for_delivery",
+      preparing: "processing",
+      new: "pending",
+      done: "delivered",
+    };
+    const targetStatus = STATUS_MAP[status] || status;
+
     const previousStatus = order.status;
-    order.status = status;
+    order.status = targetStatus;
     await order.save();
 
     // Ghi lịch sử trạng thái
     await OrderStatusHistory.create({
       order_id: orderId,
-      status,
+      status: targetStatus,
       changed_by: changedById,
-      note: note || `Status changed from ${previousStatus} to ${status}`,
+      note: note || `Status changed from ${previousStatus} to ${targetStatus}`,
     });
 
     // Thông báo cho user
@@ -293,12 +303,12 @@ const orderService = {
         refunded: "Đơn hàng đã được hoàn tiền",
       };
 
-      if (statusMessages[status]) {
+      if (statusMessages[targetStatus]) {
         await notificationService.create(
           order.user_id,
           "order_update",
           `Cập nhật đơn hàng #${order.order_number}`,
-          statusMessages[status]
+          statusMessages[targetStatus]
         );
       }
     } catch (_) {}

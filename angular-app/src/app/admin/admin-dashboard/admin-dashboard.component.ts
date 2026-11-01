@@ -402,7 +402,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   normalizeStatus(s: string): string {
     if (s === 'pending') return 'new';
     if (s === 'processing') return 'preparing';
-    if (s === 'shipping') return 'delivering';
+    if (s === 'shipping' || s === 'out_for_delivery' || s === 'ready_for_delivery') return 'delivering';
     if (s === 'delivered') return 'done';
     return s || 'new';
   }

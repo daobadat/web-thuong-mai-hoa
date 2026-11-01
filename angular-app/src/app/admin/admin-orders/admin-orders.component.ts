@@ -66,7 +66,7 @@ export class AdminOrdersComponent implements OnInit {
             ...o,
             id: o.id.toString(),
             orderNumber: displayNum,
-            status: o.status === 'pending' ? 'new' : o.status === 'processing' ? 'preparing' : o.status === 'shipping' ? 'delivering' : o.status === 'delivered' ? 'done' : o.status,
+            status: o.status === 'pending' ? 'new' : o.status === 'processing' ? 'preparing' : (o.status === 'shipping' || o.status === 'out_for_delivery' || o.status === 'ready_for_delivery') ? 'delivering' : o.status === 'delivered' ? 'done' : o.status,
             customer: o.recipient_name,
             phone: o.recipient_phone,
             address: o.delivery_address,
@@ -122,7 +122,7 @@ export class AdminOrdersComponent implements OnInit {
     let backendStatus = status;
     if (status === 'new') backendStatus = 'pending' as any;
     if (status === 'preparing') backendStatus = 'processing' as any;
-    if (status === 'delivering') backendStatus = 'shipping' as any;
+    if (status === 'delivering') backendStatus = 'out_for_delivery' as any;
     if (status === 'done') backendStatus = 'delivered' as any;
 
     this.orderApi.updateOrderStatus(id as any, backendStatus).subscribe({

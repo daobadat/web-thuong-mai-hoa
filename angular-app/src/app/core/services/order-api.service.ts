@@ -25,7 +25,7 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipping' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'processing' | 'ready_for_delivery' | 'out_for_delivery' | 'shipping' | 'delivered' | 'cancelled' | 'refunded';
   total_amount: number;
   discount_amount?: number;
   recipient_name: string;
