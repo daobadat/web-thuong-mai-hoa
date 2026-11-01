@@ -51,7 +51,7 @@ module.exports = {
     const items = [
       {
         id: 1, sku: 'BQ-ROSE-PINK-24',
-        category: 'bouquet', basePrice: 850000,
+        category: 'bouquet', basePrice: 850000, originalPrice: 1050000,
         stock: 12, rating: 4.85, reviews: 24,
         nameVi: 'Bó Hồng Phấn Premium 24 Bông',
         nameKo: '프리미엄 핑크 장미 24송이',
@@ -68,7 +68,7 @@ module.exports = {
       },
       {
         id: 2, sku: 'BQ-TULIP-PINK-20',
-        category: 'bouquet', basePrice: 580000,
+        category: 'bouquet', basePrice: 580000, originalPrice: 720000,
         stock: 10, rating: 4.70, reviews: 15,
         nameVi: 'Bó Tulip Hồng Đà Lạt',
         nameKo: '달랏 핑크 튤립 꽃다발',
@@ -119,7 +119,7 @@ module.exports = {
       },
       {
         id: 5, sku: 'BQ-LAVENDER-MIX',
-        category: 'bouquet', basePrice: 490000,
+        category: 'bouquet', basePrice: 490000, originalPrice: 650000,
         stock: 14, rating: 4.75, reviews: 12,
         nameVi: 'Bó Lavender Mix Mộng Mơ',
         nameKo: '라벤더 믹스 꽃다발',
@@ -170,7 +170,7 @@ module.exports = {
       },
       {
         id: 8, sku: 'BQ-ROSE-RED-99',
-        category: 'bouquet', basePrice: 2900000,
+        category: 'bouquet', basePrice: 2900000, originalPrice: 3500000,
         stock: 8, rating: 4.95, reviews: 32,
         nameVi: 'Bó 99 Hoa Hồng Đỏ',
         nameKo: '빨간 장미 99송이',
@@ -187,7 +187,7 @@ module.exports = {
       },
       {
         id: 9, sku: 'BOX-PASTEL-MIX',
-        category: 'box', basePrice: 650000,
+        category: 'box', basePrice: 650000, originalPrice: 850000,
         stock: 8, rating: 4.80, reviews: 14,
         nameVi: 'Hộp Hoa Mix Pastel',
         nameKo: '파스텔 믹스 꽃 박스',
@@ -306,7 +306,7 @@ module.exports = {
       },
       {
         id: 16, sku: 'STD-OPENING-2TIER',
-        category: 'stand', basePrice: 1800000,
+        category: 'stand', basePrice: 1800000, originalPrice: 2250000,
         stock: 5, rating: 4.90, reviews: 18,
         nameVi: 'Kệ Khai Trương 2 Tầng Premium',
         nameKo: '2단 프리미엄 개업 화환',
@@ -467,6 +467,7 @@ module.exports = {
       sku: item.sku,
       category_id: CAT[item.category],
       base_price: item.basePrice,
+      original_price: item.originalPrice || null,
       currency: 'VND',
       stock_quantity: item.stock,
       is_preorder: false,

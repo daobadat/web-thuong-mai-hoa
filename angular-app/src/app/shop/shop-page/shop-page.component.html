@@ -55,9 +55,9 @@
               {{ getOccasionTitle(k) }}
             </button>
             <button (click)="setOccasion('sale')"
-              class="px-3 py-1.5 text-xs rounded-full border transition-colors"
-              [ngClass]="productService.selectedOccasion() === 'sale' ? 'bg-[#6E2A34] text-white border-[#6E2A34]' : 'border-[#E4D9C8] text-[#6E2A34] hover:border-[#6E2A34]'">
-              {{ langService.t.navSale }}
+              class="px-3 py-1.5 text-xs font-bold rounded-full border transition-colors flex items-center gap-1"
+              [ngClass]="productService.selectedOccasion() === 'sale' ? 'bg-[#6E2A34] text-white border-[#6E2A34]' : 'border-[#E4D9C8] text-[#6E2A34] hover:border-[#6E2A34] bg-[#FBF0F0]/50'">
+              <span>🔥</span> {{ langService.t.navSale }}
             </button>
           </div>
         </div>
@@ -150,7 +150,7 @@
         </svg>
         {{ langService.currentLang() === 'vi' ? 'Bộ lọc' : '필터' }}
         <span *ngIf="hasActiveFilters" class="w-4 h-4 rounded-full bg-[#6E2A34] text-white text-[10px] flex items-center justify-center font-bold">
-          {{ productService.priceFilters().length + (productService.colorFilter() ? 1 : 0) + (productService.selectedCategory() !== 'all' ? 1 : 0) }}
+          {{ productService.priceFilters().length + (productService.colorFilter() ? 1 : 0) + (productService.selectedCategory() !== 'all' ? 1 : 0) + (productService.selectedOccasion() !== 'all' ? 1 : 0) }}
         </span>
       </button>
 

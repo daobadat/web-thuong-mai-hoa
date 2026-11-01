@@ -22,6 +22,7 @@ import { LangService } from '../core/services/lang.service';
           <ng-container *ngTemplateOutlet="field; context: {label: t.shopName, k: 'shopName'}"></ng-container>
           <ng-container *ngTemplateOutlet="field; context: {label: t.phone, k: 'phone', type: 'tel'}"></ng-container>
           <ng-container *ngTemplateOutlet="field; context: {label: t.zalo, k: 'zalo'}"></ng-container>
+          <ng-container *ngTemplateOutlet="field; context: {label: t.kakao, k: 'kakao'}"></ng-container>
           <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: t.addressHN, k: 'addressHN'}"></ng-container></div>
           <div class="sm:col-span-2"><ng-container *ngTemplateOutlet="field; context: {label: t.addressHCM, k: 'addressHCM'}"></ng-container></div>
         </div>
@@ -42,6 +43,7 @@ import { LangService } from '../core/services/lang.service';
         <h3 class="font-medium text-[#2C1A2E] mb-2 font-bold">{{ t.notifyTitle }}</h3>
         <ng-container *ngTemplateOutlet="toggle; context: {label: t.notifyEmail, desc: t.notifyEmailDesc, k: 'notifyEmail'}"></ng-container>
         <ng-container *ngTemplateOutlet="toggle; context: {label: t.notifyZalo, desc: t.notifyZaloDesc, k: 'notifyZalo'}"></ng-container>
+        <ng-container *ngTemplateOutlet="toggle; context: {label: t.notifyKakao, desc: t.notifyKakaoDesc, k: 'notifyKakao'}"></ng-container>
         <ng-container *ngTemplateOutlet="toggle; context: {label: t.autoConfirm, desc: t.autoConfirmDesc, k: 'autoConfirm'}"></ng-container>
       </div>
 
@@ -86,6 +88,7 @@ export class AdminSettingsComponent {
     shopName: 'Hoa Tươi Việt Nam',
     phone: '0901 234 567',
     zalo: '0901234567',
+    kakao: 'kflower_vn',
     addressHN: '24 Xuân Thủy, Cầu Giấy, Hà Nội',
     addressHCM: '88 Lê Lợi, Q.1, TP.HCM',
     openTime: '07:00',
@@ -95,6 +98,7 @@ export class AdminSettingsComponent {
     freeShipFrom: '500000',
     notifyEmail: true,
     notifyZalo: true,
+    notifyKakao: true,
     autoConfirm: false,
   };
 

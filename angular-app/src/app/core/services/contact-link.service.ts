@@ -40,6 +40,15 @@ export class ContactLinkService {
               labelKo: '메신저',
             });
             break;
+          case 'kakao':
+            result.push({
+              id,
+              url: this.kakaoUrl(CONTACT_CONFIG.kakaoId),
+              icon: '💛',
+              labelVi: 'KakaoTalk',
+              labelKo: '카카오톡(Kakao)',
+            });
+            break;
         }
       } catch (err) {
         // Cấu hình sai → bỏ kênh đó, không vỡ trang
@@ -54,6 +63,16 @@ export class ContactLinkService {
       throw new Error('Số Zalo không hợp lệ');
     }
     return `https://zalo.me/${phone}`;
+  }
+
+  private kakaoUrl(kakaoId: string): string {
+    if (!kakaoId) {
+      throw new Error('KakaoTalk ID không hợp lệ');
+    }
+    if (kakaoId.startsWith('http://') || kakaoId.startsWith('https://')) {
+      return kakaoId;
+    }
+    return `https://open.kakao.com/o/${encodeURIComponent(kakaoId)}`;
   }
 
   private messengerUrl(page: string): string {

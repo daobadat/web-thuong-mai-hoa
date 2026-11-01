@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\projects\\web-thuong-mai-hoa\\NodeJS-Core-main\\logs\\.83a663c4e92bc94870eedf6a998503d17a38e419-audit.json",
+    "files": [
+        {
+            "date": 1792577047106,
+            "name": "C:\\projects\\web-thuong-mai-hoa\\NodeJS-Core-main\\logs\\error-2026-10-21.log",
+            "hash": "4f86ca14e23c75c5853abe54f06b79da4d92646099ee98bc8337fbc9d50a6746"
+        },
+        {
+            "date": 1793224581491,
+            "name": "C:\\projects\\web-thuong-mai-hoa\\NodeJS-Core-main\\logs\\error-2026-10-29.log",
+            "hash": "47639ac654a3414adc417a02772a0112cc5fe9f18ed670c45bde8441b2768764"
+        }
+    ],
+    "hashType": "sha256"
+}

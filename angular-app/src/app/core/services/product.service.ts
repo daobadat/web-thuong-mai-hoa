@@ -94,7 +94,7 @@ export class ProductService {
 
     const occ = this.selectedOccasion();
     if (occ === 'sale') {
-      list = list.filter(p => !!p.originalPrice);
+      list = list.filter(p => !!p.originalPrice && p.originalPrice > p.price);
     } else if (occ !== 'all') {
       list = list.filter(p => p.occasions.includes(occ));
     }
@@ -128,6 +128,9 @@ export class ProductService {
   });
 
   public getOccasionName(slug: string, lang: string) {
+    if (slug === 'sale') {
+      return lang === 'ko' ? '할인 상품' : 'Đang Giảm Giá';
+    }
     const occ = this.occasionsList().find(o => o.slug === slug);
     if (!occ) return slug;
     const translation = occ.translations?.find((t: any) => t.language_code === lang);
@@ -135,6 +138,11 @@ export class ProductService {
   }
 
   public getOccasionDesc(slug: string, lang: string) {
+    if (slug === 'sale') {
+      return lang === 'ko'
+        ? ['특별 할인 혜택이 적용된 프리미엄 생화 컬렉션입니다. 2~4시간 내 신속 당일 배송!']
+        : ['Khám phá các mẫu hoa tươi nghệ thuật đang có ưu đãi giảm giá tốt nhất hôm nay. Đặt hoa nhanh, giao tận tay người thương trong 2-4 giờ!'];
+    }
     const occ = this.occasionsList().find(o => o.slug === slug);
     if (!occ) return [];
     const translation = occ.translations?.find((t: any) => t.language_code === lang);

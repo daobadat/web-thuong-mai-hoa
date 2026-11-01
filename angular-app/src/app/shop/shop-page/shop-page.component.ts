@@ -55,7 +55,8 @@ export class ShopPageComponent implements OnInit {
   get hasActiveFilters() {
     return this.productService.priceFilters().length > 0 || 
            this.productService.colorFilter() !== null || 
-           this.productService.selectedCategory() !== 'all';
+           this.productService.selectedCategory() !== 'all' ||
+           this.productService.selectedOccasion() !== 'all';
   }
 
   get pageNumbers() {

@@ -20,6 +20,10 @@ const productService = {
       if (query.max_price) whereClause.base_price[Op.lte] = query.max_price;
     }
 
+    if (query.on_sale === 'true' || query.is_sale === 'true') {
+      whereClause.original_price = { [Op.ne]: null };
+    }
+
     const translationWhere = { language_code: lang };
     if (query.search) {
       translationWhere.name = { [Op.like]: `%${query.search}%` };
@@ -100,6 +104,7 @@ const productService = {
       sku: data.sku,
       category_id: data.category_id,
       base_price: data.base_price,
+      original_price: data.original_price ? Number(data.original_price) : null,
       currency: data.currency || "VND",
       stock_quantity: data.stock_quantity || 0,
       is_preorder: data.is_preorder || false,
@@ -295,6 +300,8 @@ const productService = {
         name,
         slug,
         price: Number(p.base_price),
+        original_price: p.original_price ? Number(p.original_price) : null,
+        is_sale: Boolean(p.original_price && Number(p.original_price) > Number(p.base_price)),
         is_in_stock: p.stock_quantity > 0,
         image: primaryImg?.url || "https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=120&h=120&fit=crop",
       };

@@ -92,6 +92,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(20),
         allowNull: false,
       },
+      recipient_kakao: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
       delivery_address: {
         type: DataTypes.STRING(255),
         allowNull: false,

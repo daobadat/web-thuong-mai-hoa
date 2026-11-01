@@ -118,5 +118,58 @@ Tài liệu này tổng hợp lại toàn bộ các cập nhật và các lỗi 
 - **Hàn hoá trang Quản lý Đơn hàng (Admin Orders):**
   - Chuyển ngữ các tab trạng thái (전체, 신규 주문, 주문 접수, 상품 준비중, 배송중, 배송완료, 주문취소), các cột bảng dữ liệu, nhãn thông tin khách hàng và các nút điều hướng tiến trình đơn.
 
+## 10. Hoàn Thiện & Nâng Cấp Tính Năng Khuyến Mãi / Giảm Giá (Sale & Promotion System)
+- **Vấn đề ban đầu:**
+  - Khách hàng bấm nút **"🔥 ĐANG GIẢM GIÁ"** trên thanh điều hướng (Navbar) hoặc banner trang chủ nhưng danh sách sản phẩm bị rỗng ("Không tìm thấy sản phẩm phù hợp").
+  - Phía trang quản trị Admin (`/admin/products`) hoàn toàn không có cột giá gốc / giá sale, không có trường nhập giá khuyến mãi khi tạo mới hay sửa sản phẩm, không thể đưa sản phẩm vào danh sách giảm giá hoặc gỡ giảm giá.
+  - Cấu trúc Database gốc (`products`) và file `thuong_mai_hoa.sql` chưa có cột lưu trữ giá gốc (`original_price`).
+- **Giải pháp & Cải tiến toàn diện:**
+  - **Cơ sở dữ liệu (Database Schema & Migration):**
+    - Tạo migration `20261029000000-add-original-price-to-products.js` bổ sung cột `original_price decimal(12,2) NULL` vào bảng `products`.
+    - Đồng bộ cập nhật schema trong file DDL `thuong_mai_hoa.sql` phục vụ import cơ sở dữ liệu trên cPanel/phpMyAdmin.
+    - Cập nhật model Sequelize `Product` (`models/product.js`) khai báo trường `original_price`.
+    - Cập nhật seeders (`20260921000105-demo-products.js`) và nạp sẵn dữ liệu giá sale cho 6 mẫu sản phẩm tiêu biểu (Bó hoa, Hộp hoa, Giỏ hoa, Kệ hoa) với mức giảm hấp dẫn từ 17% đến 25%.
+  - **Backend API (NodeJS):**
+    - Cập nhật `productService.js`:
+      - Hàm `list()`: trả về đầy đủ `original_price` và hỗ trợ bộ lọc `on_sale=true` / `is_sale=true`.
+      - Hàm `create()` & `update()`: nhận và lưu trữ `original_price`, cho phép admin đặt giá gốc hoặc xoá giá gốc (đưa về `null` để ngừng sale).
+      - Hàm `suggest()`: bổ sung `original_price` và cờ `is_sale` vào kết quả autocomplete tìm kiếm.
+  - **Giao diện Quản trị Admin (`/admin/products`):**
+    - **Header & Bộ lọc nhanh:** Hiển thị thống kê tổng quan `X sản phẩm · Y đang bán · 🔥 Z đang giảm giá (Sale)`. Bổ sung 3 tab chuyển đổi nhanh: `[ Tất cả ]`, `[ 🔥 Đang giảm giá ]`, `[ ⚠️ Cảnh báo tồn kho ]`.
+    - **Bảng danh sách:** Bổ sung cột **"Giá gốc (Sale)"**. Với sản phẩm đang sale, hiển thị giá gạch ngang kèm badge nổi bật `🔥 -XX%`. Với sản phẩm chưa sale, có nút bấm nhanh `+ Giảm giá` để thiết lập khuyến mãi trực tiếp.
+    - **Chế độ Sửa trực tiếp (Inline Edit):** Cho phép nhập / sửa cả Giá bán và Giá gốc, tự động tính toán và hiển thị preview % giảm giá theo thời gian thực.
+    - **Form Thêm sản phẩm mới:** Thêm ô nhập **"Giá gốc / Sale (VND)"** kèm preview badge % giảm giá ngay khi gõ số tiền.
+  - **Giao diện Khách hàng (Storefront):**
+    - Trang chủ (`/`): Section **"SẢN PHẨM ĐANG GIẢM GIÁ"** tự động kích hoạt và hiển thị đầy đủ danh sách hoa sale với badge `-XX%`, giá gạch ngang và nút đặt hàng nhanh.
+    - Thanh điều hướng (Navbar) & Bộ lọc Cửa hàng (`/shop`): Nút **"🔥 ĐANG GIẢM GIÁ"** liên kết trực tiếp đến danh mục khuyến mãi, hiển thị tiêu đề và mô tả chuyên nghiệp song ngữ (VI & KO), hỗ trợ reset bộ lọc mượt mà.
+    - Trang chi tiết sản phẩm (`/shop/product/:id`): Hiển thị đồng bộ nhãn `-XX% GIẢM`, giá gốc gạch ngang và giá bán khuyến mãi.
+
+## 11. Tích Hợp Kênh Liên Hệ KakaoTalk (Dành Riêng Cho Khách Hàng Hàn Quốc)
+- **Bối cảnh & Nhu cầu:**
+  - KFlower là thương hiệu hoa tươi song ngữ phục vụ cả khách hàng Việt Nam và kiều bào/khách hàng Hàn Quốc tại Việt Nam.
+  - Kênh liên lạc qua Zalo phổ biến với khách Việt, nhưng người Hàn Quốc sử dụng 100% KakaoTalk làm ứng dụng nhắn tin chính. Việc bổ sung liên hệ KakaoTalk giúp tối ưu tỷ lệ chuyển đổi đơn hàng từ khách Hàn.
+- **Giải pháp & Cải tiến:**
+  - **Cơ sở dữ liệu (`thuong_mai_hoa.sql` & Models):**
+    - `users`: Bổ sung cột `kakao_id varchar(100) NULL` lưu ID KakaoTalk của khách hàng.
+    - `orders`: Bổ sung cột `recipient_kakao varchar(100) NULL` lưu KakaoTalk của người nhận/người đặt hoa.
+    - `user_oauth_accounts`: Mở rộng enum `provider` từ `('google','facebook')` thành `('google','facebook','kakao','naver')`.
+    - `notifications`: Bổ sung loại thông báo `kakao_alert` trong enum notification types.
+    - Cập nhật model Sequelize `User` (`models/user.js`) và `Order` (`models/order.js`).
+  - **Thanh thông báo đầu trang (Top Announcement Bar):**
+    - Cập nhật thanh header thông báo (`announce`):
+      - Tiếng Việt: `🌸 Hotline: 0901 234 567 · Zalo: 0901234567 · KakaoTalk: kflower_vn · Giao nội thành 2–4 giờ · Miễn phí giao đơn từ 800.000đ`
+      - Tiếng Hàn: `🌸 핫라인: 0901 234 567 · 카카오톡(Kakao): kflower_vn · 잘로: 0901234567 · 시내 2–4시간 배달 · 800,000₫ 이상 무료 배달`
+  - **Dịch vụ & Cấu hình kênh liên hệ (`ContactConfig` & `ContactLinkService`):**
+    - Mở rộng kiểu kênh: `'zalo' | 'facebook' | 'kakao'`.
+    - Thêm cấu hình `kakaoId: 'kflower_vn'` và tự động build URL OpenChat/Kakao channel (`https://open.kakao.com/o/...`).
+  - **Chi tiết sản phẩm (`Product Detail Page`):**
+    - Bổ sung nút liên hệ nhanh `💛 KakaoTalk` (màu vàng thương hiệu Kakao `#FEE500`) bên cạnh nút Zalo OA và Facebook.
+    - Bổ sung KakaoTalk vào dòng thông tin liên hệ trong tab chi tiết sản phẩm.
+  - **Chân trang (Footer):**
+    - Bổ sung link liên hệ KakaoTalk có icon nhận diện và link trực tiếp sang kênh chat.
+  - **Cài đặt Quản trị Admin (`Admin Settings`):**
+    - Thêm trường cấu hình **KakaoTalk ID / Link** trong mục Thông tin cửa hàng.
+    - Thêm tuỳ chọn bật/tắt **Thông báo qua KakaoTalk** (gửi tin nhắn khi có đơn mới từ khách Hàn Quốc).
+
 ---
-*Cập nhật lần cuối: 15/10/2026*
+*Cập nhật lần cuối: 29/10/2026*

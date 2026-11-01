@@ -2,7 +2,7 @@ export const T = {
   vi: {
     brand: 'Hoa Tươi',
     tagline: 'Giao hàng trong ngày · Hoa Đà Lạt',
-    announce: '🌸 Hotline: 0901 234 567 · Zalo: 0901234567 · Giao nội thành 2–4 giờ · Miễn phí giao đơn từ 800.000đ',
+    announce: '🌸 Hotline: 0901 234 567 · Zalo: 0901234567 · KakaoTalk: kflower_vn · Giao nội thành 2–4 giờ · Miễn phí giao đơn từ 800.000đ',
     navSale: 'Đang Giảm Giá',
     search: 'Tìm kiếm hoa...',
     sections: {
@@ -29,7 +29,7 @@ export const T = {
     vnd: 'đ',
     orderSummary: 'Tóm tắt đơn hàng',
     backHome: 'Về trang chủ',
-    footer: { hotline: 'Hotline: 0901 234 567', zalo: 'Zalo: 0901234567', deliver: 'Giao hàng toàn quốc', rights: 'Bản quyền thuộc về chúng tôi' },
+    footer: { hotline: 'Hotline: 0901 234 567', zalo: 'Zalo: 0901234567', kakao: 'KakaoTalk: kflower_vn', deliver: 'Giao hàng toàn quốc', rights: 'Bản quyền thuộc về chúng tôi' },
     heroSlides: [
       { eyebrow: '— Bộ Sưu Tập', title: 'Hoa Cưới\nCầm Tay', sub: 'Freeship & Tặng hoa cài áo chú rể', cta: 'Xem ngay', img: 'https://images.unsplash.com/photo-1652346072098-cfc2e94d30e7?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
       { eyebrow: '— Ưu Đãi Hôm Nay', title: 'Giảm Đến\n25%', sub: 'Hoa tươi Đà Lạt, giao trong ngày, giá tốt nhất', cta: 'Khám phá', img: 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
@@ -144,6 +144,7 @@ export const T = {
         shopName: 'Tên cửa hàng',
         phone: 'Số điện thoại',
         zalo: 'Zalo',
+        kakao: 'KakaoTalk ID / Link',
         addressHN: 'Địa chỉ Hà Nội',
         addressHCM: 'Địa chỉ TP.HCM',
         hoursAndShipping: 'Giờ hoạt động & Vận chuyển',
@@ -157,6 +158,8 @@ export const T = {
         notifyEmailDesc: 'Gửi email khi có đơn mới',
         notifyZalo: 'Thông báo qua Zalo',
         notifyZaloDesc: 'Gửi Zalo khi có đơn mới',
+        notifyKakao: 'Thông báo qua KakaoTalk',
+        notifyKakaoDesc: 'Gửi tin nhắn KakaoTalk khi có đơn mới (khách Hàn Quốc)',
         autoConfirm: 'Tự động xác nhận đơn',
         autoConfirmDesc: 'Xác nhận đơn hàng tự động sau 5 phút',
         saveBtn: 'Lưu thay đổi',
@@ -202,7 +205,7 @@ export const T = {
   ko: {
     brand: '플라워 베트남',
     tagline: '당일 배달 · 달랏 신선 꽃',
-    announce: '🌸 핫라인: 0901 234 567 · 잘로(Zalo): 0901234567 · 시내 2–4시간 배달 · 800,000₫ 이상 무료 배달',
+    announce: '🌸 핫라인: 0901 234 567 · 카카오톡(Kakao): kflower_vn · 잘로: 0901234567 · 시내 2–4시간 배달 · 800,000₫ 이상 무료 배달',
     navSale: '할인 상품',
     search: '꽃 검색...',
     sections: {
@@ -229,7 +232,7 @@ export const T = {
     vnd: '₫',
     orderSummary: '주문 요약',
     backHome: '홈으로',
-    footer: { hotline: '핫라인: 0901 234 567', zalo: '잘로(Zalo): 0901234567', deliver: '전국 배달', rights: '모든 권리 보유' },
+    footer: { hotline: '핫라인: 0901 234 567', zalo: '잘로(Zalo): 0901234567', kakao: '카카오톡(Kakao): kflower_vn', deliver: '전국 배달', rights: '모든 권리 보유' },
     heroSlides: [
       { eyebrow: '— 컬렉션', title: '웨딩\n부케', sub: '무료 배달 & 신랑 코사지 증정', cta: '지금 보기', img: 'https://images.unsplash.com/photo-1652346072098-cfc2e94d30e7?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
       { eyebrow: '— 오늘의 할인', title: '최대\n25% 할인', sub: '달랏 신선 꽃, 당일 배달, 최저가', cta: '지금 보기', img: 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=1400&h=580&fit=crop&auto=format', accent: '#D9A6A0' },
@@ -344,6 +347,7 @@ export const T = {
         shopName: '상점 이름',
         phone: '전화번호',
         zalo: '잘로(Zalo)',
+        kakao: '카카오톡(KakaoTalk) ID / 링크',
         addressHN: '하노이 매장 주소',
         addressHCM: '호치민 매장 주소',
         hoursAndShipping: '운영 시간 및 배송 설정',
@@ -357,6 +361,8 @@ export const T = {
         notifyEmailDesc: '신규 주문 접수 시 이메일 발송',
         notifyZalo: '잘로(Zalo) 알림',
         notifyZaloDesc: '신규 주문 접수 시 Zalo 메시지 발송',
+        notifyKakao: '카카오톡(KakaoTalk) 알림',
+        notifyKakaoDesc: '신규 주문 접수 시 카카오톡 알림 발송 (한국 고객용)',
         autoConfirm: '주문 자동 승인',
         autoConfirmDesc: '5분 후 주문 자동 확인 및 승인',
         saveBtn: '설정 저장',

@@ -14,17 +14,31 @@ import { OccasionApiService } from '../../core/services/occasion-api.service';
 })
 export class AdminProductsComponent implements OnInit {
   products: any[] = [];
-  editId: number | null = null;
   showAdd = false;
   
+  // Filter & Search
+  activeTab: 'all' | 'sale' | 'low_stock' = 'all';
+  searchKeyword = '';
+
+  // Dropdown states
   showNewOccDropdown = false;
-  rowOccDropdownId: number | null = null;
+  showEditOccDropdown = false;
+
+  // Edit Modal State
+  showEditModal = false;
+  isSavingEdit = false;
+  editingProd: any = null;
+
+  // Toast feedback
+  toastMessage: string | null = null;
+  private toastTimeout: any = null;
 
   newProd = {
     nameVi: '',
     nameKo: '',
     category: '',
     price: '',
+    originalPrice: '',
     stock: '',
     img: '',
     occasions: [] as string[]
@@ -71,9 +85,10 @@ export class AdminProductsComponent implements OnInit {
           ...p,
           nameVi: p.translations?.find((t: any) => t.language_code === 'vi')?.name || p.sku,
           nameKo: p.translations?.find((t: any) => t.language_code === 'ko')?.name || '',
-          category: p.category?.slug || 'Bó hoa',
+          category: p.category?.slug || (this.categoriesList[0]?.slug || 'bo-hoa'),
           occasions: p.occasions?.map((o: any) => o.slug) || [],
-          price: p.base_price,
+          price: Number(p.base_price),
+          originalPrice: p.original_price ? Number(p.original_price) : null,
           stock: p.stock_quantity,
           sold: 0,
           img: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop',
@@ -87,6 +102,41 @@ export class AdminProductsComponent implements OnInit {
     return this.products.filter(p => p.active).length;
   }
 
+  get saleProductsCount() {
+    return this.products.filter(p => p.originalPrice && p.originalPrice > p.price).length;
+  }
+
+  get lowStockProductsCount() {
+    return this.products.filter(p => p.stock <= 5).length;
+  }
+
+  get displayedProducts() {
+    let list = this.products;
+
+    if (this.activeTab === 'sale') {
+      list = list.filter(p => p.originalPrice && p.originalPrice > p.price);
+    } else if (this.activeTab === 'low_stock') {
+      list = list.filter(p => p.stock <= 5);
+    }
+
+    if (this.searchKeyword.trim()) {
+      const q = this.searchKeyword.toLowerCase().trim();
+      list = list.filter(p => 
+        (p.nameVi && p.nameVi.toLowerCase().includes(q)) ||
+        (p.nameKo && p.nameKo.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q))
+      );
+    }
+
+    return list;
+  }
+
+  getDiscountPercent(price: number, originalPrice: number | null | undefined): number {
+    if (!originalPrice || originalPrice <= price) return 0;
+    return Math.round(((originalPrice - price) / originalPrice) * 100);
+  }
+
   toggleAdd() {
     this.showAdd = !this.showAdd;
   }
@@ -95,92 +145,120 @@ export class AdminProductsComponent implements OnInit {
     const p = this.products.find(x => x.id === id);
     if (p) {
       this.productApi.updateProduct(id, { is_active: !p.active }).subscribe({
-        next: () => p.active = !p.active
+        next: () => {
+          p.active = !p.active;
+          this.showToast(`Đã ${p.active ? 'bật bán' : 'tắt bán'} "${p.nameVi}"`);
+        }
       });
     }
   }
 
-  setEditId(id: number) {
-    this.editId = this.editId === id ? null : id;
-  }
-
-  saveEditString(id: number, field: string, value: string) {
-    const p = this.products.find(x => x.id === id);
-    if (!p) return;
-    p[field] = value;
-    
-    const payload: any = {};
-    if (field === 'nameVi' || field === 'nameKo') {
-       payload.translations = [
-         { language_code: 'vi', name: p.nameVi },
-         { language_code: 'ko', name: p.nameKo }
-       ];
-    }
-    
-    this.productApi.updateProduct(id, payload).subscribe();
-  }
-
-  saveEditImage(id: number, url: string) {
-    const p = this.products.find(x => x.id === id);
-    if (!p) return;
-    p.img = url ? url.trim() : '';
-    
-    const payload = {
-      images: p.img ? [{ url: p.img, is_primary: true }] : []
+  // --- Modal Edit Logic ---
+  openEditModal(p: any) {
+    this.editingProd = {
+      id: p.id,
+      sku: p.sku,
+      nameVi: p.nameVi || '',
+      nameKo: p.nameKo || '',
+      category: p.category || (this.categoriesList[0]?.slug || ''),
+      price: p.price,
+      originalPrice: p.originalPrice || '',
+      stock: p.stock !== undefined ? p.stock : 0,
+      img: p.img || '',
+      occasions: p.occasions ? [...p.occasions] : [],
+      active: p.active !== false
     };
-    
-    this.productApi.updateProduct(id, payload).subscribe({
-      error: (err) => alert('Lỗi khi cập nhật ảnh: ' + (err.error?.message || err.message))
+    this.showEditModal = true;
+    this.showEditOccDropdown = false;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.editingProd = null;
+    this.showEditOccDropdown = false;
+  }
+
+  toggleEditOccasion(slug: string) {
+    if (!this.editingProd) return;
+    if (this.editingProd.occasions.includes(slug)) {
+      this.editingProd.occasions = this.editingProd.occasions.filter((s: string) => s !== slug);
+    } else {
+      this.editingProd.occasions.push(slug);
+    }
+  }
+
+  toggleEditOccDropdown(event: Event) {
+    event.stopPropagation();
+    this.showEditOccDropdown = !this.showEditOccDropdown;
+    this.showNewOccDropdown = false;
+  }
+
+  saveEditProduct() {
+    if (!this.editingProd) return;
+    if (!this.editingProd.nameVi?.trim()) {
+      alert('Vui lòng nhập tên sản phẩm tiếng Việt');
+      return;
+    }
+    if (!this.editingProd.price || Number(this.editingProd.price) <= 0) {
+      alert('Vui lòng nhập giá bán hợp lệ');
+      return;
+    }
+
+    const cat = this.categoriesList.find(c => c.slug === this.editingProd.category);
+    const catId = cat ? cat.id : undefined;
+
+    const occIds = this.editingProd.occasions.map((s: string) => {
+      const occ = this.occasionsList.find(c => c.slug === s);
+      return occ ? occ.id : null;
+    }).filter((x: any) => x);
+
+    const origPrice = this.editingProd.originalPrice && Number(this.editingProd.originalPrice) > 0 
+      ? Number(this.editingProd.originalPrice) 
+      : null;
+
+    const payload: any = {
+      base_price: Number(this.editingProd.price),
+      original_price: origPrice,
+      stock_quantity: this.editingProd.stock !== '' ? Number(this.editingProd.stock) : 0,
+      is_active: this.editingProd.active,
+      category_id: catId,
+      occasion_ids: occIds,
+      translations: [
+        { language_code: 'vi', name: this.editingProd.nameVi.trim() },
+        { language_code: 'ko', name: this.editingProd.nameKo?.trim() || '' }
+      ],
+      images: this.editingProd.img?.trim() ? [{ url: this.editingProd.img.trim(), is_primary: true }] : []
+    };
+
+    this.isSavingEdit = true;
+    this.productApi.updateProduct(this.editingProd.id, payload).subscribe({
+      next: () => {
+        this.isSavingEdit = false;
+        this.closeEditModal();
+        this.loadProducts();
+        this.showToast('Đã lưu thay đổi sản phẩm thành công!');
+      },
+      error: (err) => {
+        this.isSavingEdit = false;
+        alert('Lỗi cập nhật sản phẩm: ' + (err.error?.message || err.message));
+      }
     });
   }
 
-  changeImagePrompt(p: any) {
-    const newUrl = prompt('Nhập URL ảnh mới cho sản phẩm:', p.img || '');
-    if (newUrl !== null && newUrl.trim() !== p.img) {
-      this.saveEditImage(p.id, newUrl.trim());
+  quickSetSale(p: any) {
+    const currentOrig = p.originalPrice || Math.round(p.price * 1.25);
+    const input = prompt(`Nhập giá gốc trước giảm (VND) cho "${p.nameVi}":\n(Giá bán hiện tại: ${this.fmt(p.price)}đ. Nhập 0 để huỷ giảm giá)`, currentOrig.toString());
+    if (input !== null) {
+      const cleaned = input.trim().replace(/[^0-9]/g, '');
+      const val = parseFloat(cleaned);
+      const newOrig = isNaN(val) || val <= 0 ? null : val;
+      this.productApi.updateProduct(p.id, { original_price: newOrig }).subscribe({
+        next: () => {
+          p.originalPrice = newOrig;
+          this.showToast(newOrig ? `Đã cài giảm giá cho "${p.nameVi}"` : `Đã huỷ giảm giá "${p.nameVi}"`);
+        }
+      });
     }
-  }
-
-  saveEditCategory(id: number, slug: string) {
-    const p = this.products.find(x => x.id === id);
-    if (!p) return;
-    p.category = slug;
-    
-    const cat = this.categoriesList.find(c => c.slug === slug);
-    if (!cat) return;
-    
-    const payload = { category_id: cat.id };
-    this.productApi.updateProduct(id, payload).subscribe();
-  }
-
-  saveEditOccasion(id: number, slug: string) {
-    const p = this.products.find(x => x.id === id);
-    if (!p) return;
-    
-    if (p.occasions.includes(slug)) {
-      p.occasions = p.occasions.filter((s: string) => s !== slug);
-    } else {
-      p.occasions.push(slug);
-    }
-    
-    const payload = { occasion_ids: p.occasions.map((s: string) => {
-      const occ = this.occasionsList.find(c => c.slug === s);
-      return occ ? occ.id : null;
-    }).filter((x: any) => x) };
-    
-    this.productApi.updateProduct(id, payload).subscribe();
-  }
-
-  saveEditNumber(id: number, field: string, value: string) {
-    const p = this.products.find(x => x.id === id);
-    if (!p) return;
-    p[field] = Number(value);
-    
-    const payload: any = {};
-    if (field === 'price') payload.base_price = Number(value);
-    if (field === 'stock') payload.stock_quantity = Number(value);
-    
-    this.productApi.updateProduct(id, payload).subscribe();
   }
 
   toggleNewProdOccasion(slug: string) {
@@ -194,19 +272,13 @@ export class AdminProductsComponent implements OnInit {
   toggleNewOccDropdown(event: Event) {
     event.stopPropagation();
     this.showNewOccDropdown = !this.showNewOccDropdown;
-    this.rowOccDropdownId = null;
-  }
-
-  toggleRowOccDropdown(id: number, event: Event) {
-    event.stopPropagation();
-    this.rowOccDropdownId = this.rowOccDropdownId === id ? null : id;
-    this.showNewOccDropdown = false;
+    this.showEditOccDropdown = false;
   }
 
   @HostListener('document:click')
   closeDropdowns() {
     this.showNewOccDropdown = false;
-    this.rowOccDropdownId = null;
+    this.showEditOccDropdown = false;
   }
 
   getOccasionNames(slugs: string[]): string {
@@ -221,8 +293,24 @@ export class AdminProductsComponent implements OnInit {
     return occ?.translations?.[0]?.name || occ?.name || slug;
   }
 
+  getCategoryDisplayName(slug: string): string {
+    const cat = this.categoriesList.find(c => c.slug === slug);
+    return cat?.translations?.[0]?.name || cat?.name || slug;
+  }
+
+  showToast(msg: string) {
+    this.toastMessage = msg;
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = null;
+    }, 3500);
+  }
+
   addProduct() {
-    if (!this.newProd.nameVi || !this.newProd.price) return;
+    if (!this.newProd.nameVi || !this.newProd.price) {
+      alert('Vui lòng nhập tên và giá bán');
+      return;
+    }
     
     const cat = this.categoriesList.find(c => c.slug === this.newProd.category);
     if (!cat) {
@@ -238,20 +326,22 @@ export class AdminProductsComponent implements OnInit {
         return occ ? occ.id : null;
       }).filter((x: any) => x),
       base_price: Number(this.newProd.price),
-      stock_quantity: Number(this.newProd.stock),
+      original_price: this.newProd.originalPrice && Number(this.newProd.originalPrice) > 0 ? Number(this.newProd.originalPrice) : null,
+      stock_quantity: this.newProd.stock ? Number(this.newProd.stock) : 0,
       is_active: true,
       translations: [
-        { language_code: 'vi', name: this.newProd.nameVi },
-        { language_code: 'ko', name: this.newProd.nameKo }
+        { language_code: 'vi', name: this.newProd.nameVi.trim() },
+        { language_code: 'ko', name: this.newProd.nameKo.trim() }
       ],
-      images: this.newProd.img ? [{ url: this.newProd.img, is_primary: true }] : []
+      images: this.newProd.img ? [{ url: this.newProd.img.trim(), is_primary: true }] : []
     };
     
     this.productApi.createProduct(payload).subscribe({
       next: () => {
         this.showAdd = false;
-        this.newProd = { nameVi: '', nameKo: '', category: this.categoriesList[0]?.slug || '', price: '', stock: '', img: '', occasions: [] };
+        this.newProd = { nameVi: '', nameKo: '', category: this.categoriesList[0]?.slug || '', price: '', originalPrice: '', stock: '', img: '', occasions: [] };
         this.loadProducts();
+        this.showToast('Thêm sản phẩm mới thành công!');
       },
       error: (err) => alert(err.message)
     });
@@ -262,15 +352,20 @@ export class AdminProductsComponent implements OnInit {
   }
 
   deleteProduct(id: number) {
-    if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    const p = this.products.find(x => x.id === id);
+    const name = p ? `"${p.nameVi}"` : 'sản phẩm này';
+    if(confirm(`Bạn có chắc chắn muốn xóa ${name}?`)) {
       this.productApi.deleteProduct(id).subscribe({
-        next: () => this.loadProducts(),
+        next: () => {
+          this.loadProducts();
+          this.showToast(`Đã xóa ${name}`);
+        },
         error: (err) => alert(err.message)
       });
     }
   }
 
   fmt(n: number) {
-    return new Intl.NumberFormat('vi-VN').format(n);
+    return new Intl.NumberFormat('vi-VN').format(n || 0);
   }
 }

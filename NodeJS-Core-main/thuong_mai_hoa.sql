@@ -67,6 +67,7 @@ CREATE TABLE `users` (
   `reset_password_token` varchar(255) NULL,
   `reset_password_expires` datetime NULL,
   `verify_email_token` varchar(255) NULL,
+  `kakao_id` varchar(100) NULL COMMENT 'KakaoTalk ID (kênh liên hệ ưa thích của khách hàng Hàn Quốc)',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -75,11 +76,11 @@ CREATE TABLE `users` (
 CREATE TABLE `user_oauth_accounts` (
   `id` char(36) NOT NULL,
   `user_id` char(36) NOT NULL,
-  `provider` ENUM('google','facebook') NOT NULL,
+  `provider` ENUM('google','facebook','kakao','naver') NOT NULL,
   `provider_user_id` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) COMMENT = 'Google/Facebook - Kakao/Naver có thể phù hợp hơn cho user Hàn Quốc.';
+) COMMENT = 'OAuth: Google/Facebook/Kakao/Naver (Kakao/Naver tối ưu cho người Hàn Quốc).';
 
 CREATE TABLE `refresh_tokens` (
   `id` char(36) NOT NULL,
@@ -149,6 +150,7 @@ CREATE TABLE `products` (
   `sku` varchar(50) UNIQUE NOT NULL,
   `category_id` char(36) NOT NULL,
   `base_price` decimal(12,2) NOT NULL,
+  `original_price` decimal(12,2) DEFAULT NULL,
   `currency` varchar(3) NOT NULL DEFAULT 'VND',
   `stock_quantity` int NOT NULL DEFAULT 0,
   `is_preorder` boolean NOT NULL DEFAULT false,
@@ -246,6 +248,7 @@ CREATE TABLE `orders` (
   `scheduled_delivery_at` datetime NULL,
   `recipient_name` varchar(150) NOT NULL,
   `recipient_phone` varchar(20) NOT NULL,
+  `recipient_kakao` varchar(100) NULL COMMENT 'KakaoTalk ID người nhận hoặc người đặt hoa',
   `delivery_address` varchar(255) NOT NULL,
   `card_message` text,
   `notes` text,
@@ -337,7 +340,7 @@ CREATE TABLE `wishlists` (
 CREATE TABLE `notifications` (
   `id` char(36) NOT NULL,
   `user_id` char(36) NOT NULL,
-  `type` ENUM('order_update','promotion','system','chatbot') NOT NULL,
+  `type` ENUM('order_update','promotion','system','chatbot','kakao_alert','zalo_alert') NOT NULL,
   `title` varchar(255) NOT NULL,
   `message` text NOT NULL,
   `is_read` boolean NOT NULL DEFAULT false,
