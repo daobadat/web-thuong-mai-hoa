@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 module.exports = {
-  environment: process.env.DATABASE_ENV || "development",
+  environment: process.env.DATABASE_ENV || (process.env.NODE_ENV === "production" ? "production" : "development"),
   development: {
     username: process.env.DATABASE_USERNAME || "root",
     password: process.env.DATABASE_PASSWORD || "root",
@@ -15,9 +15,9 @@ module.exports = {
       charset: "utf8mb4",
     },
     define: {
-      charset: 'utf8mb4',
-      collate: 'utf8mb4_unicode_ci'
-    }
+      charset: "utf8mb4",
+      collate: "utf8mb4_unicode_ci",
+    },
   },
   test: {
     username: process.env.DATABASE_TEST_USERNAME || process.env.DATABASE_USERNAME || "root",
@@ -29,23 +29,24 @@ module.exports = {
     dialectOptions: {
       bigNumberStrings: true,
       socketPath: process.env.DATABASE_TEST_SOCKET || "",
-      charset: "utf8mb4"
+      charset: "utf8mb4",
     },
   },
   production: {
-    username: process.env.PROD_DB_USERNAME,
-    password: process.env.PROD_DB_PASSWORD,
-    database: process.env.PROD_DB_NAME,
-    host: process.env.PROD_DB_HOSTNAME,
-    port: process.env.PROD_DB_PORT,
+    username: process.env.PROD_DB_USERNAME || process.env.DATABASE_USERNAME,
+    password: process.env.PROD_DB_PASSWORD || process.env.DATABASE_PASSWORD,
+    database: process.env.PROD_DB_NAME || process.env.DATABASE_NAME,
+    host: process.env.PROD_DB_HOSTNAME || process.env.DATABASE_HOST || "localhost",
+    port: process.env.PROD_DB_PORT || process.env.DATABASE_PORT || 3306,
     dialect: "mysql",
     dialectOptions: {
       bigNumberStrings: true,
+      socketPath: process.env.DATABASE_SOCKET || "",
       charset: "utf8mb4",
     },
     define: {
-      charset: 'utf8mb4',
-      collate: 'utf8mb4_unicode_ci'
-    }
+      charset: "utf8mb4",
+      collate: "utf8mb4_unicode_ci",
+    },
   },
 };

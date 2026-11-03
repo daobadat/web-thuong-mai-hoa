@@ -1,13 +1,16 @@
-﻿const logger = require('./utils/logger');
 "use strict";
 
+// 1. Khởi tạo bootstrap path resolver để các require từ thư mục gốc hoạt động ổn định trên mọi môi trường
+require("./kernels/bootstrap");
+require("dotenv").config();
+
 const http = require("http");
+const logger = require("./utils/logger");
 const app = require("./index");
 const paymentService = require("modules/payment/services/paymentService");
-// Chá»‰nh Ä‘Æ°á»ng dáº«n cho khá»›p project cá»§a báº¡n:
 const { sequelize } = require("models");
 
-const PORT = Number.parseInt(process.env.PORT || "3000", 10);
+const PORT = process.env.PORT || 3000;
 const EXPIRE_JOB_INTERVAL_MS = 5 * 60 * 1000;
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
@@ -16,14 +19,14 @@ server.keepAliveTimeout = 65_000;
 server.headersTimeout = 66_000;
 
 // ---------------------------------------------------------------------
-// Cron: dá»n Ä‘Æ¡n háº¿t háº¡n (chá»‘ng cháº¡y chá»“ng)
+// Cron: dọn đơn hết hạn (chống chạy chồng)
 // ---------------------------------------------------------------------
 let expireJobRunning = false;
 let expireTimer = null;
 
 async function runExpireJob() {
   if (expireJobRunning) {
-    logger.warn("[Cron] Láº§n cháº¡y trÆ°á»›c chÆ°a xong, bá» qua tick nÃ y.");
+    logger.warn("[Cron] Lần chạy trước chưa xong, bỏ qua tick này.");
     return;
   }
   expireJobRunning = true;
@@ -32,7 +35,7 @@ async function runExpireJob() {
     await paymentService.expireStaleOrders();
     logger.info(`[Cron] expireStaleOrders OK (${Date.now() - startedAt}ms)`);
   } catch (err) {
-    logger.error("[Cron] expireStaleOrders lá»—i:", err);
+    logger.error("[Cron] expireStaleOrders lỗi:", err);
   } finally {
     expireJobRunning = false;
   }
@@ -43,17 +46,18 @@ async function runExpireJob() {
 // ---------------------------------------------------------------------
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
-    logger.error(`[server] Port ${PORT} Ä‘ang bá»‹ chiáº¿m. Cháº¡y "npm run start:clean" hoáº·c Ä‘á»•i PORT trong .env.`);
+    logger.error(`[server] Port/Socket ${PORT} đang bị chiếm. Chạy "npm run start:clean" hoặc đổi PORT trong .env.`);
   } else if (err.code === "EACCES") {
-    logger.error(`[server] KhÃ´ng Ä‘á»§ quyá»n bind port ${PORT}.`);
+    logger.error(`[server] Không đủ quyền bind port/socket ${PORT}.`);
   } else {
-    logger.error("[server] Lá»—i khá»Ÿi Ä‘á»™ng:", err);
+    logger.error("[server] Lỗi khởi động:", err);
   }
   process.exit(1);
 });
 
 server.listen(PORT, () => {
-  logger.info(`[server] Running on http://localhost:${PORT} (pid ${process.pid})`);
+  const listenTarget = isNaN(Number(PORT)) ? PORT : `http://localhost:${PORT}`;
+  logger.info(`[server] Running on ${listenTarget} (pid ${process.pid})`);
   expireTimer = setInterval(runExpireJob, EXPIRE_JOB_INTERVAL_MS);
   logger.info("[Cron] Expire stale orders job scheduled (every 5 min).");
 });
@@ -63,25 +67,33 @@ let shuttingDown = false;
 async function shutdown(signal, exitCode = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
-  logger.info(`[server] Nháº­n ${signal}, Ä‘ang shutdown...`);
+  logger.info(`[server] Nhận ${signal}, đang shutdown...`);
 
   const forceTimer = setTimeout(() => {
-    logger.error("[server] Shutdown quÃ¡ thá»i gian, Ã©p thoÃ¡t.");
+    logger.error("[server] Shutdown quá thời gian, ép thoát.");
     process.exit(1);
   }, SHUTDOWN_TIMEOUT_MS);
   forceTimer.unref();
 
   try {
-    clearInterval(expireTimer);
+    if (expireTimer) {
+      clearInterval(expireTimer);
+    }
     await new Promise((resolve, reject) =>
       server.close((err) => (err ? reject(err) : resolve()))
     );
     server.closeAllConnections?.();
-    await sequelize.close();
-    logger.info("[server] Shutdown hoÃ n táº¥t.");
+    if (sequelize && typeof sequelize.close === "function") {
+      try {
+        await sequelize.close();
+      } catch (dbErr) {
+        logger.warn("[server] Không thể đóng kết nối DB khi shutdown:", dbErr.message);
+      }
+    }
+    logger.info("[server] Shutdown hoàn tất.");
     process.exit(exitCode);
   } catch (err) {
-    logger.error("[server] Lá»—i khi shutdown:", err);
+    logger.error("[server] Lỗi khi shutdown:", err);
     process.exit(1);
   }
 }

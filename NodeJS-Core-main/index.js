@@ -1,5 +1,7 @@
+"use strict";
+
+require("./kernels/bootstrap");
 require("dotenv").config();
-require("rootpath")();
 
 const fs = require("fs");
 const path = require("path");
@@ -18,12 +20,14 @@ const app = express();
 app.disable("x-powered-by");
 
 // Ghi log mọi request HTTP qua winston
-app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+app.use(morgan("combined", { stream: { write: (message) => logger.info(message.trim()) } }));
 
 // Bật các HTTP headers bảo mật
-app.use(helmet({
-  contentSecurityPolicy: false, // Tạm tắt CSP để không block script/style của Angular
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Tạm tắt CSP để không block script/style của frontend
+  })
+);
 
 // Phòng chống XSS cơ bản (lọc payload req.body, req.query, req.params)
 app.use(xss());
@@ -34,7 +38,7 @@ const apiLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" },
 });
 // Chỉ áp dụng cho route API
 app.use("/api", apiLimiter);
@@ -45,6 +49,8 @@ const allowedOrigins = new Set(
   [
     "https://kflowervn.site",
     "https://www.kflowervn.site",
+    "http://kflowervn.site",
+    "http://www.kflowervn.site",
     process.env.FRONTEND_URL,
   ].filter(Boolean)
 );
@@ -77,11 +83,24 @@ app.use("/api", (req, res) => {
   res.status(404).json({ message: "Not Found" });
 });
 
+// Xử lý Static Files / SPA Fallback hoặc Root Health Check
 const angularDistPath = path.join(__dirname, "public");
-if (fs.existsSync(angularDistPath)) {
+const indexHtmlPath = path.join(angularDistPath, "index.html");
+
+if (fs.existsSync(indexHtmlPath)) {
   app.use(express.static(angularDistPath, { maxAge: isProd ? "1d" : 0, index: false }));
   app.get("*", (req, res) => {
-    res.sendFile(path.join(angularDistPath, "index.html"));
+    res.sendFile(indexHtmlPath);
+  });
+} else {
+  // Tránh lỗi 500 khi chưa build frontend vào public - đồng thời hỗ trợ cPanel health check
+  app.get("/", (req, res) => {
+    res.status(200).json({
+      status: "success",
+      message: "KFlower API Backend is running successfully on cPanel!",
+      docs: "/api-docs",
+      timestamp: new Date().toISOString(),
+    });
   });
 }
 
