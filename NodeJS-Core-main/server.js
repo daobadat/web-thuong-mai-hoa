@@ -1,3 +1,4 @@
+/* jshint esversion: 8, node: true */
 "use strict";
 
 // 1. Khởi tạo bootstrap path resolver để các require từ thư mục gốc hoạt động ổn định trên mọi môi trường
@@ -5,24 +6,24 @@ require("./kernels/bootstrap");
 require("dotenv").config();
 
 const http = require("http");
-const logger = require("./utils/logger");
 const app = require("./index");
+const logger = require("./utils/logger");
 const paymentService = require("modules/payment/services/paymentService");
 const { sequelize } = require("models");
 
 const PORT = process.env.PORT || 3000;
 const EXPIRE_JOB_INTERVAL_MS = 5 * 60 * 1000;
-const SHUTDOWN_TIMEOUT_MS = 10_000;
+const SHUTDOWN_TIMEOUT_MS = 10000;
 
 const server = http.createServer(app);
-server.keepAliveTimeout = 65_000;
-server.headersTimeout = 66_000;
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
 
 // ---------------------------------------------------------------------
 // Cron: dọn đơn hết hạn (chống chạy chồng)
 // ---------------------------------------------------------------------
-let expireJobRunning = false;
-let expireTimer = null;
+var expireJobRunning = false;
+var expireTimer = null;
 
 async function runExpireJob() {
   if (expireJobRunning) {
@@ -82,7 +83,9 @@ async function shutdown(signal, exitCode = 0) {
     await new Promise((resolve, reject) =>
       server.close((err) => (err ? reject(err) : resolve()))
     );
-    server.closeAllConnections?.();
+    if (typeof server.closeAllConnections === "function") {
+      server.closeAllConnections();
+    }
     if (sequelize && typeof sequelize.close === "function") {
       try {
         await sequelize.close();
@@ -108,3 +111,5 @@ process.on("uncaughtException", (err) => {
   logger.error("[process] uncaughtException:", err);
   shutdown("uncaughtException", 1);
 });
+
+module.exports = server;
