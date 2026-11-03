@@ -93,6 +93,22 @@ export class AuthApiService {
     );
   }
 
+  getGoogleClientId(): Observable<{ success: boolean; data: { clientId: string } }> {
+    return this.api.get<{ success: boolean; data: { clientId: string } }>('/auth/google/client-id');
+  }
+
+  loginWithGoogle(credential: string): Observable<LoginResponse> {
+    return this.api.post<any>('/auth/google', { credential }).pipe(
+      tap((res) => {
+        if (res.data?.token) {
+          this.api.setToken(res.data.token);
+          this.currentUser.set(res.data.user);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+        }
+      })
+    );
+  }
+
   logout() {
     this.api.clearToken();
     this.currentUser.set(null);
