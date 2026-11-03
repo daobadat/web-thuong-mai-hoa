@@ -1,6 +1,8 @@
 const { Order, OrderItem, OrderStatusHistory, Cart, CartItem, Product, ProductTranslation, ProductVariant, Coupon, User, DeliveryTimeSlot, sequelize } = require("models");
 const notificationService = require("modules/notification/services/notificationService");
 const paymentService = require("modules/payment/services/paymentService");
+const emailUtils = require("utils/emailUtils");
+const logger = require("utils/logger");
 
 const orderService = {
   checkout: async (userId, data) => {
@@ -164,6 +166,15 @@ const orderService = {
         );
       } catch (_) {
         // Không throw nếu notification lỗi
+      }
+
+      // Lấy email khách hàng
+      let customerEmail = data.customer_email || null;
+      if (!customerEmail && userId) {
+        try {
+          const u = await User.findByPk(userId, { attributes: ["email"] });
+          if (u) customerEmail = u.email;
+        } catch (_) {}
       }
 
       const createdOrder = await orderService.getOrderById(order.id);

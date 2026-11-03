@@ -1,5 +1,6 @@
 const authService = require("modules/auth/services/authService");
 const responseUtils = require("utils/responseUtils");
+const googleOAuthUtils = require("utils/googleOAuthUtils");
 
 const authController = {
   register: async (req, res) => {
@@ -69,6 +70,30 @@ const authController = {
       return responseUtils.ok(res, result);
     } catch (err) {
       if (err.statusCode === 400) return responseUtils.invalidated(res, { message: err.message });
+      return responseUtils.error(res, err.message);
+    }
+  },
+  googleClientId: async (req, res) => {
+    return responseUtils.ok(res, {
+      clientId: googleOAuthUtils.getClientId(),
+    });
+  },
+
+  googleLogin: async (req, res) => {
+    try {
+      const { credential } = req.body;
+      if (!credential) {
+        return responseUtils.invalidated(res, { message: "Google credential is required" });
+      }
+      const result = await authService.googleLogin({ credential });
+      return responseUtils.ok(res, result);
+    } catch (err) {
+      if (err.statusCode === 401) {
+        return responseUtils.unauthorized(res, err.message);
+      }
+      if (err.statusCode === 403) {
+        return responseUtils.forbidden(res, err.message);
+      }
       return responseUtils.error(res, err.message);
     }
   },

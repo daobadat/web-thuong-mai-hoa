@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const { User } = require("models");
 const jwtUtils = require("utils/jwtUtils");
+const googleOAuthUtils = require("utils/googleOAuthUtils");
 
 const authService = {
   register: async (data) => {
@@ -173,6 +174,57 @@ const authService = {
     await user.save();
 
     return { message: "Email has been successfully verified" };
+  },
+  googleLogin: async ({ credential }) => {
+    const googleUser = await googleOAuthUtils.verifyIdToken(credential);
+
+    if (!googleUser || !googleUser.email) {
+      const error = new Error("Không thể xác thực thông tin tài khoản Google.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    let user = await User.findOne({ where: { email: googleUser.email } });
+
+    if (user) {
+      if (!user.is_active) {
+        const error = new Error("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.");
+        error.statusCode = 403;
+        throw error;
+      }
+
+      user.last_login_at = new Date();
+      if (!user.email_verified_at) {
+        user.email_verified_at = new Date();
+      }
+      await user.save();
+    } else {
+      user = await User.create({
+        email: googleUser.email,
+        password_hash: null,
+        full_name: googleUser.name || "Khách hàng Google",
+        role: "customer",
+        is_active: true,
+        email_verified_at: new Date(),
+        last_login_at: new Date(),
+      });
+    }
+
+    const token = jwtUtils.sign(user.id, user.role);
+    const refreshToken = jwtUtils.signRefreshToken(user.id, user.role);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        phone: user.phone,
+        role: user.role,
+        has_password: !!user.password_hash,
+      },
+      token,
+      refreshToken,
+    };
   },
 };
 

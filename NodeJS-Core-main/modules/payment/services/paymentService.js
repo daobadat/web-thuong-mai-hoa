@@ -2,6 +2,7 @@
 const axios = require("axios");
 const qs = require("qs");
 const { Order, PaymentTransaction, sequelize } = require("models");
+const emailUtils = require("utils/emailUtils");
 
 function safeCompare(a, b) {
   if (!a || !b) return false;
