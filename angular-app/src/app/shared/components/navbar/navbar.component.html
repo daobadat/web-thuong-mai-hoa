@@ -62,8 +62,9 @@
           <button *ngIf="authApi.isLoggedIn()" (click)="userOpen = !userOpen"
             [attr.aria-expanded]="userOpen" aria-haspopup="true" aria-label="Menu tài khoản"
             class="hidden sm:flex items-center gap-2 px-2 py-1.5 bg-white text-[#6E2A34] text-sm font-bold rounded-full hover:bg-[#F4EDE3] transition-colors focus:ring-2 focus:ring-[#D9A6A0] outline-none">
-            <div class="w-6 h-6 rounded-full bg-[#D9A6A0] text-white flex items-center justify-center text-xs font-bold uppercase">
-              {{ getAvatarLetter() }}
+            <div class="w-6 h-6 rounded-full bg-[#D9A6A0] text-white flex items-center justify-center text-xs font-bold uppercase overflow-hidden">
+              <img *ngIf="authApi.currentUser()?.avatar_url" [src]="authApi.currentUser()?.avatar_url" class="w-full h-full object-cover" />
+              <span *ngIf="!authApi.currentUser()?.avatar_url">{{ getAvatarLetter() }}</span>
             </div>
             <span class="pr-1">{{ (authApi.currentUser()?.full_name ?? '').split(' ').slice(-1)[0] || 'Tài khoản' }}</span>
           </button>
@@ -87,10 +88,16 @@
 
           <!-- User dropdown menu — LOGGED IN -->
           <div *ngIf="userOpen && authApi.isLoggedIn()" class="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-[#E4D9C8] overflow-hidden z-50">
-            <div class="px-4 py-3 bg-[#FBF6EF] border-b border-[#E4D9C8]">
-              <p class="text-xs text-[#7A7163]">{{ langService.currentLang() === 'vi' ? 'Xin chào,' : '안녕하세요,' }}</p>
-              <p class="text-sm font-bold text-[#2B2A26] mt-0.5 truncate">{{ authApi.currentUser()?.full_name }}</p>
-              <p class="text-[10px] text-[#7A7163] mt-0.5">{{ authApi.currentUser()?.email }}</p>
+            <div class="px-4 py-3 bg-[#FBF6EF] border-b border-[#E4D9C8] flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-[#D9A6A0] text-white flex items-center justify-center text-sm font-bold uppercase overflow-hidden flex-shrink-0 border border-[#D9A6A0]">
+                <img *ngIf="authApi.currentUser()?.avatar_url" [src]="authApi.currentUser()?.avatar_url" class="w-full h-full object-cover" />
+                <span *ngIf="!authApi.currentUser()?.avatar_url">{{ getAvatarLetter() }}</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs text-[#7A7163]">{{ langService.currentLang() === 'vi' ? 'Xin chào,' : '안녕하세요,' }}</p>
+                <p class="text-sm font-bold text-[#2B2A26] mt-0.5 truncate">{{ authApi.currentUser()?.full_name }}</p>
+                <p class="text-[10px] text-[#7A7163] mt-0.5 truncate">{{ authApi.currentUser()?.email }}</p>
+              </div>
             </div>
             <div class="py-1">
               <a routerLink="/profile" (click)="userOpen = false" class="w-full text-left px-4 py-2.5 text-sm text-[#2B2A26] hover:bg-[#F4EDE3] hover:text-[#6E2A34] transition-colors flex items-center gap-2.5 cursor-pointer">

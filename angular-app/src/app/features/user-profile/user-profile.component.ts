@@ -21,8 +21,10 @@ export class UserProfileComponent implements OnInit {
   formData = {
     full_name: '',
     phone: '',
-    preferred_language: 'vi'
+    preferred_language: 'vi',
+    avatar_url: ''
   };
+  avatarPreview: string | null = null;
 
   // Password Form
   passwordData = {
@@ -66,6 +68,8 @@ export class UserProfileComponent implements OnInit {
       this.formData.full_name = this.user.full_name || '';
       this.formData.phone = this.user.phone || '';
       this.formData.preferred_language = this.user.preferred_language || 'vi';
+      this.formData.avatar_url = this.user.avatar_url || '';
+      this.avatarPreview = this.user.avatar_url || null;
     }
     
     // Check URL hash for tab (e.g. #orders)
@@ -94,6 +98,51 @@ export class UserProfileComponent implements OnInit {
   }
 
   // --- Profile Logic ---
+  onAvatarFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.errorMessage = this.langService.currentLang() === 'vi' ? 'Vui lòng chọn file hình ảnh hợp lệ (JPG, PNG, GIF, WebP)' : '유효한 이미지 파일을 선택해주세요';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.errorMessage = this.langService.currentLang() === 'vi' ? 'Kích thước file ảnh không được vượt quá 10MB' : '파일 크기는 10MB를 초과할 수 없습니다';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 300;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const minSide = Math.min(img.width, img.height);
+          const startX = (img.width - minSide) / 2;
+          const startY = (img.height - minSide) / 2;
+          ctx.drawImage(img, startX, startY, minSide, minSide, 0, 0, size, size);
+          const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.88);
+          this.avatarPreview = optimizedBase64;
+          this.formData.avatar_url = optimizedBase64;
+          this.saveProfile();
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  removeAvatar() {
+    this.avatarPreview = null;
+    this.formData.avatar_url = '';
+    this.saveProfile();
+  }
+
   saveProfile() {
     if (!this.formData.full_name) {
       this.errorMessage = this.langService.currentLang() === 'vi' ? 'Vui lòng nhập họ tên' : '이름을 입력해주세요';
@@ -108,6 +157,12 @@ export class UserProfileComponent implements OnInit {
       next: (res) => {
         this.isSaving = false;
         this.successMessage = this.langService.currentLang() === 'vi' ? 'Cập nhật thành công!' : '성공적으로 업데이트되었습니다!';
+        if (this.user) {
+          const updatedUser = { ...this.user, ...this.formData };
+          this.user = updatedUser;
+          this.authApi.currentUser.set(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
         this.authApi.getMe().subscribe();
       },
       error: (err) => {

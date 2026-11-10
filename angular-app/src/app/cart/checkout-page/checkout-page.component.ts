@@ -127,7 +127,11 @@ export class CheckoutPageComponent implements OnInit {
       delivery_date: this.deliveryDate,
       card_message: this.cardMessage,
       payment_method: this.paymentMethod as any,
-      note: ''
+      note: '',
+      items: this.cartService.cartItems().map(item => ({
+        product_id: item.product.id,
+        quantity: item.qty
+      }))
     };
 
     // Store final total before clearing cart
@@ -178,7 +182,10 @@ export class CheckoutPageComponent implements OnInit {
       },
       error: (err) => {
         console.error("Lỗi đặt hàng", err);
-        alert(this.vi ? 'Có lỗi xảy ra, vui lòng thử lại!' : '오류가 발생했습니다. 다시 시도해주세요!');
+        const serverMsg = err.error?.message || 
+          (err.error?.errors && err.error.errors.map((e: any) => e.message || e.field).join(', ')) || 
+          err.message || 'Có lỗi xảy ra, vui lòng thử lại!';
+        alert(this.vi ? `Lỗi đặt hàng: ${serverMsg}` : `주문 오류: ${serverMsg}`);
       }
     });
   }

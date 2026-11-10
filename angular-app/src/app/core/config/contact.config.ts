@@ -10,7 +10,7 @@ export interface ContactConfig {
 }
 
 export const CONTACT_CONFIG: ContactConfig = {
-  enabled: ['zalo', 'kakao'],      // Bật cả Zalo và KakaoTalk
+  enabled: ['zalo', 'facebook', 'kakao'],      // Bật cả Zalo, Facebook và KakaoTalk
   hotline: '0901234567',
   zaloPhone: '0901234567',
   kakaoId: 'kflower_vn',

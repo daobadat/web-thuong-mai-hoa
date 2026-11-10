@@ -61,6 +61,31 @@ server.listen(PORT, () => {
   logger.info(`[server] Running on ${listenTarget} (pid ${process.pid})`);
   expireTimer = setInterval(runExpireJob, EXPIRE_JOB_INTERVAL_MS);
   logger.info("[Cron] Expire stale orders job scheduled (every 5 min).");
+
+  // Đảm bảo các cột mở rộng tồn tại trong bảng users và orders
+  (async () => {
+    try {
+      const [userCols] = await sequelize.query("SHOW COLUMNS FROM `users`");
+      const userColNames = userCols.map((c) => c.Field);
+      if (!userColNames.includes("kakao_id")) {
+        await sequelize.query("ALTER TABLE `users` ADD COLUMN `kakao_id` varchar(100) NULL AFTER `verify_email_token`");
+        logger.info("[DB] Đã tự động tạo cột kakao_id cho bảng users.");
+      }
+      if (!userColNames.includes("avatar_url")) {
+        await sequelize.query("ALTER TABLE `users` ADD COLUMN `avatar_url` MEDIUMTEXT NULL AFTER `full_name`");
+        logger.info("[DB] Đã tự động tạo cột avatar_url cho bảng users.");
+      }
+
+      const [orderCols] = await sequelize.query("SHOW COLUMNS FROM `orders`");
+      const orderColNames = orderCols.map((c) => c.Field);
+      if (!orderColNames.includes("recipient_kakao")) {
+        await sequelize.query("ALTER TABLE `orders` ADD COLUMN `recipient_kakao` varchar(100) NULL AFTER `recipient_phone`");
+        logger.info("[DB] Đã tự động tạo cột recipient_kakao cho bảng orders.");
+      }
+    } catch (_) {
+      // DB chưa kết nối hoặc cấu hình khác
+    }
+  })();
 });
 
 let shuttingDown = false;

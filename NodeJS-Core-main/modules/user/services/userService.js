@@ -11,10 +11,26 @@ const userService = {
     }
 
     if (data.full_name) user.full_name = data.full_name;
-    if (data.phone) user.phone = data.phone;
+    if (data.phone !== undefined) user.phone = data.phone;
     if (data.preferred_language) user.preferred_language = data.preferred_language;
+    if (data.avatar_url !== undefined) user.avatar_url = data.avatar_url;
 
-    await user.save();
+    try {
+      await user.save();
+    } catch (saveErr) {
+      const { sequelize } = require("models");
+      if (sequelize && (saveErr.original?.code === "ER_BAD_FIELD_ERROR" || String(saveErr).includes("field list") || String(saveErr).includes("kakao_id") || String(saveErr).includes("avatar_url"))) {
+        try {
+          await sequelize.query("ALTER TABLE `users` ADD COLUMN `kakao_id` varchar(100) NULL");
+        } catch (_) {}
+        try {
+          await sequelize.query("ALTER TABLE `users` ADD COLUMN `avatar_url` MEDIUMTEXT NULL AFTER `full_name`");
+        } catch (_) {}
+        await user.save();
+      } else {
+        throw saveErr;
+      }
+    }
 
     const userObj = user.toJSON();
     delete userObj.password_hash;

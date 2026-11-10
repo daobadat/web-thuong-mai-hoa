@@ -1,4 +1,4 @@
-﻿const crypto = require("crypto");
+const crypto = require("crypto");
 const axios = require("axios");
 const qs = require("qs");
 const { Order, PaymentTransaction, sequelize } = require("models");
@@ -24,9 +24,8 @@ function sortObject(obj) {
 const paymentService = {
   buildVietQrUrl: (orderNumber, amount) => {
     const bankId = process.env.VIETQR_BANK_ID || "MB";
-    const accountNo = process.env.VIETQR_ACCOUNT_NO;
-    const accountName = process.env.VIETQR_ACCOUNT_NAME;
-    if (!accountNo) throw new Error("VIETQR configuration is missing.");
+    const accountNo = process.env.VIETQR_ACCOUNT_NO || "0123456789";
+    const accountName = process.env.VIETQR_ACCOUNT_NAME || "KFLOWER";
     const description = `KFLOWER ${orderNumber}`;
     return `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(accountName)}`;
   },

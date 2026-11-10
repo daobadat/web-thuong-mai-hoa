@@ -27,6 +27,23 @@ export class RegisterPageComponent implements OnInit, AfterViewInit {
   errorMsg = '';
   googleClientId = '';
 
+  fieldErrors: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    password?: string;
+    confirmPassword?: string;
+  } = {};
+
+  clearFieldError(field: 'name' | 'email' | 'phone' | 'password' | 'confirmPassword') {
+    if (this.fieldErrors[field]) {
+      delete this.fieldErrors[field];
+    }
+    if (Object.keys(this.fieldErrors).length === 0) {
+      this.errorMsg = '';
+    }
+  }
+
   ngOnInit() {}
 
   ngAfterViewInit() {
@@ -112,29 +129,69 @@ export class RegisterPageComponent implements OnInit, AfterViewInit {
   onRegister(e: Event) {
     e.preventDefault();
     this.errorMsg = '';
+    this.fieldErrors = {};
 
-    if (!this.name || !this.email || !this.password) {
-      this.errorMsg = 'Vui lòng nhập đầy đủ các trường bắt buộc.';
-      return;
+    let hasError = false;
+
+    // Validate Họ & Tên
+    if (!this.name || !this.name.trim()) {
+      this.fieldErrors.name = 'Vui lòng nhập họ & tên.';
+      hasError = true;
     }
 
-    // Password strength check (min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char)
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!strongPasswordRegex.test(this.password)) {
-      this.errorMsg = 'Mật khẩu phải dài ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.';
-      return;
+    // Validate Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!this.email || !this.email.trim()) {
+      this.fieldErrors.email = 'Vui lòng nhập email.';
+      hasError = true;
+    } else if (!emailRegex.test(this.email.trim())) {
+      this.fieldErrors.email = 'Email không hợp lệ (ví dụ: email@gmail.com).';
+      hasError = true;
     }
 
-    if (this.password !== this.confirmPassword) {
-      this.errorMsg = 'Mật khẩu xác nhận không khớp.';
+    // Validate Số điện thoại (nếu có nhập)
+    if (this.phone && this.phone.trim()) {
+      const cleanPhone = this.phone.replace(/[\s.-]/g, '');
+      if (!/^0\d{9,10}$/.test(cleanPhone)) {
+        this.fieldErrors.phone = 'Số điện thoại không hợp lệ (cần 10 chữ số, bắt đầu bằng 0).';
+        hasError = true;
+      }
+    }
+
+    // Validate Mật khẩu
+    const hasMinLen = this.password.length >= 8;
+    const hasLower = /[a-z]/.test(this.password);
+    const hasUpper = /[A-Z]/.test(this.password);
+    const hasDigit = /\d/.test(this.password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(this.password);
+
+    if (!this.password) {
+      this.fieldErrors.password = 'Vui lòng nhập mật khẩu.';
+      hasError = true;
+    } else if (!hasMinLen || !hasLower || !hasUpper || !hasDigit || !hasSpecial) {
+      this.fieldErrors.password = 'Mật khẩu phải dài ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.';
+      hasError = true;
+    }
+
+    // Validate Xác nhận mật khẩu
+    if (!this.confirmPassword) {
+      this.fieldErrors.confirmPassword = 'Vui lòng xác nhận lại mật khẩu.';
+      hasError = true;
+    } else if (this.password !== this.confirmPassword) {
+      this.fieldErrors.confirmPassword = 'Mật khẩu xác nhận không khớp.';
+      hasError = true;
+    }
+
+    if (hasError) {
+      this.errorMsg = 'Vui lòng kiểm tra lại các trường thông tin được đánh dấu đỏ bên dưới.';
       return;
     }
 
     this.loading = true;
     this.authApi.register({
-      full_name: this.name,
-      email: this.email,
-      phone: this.phone,
+      full_name: this.name.trim(),
+      email: this.email.trim(),
+      phone: this.phone ? this.phone.trim() : undefined,
       password: this.password
     }).subscribe({
       next: () => {
@@ -143,7 +200,15 @@ export class RegisterPageComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMsg = err.message || 'Đăng ký thất bại. Email có thể đã tồn tại.';
+        const msg = err.error?.message || err.message || '';
+        if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('already') || msg.toLowerCase().includes('tồn tại')) {
+          this.fieldErrors.email = 'Email này đã được sử dụng. Vui lòng chọn email khác.';
+          this.errorMsg = 'Email đã tồn tại trong hệ thống. Vui lòng đăng nhập hoặc dùng email khác.';
+        } else if (err.status === 0) {
+          this.errorMsg = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra xem server backend đã được khởi động chưa!';
+        } else {
+          this.errorMsg = msg || 'Đăng ký thất bại. Vui lòng thử lại!';
+        }
       }
     });
   }

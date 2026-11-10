@@ -1,10 +1,11 @@
-import { Component, ElementRef, ViewChild, AfterViewChecked, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewChecked, OnInit, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AiChatService, ChatProduct } from '../../../core/services/ai-chat.service';
 import { LangService } from '../../../core/services/lang.service';
 import { CartService } from '../../../core/services/cart.service';
 import { ProductService } from '../../../core/services/product.service';
 import { Product } from '../../../core/models';
+import { CONTACT_CONFIG } from '../../../core/config/contact.config';
 
 @Component({
   selector: 'app-ai-chat',
@@ -12,7 +13,7 @@ import { Product } from '../../../core/models';
   styleUrls: ['./ai-chat.component.css'],
   standalone: false
 })
-export class AiChatComponent implements AfterViewChecked {
+export class AiChatComponent implements OnInit, AfterViewChecked {
   public chatService = inject(AiChatService);
   public langService = inject(LangService);
   public cartService = inject(CartService);
@@ -23,6 +24,31 @@ export class AiChatComponent implements AfterViewChecked {
 
   public inputText: string = '';
   private shouldScroll: boolean = false;
+  public showSocialFloating: boolean = false;
+
+  public readonly zaloUrl = `https://zalo.me/${CONTACT_CONFIG.zaloPhone}`;
+  public readonly facebookUrl = `https://m.me/${CONTACT_CONFIG.facebookPage}`;
+  public readonly kakaoUrl = CONTACT_CONFIG.kakaoId.startsWith('http')
+    ? CONTACT_CONFIG.kakaoId
+    : `https://open.kakao.com/o/${CONTACT_CONFIG.kakaoId}`;
+  public readonly zaloPhone = CONTACT_CONFIG.zaloPhone;
+  public readonly kakaoId = CONTACT_CONFIG.kakaoId;
+
+  ngOnInit(): void {
+    this.checkScrollPosition();
+  }
+
+  @HostListener('window:scroll')
+  public onWindowScroll(): void {
+    this.checkScrollPosition();
+  }
+
+  private checkScrollPosition(): void {
+    if (typeof window !== 'undefined') {
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      this.showSocialFloating = scrollY > 80;
+    }
+  }
 
   ngAfterViewChecked() {
     if (this.shouldScroll) {

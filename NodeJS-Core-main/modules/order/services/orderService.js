@@ -7,9 +7,12 @@ const logger = require("utils/logger");
 const orderService = {
   checkout: async (userId, data) => {
     const transaction = await sequelize.transaction();
+    let order;
+    let orderNumber;
+    let total_amount;
 
     try {
-      const cart = await Cart.findOne({
+      let cart = await Cart.findOne({
         where: { user_id: userId },
         include: [
           {
@@ -29,7 +32,49 @@ const orderService = {
       });
 
       if (!cart || !cart.items || cart.items.length === 0) {
-        const error = new Error("Cart is empty");
+        // Fallback: nếu giỏ hàng trong DB trống nhưng payload có gửi items từ frontend (do reset DB hoặc đồng bộ lại)
+        if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+          let userCart = cart;
+          if (!userCart) {
+            userCart = await Cart.create({ user_id: userId }, { transaction });
+          }
+          for (const it of data.items) {
+            const pid = it.product_id || it.id;
+            if (pid) {
+              await CartItem.create(
+                {
+                  cart_id: userCart.id,
+                  product_id: pid,
+                  variant_id: it.variant_id || null,
+                  quantity: it.quantity || it.qty || 1,
+                },
+                { transaction }
+              );
+            }
+          }
+          cart = await Cart.findOne({
+            where: { id: userCart.id },
+            include: [
+              {
+                model: CartItem,
+                as: "items",
+                include: [
+                  {
+                    model: Product,
+                    as: "product",
+                    include: [{ model: ProductTranslation, as: "translations" }],
+                  },
+                  { model: ProductVariant, as: "variant" },
+                ],
+              },
+            ],
+            transaction,
+          });
+        }
+      }
+
+      if (!cart || !cart.items || cart.items.length === 0) {
+        const error = new Error("Giỏ hàng đang trống. Vui lòng chọn hoa vào giỏ trước khi thanh toán!");
         error.statusCode = 400;
         throw error;
       }
@@ -95,12 +140,12 @@ const orderService = {
       }
 
       const shipping_fee = parseFloat(data.shipping_fee || 0);
-      const total_amount = Math.max(0, subtotal + shipping_fee - discount_amount);
+      total_amount = Math.max(0, subtotal + shipping_fee - discount_amount);
 
       const paymentMethod = data.payment_method || "bank_transfer";
       const isCod = paymentMethod === "cod";
 
-      const orderNumber = `FLW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      orderNumber = `FLW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       // COD không cần expires_at vì KH trả tiền khi nhận — không timeout
       let expiresAt = null;
@@ -109,7 +154,7 @@ const orderService = {
         expiresAt = new Date(Date.now() + orderTtl * 60 * 1000);
       }
 
-      const order = await Order.create(
+      order = await Order.create(
         {
           order_number: orderNumber,
           user_id: userId,
@@ -124,9 +169,10 @@ const orderService = {
           total_amount,
           currency: "VND",
           delivery_type: data.delivery_type || "standard",
-          scheduled_delivery_at: data.scheduled_delivery_at || null,
+          scheduled_delivery_at: data.scheduled_delivery_at || data.delivery_date || null,
           recipient_name: data.recipient_name,
           recipient_phone: data.recipient_phone,
+          recipient_kakao: data.recipient_kakao || null,
           delivery_address: data.delivery_address,
           payment_method: paymentMethod,
           card_message: data.card_message || null,
@@ -155,40 +201,54 @@ const orderService = {
       await CartItem.destroy({ where: { cart_id: cart.id }, transaction });
 
       await transaction.commit();
-
-      // Gửi thông báo (bên ngoài transaction)
-      try {
-        await notificationService.create(
-          userId,
-          "order_update",
-          "Đặt hàng thành công",
-          `Đơn hàng #${orderNumber} đã được đặt thành công. Tổng tiền: ${total_amount.toLocaleString()} VND`
-        );
-      } catch (_) {
-        // Không throw nếu notification lỗi
-      }
-
-      // Lấy email khách hàng
-      let customerEmail = data.customer_email || null;
-      if (!customerEmail && userId) {
+    } catch (err) {
+      if (transaction && !transaction.finished) {
         try {
-          const u = await User.findByPk(userId, { attributes: ["email"] });
-          if (u) customerEmail = u.email;
+          await transaction.rollback();
         } catch (_) {}
       }
-
-      const createdOrder = await orderService.getOrderById(order.id);
-      let responseData = createdOrder.toJSON();
-
-      if (data.payment_method === "bank_transfer") {
-        responseData.qrUrl = paymentService.buildVietQrUrl(orderNumber, total_amount);
-      }
-
-      return responseData;
-    } catch (err) {
-      await transaction.rollback();
       throw err;
     }
+
+    // Các tác vụ sau khi commit thành công (không để lỗi ở đây làm ảnh hưởng đến đơn hàng đã lưu)
+    try {
+      await notificationService.create(
+        userId,
+        "order_update",
+        "Đặt hàng thành công",
+        `Đơn hàng #${orderNumber} đã được đặt thành công. Tổng tiền: ${total_amount.toLocaleString()} VND`
+      );
+    } catch (_) {}
+
+    let responseData;
+    try {
+      const createdOrder = await orderService.getOrderById(order.id);
+      responseData = createdOrder ? createdOrder.toJSON() : order.toJSON();
+    } catch (e) {
+      responseData = order.toJSON ? order.toJSON() : order;
+    }
+
+    if (data.payment_method === "bank_transfer") {
+      try {
+        responseData.qrUrl = paymentService.buildVietQrUrl(orderNumber, total_amount);
+      } catch (e) {
+        logger.warn("[Checkout] Không tạo được VietQR URL:", e.message);
+      }
+    }
+
+    // Gửi email xác nhận đơn hàng (nếu có email)
+    try {
+      let customerEmail = data.customer_email || null;
+      if (!customerEmail && userId) {
+        const u = await User.findByPk(userId, { attributes: ["email"] });
+        if (u) customerEmail = u.email;
+      }
+      if (customerEmail && emailUtils.sendOrderConfirmation) {
+        emailUtils.sendOrderConfirmation(customerEmail, responseData).catch(() => {});
+      }
+    } catch (_) {}
+
+    return responseData;
   },
 
   listUserOrders: async (userId, query = {}) => {

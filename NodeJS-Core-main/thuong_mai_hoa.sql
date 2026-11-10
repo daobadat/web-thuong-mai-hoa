@@ -59,6 +59,7 @@ CREATE TABLE `users` (
   `phone` varchar(20),
   `password_hash` varchar(255),
   `full_name` varchar(150) NOT NULL,
+  `avatar_url` text NULL COMMENT 'Ảnh đại diện người dùng (URL hoặc Base64)',
   `role` ENUM('customer','staff','admin') NOT NULL DEFAULT 'customer',
   `preferred_language` varchar(5) NOT NULL DEFAULT 'vi',
   `is_active` boolean NOT NULL DEFAULT true,
