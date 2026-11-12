@@ -61,10 +61,12 @@ export class LoginPageComponent implements OnInit, AfterViewInit {
 
           const btnContainer = document.getElementById('google-btn-container');
           if (btnContainer) {
+            const containerWidth = btnContainer.parentElement?.clientWidth || window.innerWidth - 64;
+            const buttonWidth = Math.min(380, Math.max(220, Math.floor(containerWidth)));
             google.accounts.id.renderButton(btnContainer, {
               theme: 'outline',
               size: 'large',
-              width: 380,
+              width: buttonWidth,
               text: 'continue_with',
               shape: 'pill'
             });
@@ -88,10 +90,11 @@ export class LoginPageComponent implements OnInit, AfterViewInit {
     this.authApi.loginWithGoogle(response.credential).subscribe({
       next: () => {
         this.loading = false;
+        const target = (this.returnUrl && !this.returnUrl.startsWith('/auth')) ? this.returnUrl : '/';
         if (this.authApi.isAdmin()) {
-          this.router.navigate(['/admin']);
+          window.location.href = '/admin';
         } else {
-          this.router.navigateByUrl(this.returnUrl);
+          window.location.href = target;
         }
       },
       error: (err) => {
@@ -124,10 +127,11 @@ export class LoginPageComponent implements OnInit, AfterViewInit {
     this.authApi.login(this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
+        const target = (this.returnUrl && !this.returnUrl.startsWith('/auth')) ? this.returnUrl : '/';
         if (this.authApi.isAdmin()) {
-          this.router.navigate(['/admin']);
+          window.location.href = '/admin';
         } else {
-          this.router.navigateByUrl(this.returnUrl);
+          window.location.href = target;
         }
       },
       error: (err) => {

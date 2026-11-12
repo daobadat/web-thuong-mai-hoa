@@ -43,6 +43,8 @@ router.group("/auth", (router) => {
   router.post("/forgot-password", authController.forgotPassword);
   router.post("/reset-password", authController.resetPassword);
   router.get("/verify-email", authController.verifyEmail);
+  router.get("/google/client-id", authController.googleClientId);
+  router.post("/google", authController.googleLogin);
 });
 
 // =====================================================================

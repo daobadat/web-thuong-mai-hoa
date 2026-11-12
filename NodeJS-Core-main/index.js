@@ -30,7 +30,11 @@ app.use(
 );
 
 // Phòng chống XSS cơ bản (lọc payload req.body, req.query, req.params)
-app.use(xss());
+// Bỏ qua route Google Auth vì xss-clean sẽ corrupt JWT credential token
+app.use((req, res, next) => {
+  if (req.path === '/api/auth/google') return next();
+  return xss()(req, res, next);
+});
 
 // Rate limit: chống brute force, spam API (100 req / 15 min / IP)
 const apiLimiter = rateLimit({

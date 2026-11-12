@@ -79,10 +79,12 @@ export class RegisterPageComponent implements OnInit, AfterViewInit {
 
           const btnContainer = document.getElementById('google-register-btn-container');
           if (btnContainer) {
+            const containerWidth = btnContainer.parentElement?.clientWidth || window.innerWidth - 64;
+            const buttonWidth = Math.min(380, Math.max(220, Math.floor(containerWidth)));
             google.accounts.id.renderButton(btnContainer, {
               theme: 'outline',
               size: 'large',
-              width: 380,
+              width: buttonWidth,
               text: 'signup_with',
               shape: 'pill'
             });
@@ -105,7 +107,7 @@ export class RegisterPageComponent implements OnInit, AfterViewInit {
     this.authApi.loginWithGoogle(response.credential).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/']);
+        window.location.href = '/';
       },
       error: (err) => {
         this.loading = false;
@@ -196,7 +198,7 @@ export class RegisterPageComponent implements OnInit, AfterViewInit {
     }).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/']);
+        window.location.href = '/';
       },
       error: (err) => {
         this.loading = false;

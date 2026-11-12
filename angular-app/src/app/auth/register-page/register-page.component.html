@@ -1,11 +1,11 @@
-<div class="min-h-screen flex items-center justify-center p-4 bg-rose-50/50">
-  <div class="bg-white max-w-md w-full p-8 rounded-3xl border border-rose-100 shadow-xl space-y-6">
+<div class="min-h-screen flex items-center justify-center p-3 sm:p-4 bg-rose-50/50">
+  <div class="bg-white max-w-md w-full p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-rose-100 shadow-xl space-y-5 sm:space-y-6">
     <div class="text-center space-y-2">
       <a routerLink="/" class="inline-flex items-center gap-2 mb-2">
         <div class="w-10 h-10 rounded-2xl bg-[#7A2838] flex items-center justify-center text-white text-xl">🌸</div>
         <span class="font-serif text-xl font-bold text-[#7A2838]">HOA TƯƠI</span>
       </a>
-      <h1 class="text-2xl font-serif font-bold text-gray-900">Tạo Tài Khoản Mới</h1>
+      <h1 class="text-xl sm:text-2xl font-serif font-bold text-gray-900">Tạo Tài Khoản Mới</h1>
       <p class="text-xs text-gray-500">Đăng ký để tích điểm thành viên và ưu đãi sinh nhật</p>
     </div>
 
@@ -141,8 +141,8 @@
           <span>Đăng ký với Google</span>
         </button>
 
-        <!-- Hidden mount for Google GSI if rendered -->
-        <div id="google-register-btn-container" class="absolute inset-0 opacity-0 pointer-events-none flex justify-center"></div>
+        <!-- Overlay Google GSI button để click thẳng vào popup Google -->
+        <div id="google-register-btn-container" class="absolute inset-0 opacity-0 overflow-hidden flex items-center justify-center cursor-pointer z-10"></div>
       </div>
     </div>
 

@@ -11,8 +11,8 @@
             aspect-ratio: 21/8 với min/max-height
             object-fit: cover → ảnh nguồn tối thiểu 2880px sẽ fill đẹp
           -->
-          <div class="relative overflow-hidden"
-               style="aspect-ratio: 21 / 8; min-height: 420px; max-height: 640px;">
+          <div class="relative overflow-hidden min-h-[320px] sm:min-h-[420px] max-h-[640px]"
+               style="aspect-ratio: 21 / 8;">
             <!-- Background image -->
             <img
               [src]="currentSlide.img"
@@ -22,19 +22,19 @@
               fetchpriority="high"
             />
             <!-- Gradient overlay -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[#2B2A26]/80 via-[#2B2A26]/40 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#2B2A26]/85 via-[#2B2A26]/50 to-transparent"></div>
 
             <!-- Text content -->
-            <div class="relative h-full site-container flex items-center">
+            <div class="relative h-full site-container flex items-center py-6">
               <div class="max-w-md">
-                <p class="text-xs font-semibold tracking-[0.25em] uppercase text-[#D9A6A0] mb-4">{{ currentSlide.eyebrow }}</p>
-                <h2 class="text-5xl sm:text-6xl font-bold text-white leading-[1.05] mb-5 whitespace-pre-line"
+                <p class="text-[11px] sm:text-xs font-semibold tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[#D9A6A0] mb-2 sm:mb-4">{{ currentSlide.eyebrow }}</p>
+                <h2 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-3 sm:mb-5 whitespace-pre-line"
                     [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
                   {{ currentSlide.title }}
                 </h2>
-                <p class="text-sm text-white/75 mb-8 leading-relaxed">{{ currentSlide.sub }}</p>
+                <p class="text-xs sm:text-sm text-white/75 mb-5 sm:mb-8 leading-relaxed line-clamp-3 sm:line-clamp-none">{{ currentSlide.sub }}</p>
                 <a routerLink="/shop"
-                  class="inline-flex items-center gap-2 px-7 py-3 bg-[#6E2A34] text-white text-sm font-semibold rounded-full hover:bg-[#5C2129] transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                  class="inline-flex items-center gap-2 px-5 py-2.5 sm:px-7 sm:py-3 bg-[#6E2A34] text-white text-xs sm:text-sm font-semibold rounded-full hover:bg-[#5C2129] transition-all hover:-translate-y-0.5 hover:shadow-lg">
                   {{ currentSlide.cta }}
                   <span>→</span>
                 </a>
@@ -96,8 +96,8 @@
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <!-- Product Grid — auto-fill 260px min, gap 24px -->
-    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
+    <!-- Product Grid — 2 columns on mobile, 3 on tablet, 4-5 on desktop -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
       <ng-container *ngFor="let p of saleProducts | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>
@@ -121,7 +121,7 @@
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
       <ng-container *ngFor="let p of popularProducts | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>
@@ -145,7 +145,7 @@
         <span class="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#6E2A34] rounded-full"></span>
       </h2>
     </div>
-    <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
       <ng-container *ngFor="let p of newProducts | slice:0:10">
         <ng-container *ngTemplateOutlet="productCardTpl; context: { $implicit: p }"></ng-container>
       </ng-container>

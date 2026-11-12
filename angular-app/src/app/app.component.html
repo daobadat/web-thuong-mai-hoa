@@ -6,8 +6,8 @@
       <app-navbar></app-navbar>
     </div>
 
-    <!-- Header height: ~32px (announce) + ~64px (header) + ~40px (nav) = 136px -->
-    <div class="pt-[136px]">
+    <!-- Header height: Mobile ~128px (announce + row1 + search) | Desktop ~137px (announce + row1 + subnav) -->
+    <div class="pt-[128px] md:pt-[137px]">
       <router-outlet></router-outlet>
     </div>
 
