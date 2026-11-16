@@ -24,6 +24,88 @@ export class ProductService {
     'ke-hoa':  { vi: 'Kệ hoa',  ko: '화환' },
   };
 
+  public readonly OCCASION_NAMES: Record<string, {
+    vi: string;
+    ko: string;
+    shortVi: string;
+    shortKo: string;
+    descVi: string;
+    descKo: string;
+  }> = {
+    'valentine': {
+      vi: 'Lễ Tình Nhân (Valentine 14/2)',
+      ko: '발렌타인데이',
+      shortVi: 'Valentine',
+      shortKo: '발렌타인데이',
+      descVi: 'Hoa hồng đỏ lãng mạn bày tỏ tình yêu sâu sắc.',
+      descKo: '사랑을 전하는 로맨틱 장미 꽃다발 컬렉션입니다.'
+    },
+    'quoc-te-phu-nu': {
+      vi: 'Quốc Tế Phụ Nữ 8/3',
+      ko: '세계 여성의 날',
+      shortVi: 'Quốc Tế Phụ Nữ',
+      shortKo: '세계 여성의 날',
+      descVi: 'Tôn vinh và tri ân những người phụ nữ tuyệt vời.',
+      descKo: '여성의 날을 축하하는 아름다운 꽃선물 컬렉션입니다.'
+    },
+    'phu-nu-viet-nam': {
+      vi: 'Ngày Phụ Nữ Việt Nam 20/10',
+      ko: '베트남 여성의 날',
+      shortVi: 'Phụ Nữ VN',
+      shortKo: '베트남 여성의 날',
+      descVi: 'Gửi trọn yêu thương đến người phụ nữ Việt Nam.',
+      descKo: '베트남 여성의 날을 기념하는 특별한 꽃선물입니다.'
+    },
+    'chuseok': {
+      vi: 'Tết Trung Thu (Chuseok)',
+      ko: '추석 명절',
+      shortVi: 'Trung Thu',
+      shortKo: '추석 명절',
+      descVi: 'Quà hoa và giỏ trái cây biếu gia đình mùa trung thu.',
+      descKo: '풍성한 한가위 마음을 담은 고급 꽃바구니 컬렉션입니다.'
+    },
+    'sinh-nhat': {
+      vi: 'Kỷ Niệm Sinh Nhật',
+      ko: '생일 축하',
+      shortVi: 'Sinh Nhật',
+      shortKo: '생일 축하',
+      descVi: 'Hoa tươi vui tươi mừng tuổi mới.',
+      descKo: '특별한 생일을 축하하는 화사한 꽃선물입니다.'
+    },
+    'khai-truong': {
+      vi: 'Chúc Mừng Khai Trương',
+      ko: '개업 축하',
+      shortVi: 'Khai Trương',
+      shortKo: '개업 축하',
+      descVi: 'Hoa chúc mừng khai trương, hồng phát.',
+      descKo: '성공과 번영을 기원하는 품격 있는 개업 축하 화환입니다.'
+    },
+    'cuoi-hoi': {
+      vi: 'Cưới Hỏi & Kỷ Niệm',
+      ko: '결혼 / 웨딩',
+      shortVi: 'Cưới Hỏi',
+      shortKo: '결혼 / 웨딩',
+      descVi: 'Hoa cầm tay cô dâu và trang trí tiệc cưới sang trọng.',
+      descKo: '로맨틱한 신부 부케와 웨딩 꽃장식 컬렉션입니다.'
+    },
+    'doanh-nghiep': {
+      vi: 'Quà Doanh Nghiệp',
+      ko: '기업 선물',
+      shortVi: 'Doanh Nghiệp',
+      shortKo: '기업 선물',
+      descVi: 'Hoa và quà tặng sang trọng cho đối tác, khách hàng doanh nghiệp.',
+      descKo: '비즈니스 파트너와 고객을 위한 격조 높은 기업 선물입니다.'
+    },
+    'sale': {
+      vi: 'Đang Giảm Giá',
+      ko: '할인 상품',
+      shortVi: 'Giảm Giá',
+      shortKo: '할인 상품',
+      descVi: 'Khám phá các mẫu hoa tươi nghệ thuật đang có ưu đãi giảm giá tốt nhất hôm nay.',
+      descKo: '특별 할인 혜택이 적용된 프리미엄 생화 컬렉션입니다.'
+    }
+  };
+
   public priceFilters = signal<string[]>([]);
   public colorFilter = signal<string | null>(null);
   public sortOption = signal<'popular' | 'rating' | 'new' | 'price-asc' | 'price-desc'>('popular');
@@ -127,26 +209,40 @@ export class ProductService {
     return list;
   });
 
-  public getOccasionName(slug: string, lang: string) {
-    if (slug === 'sale') {
+  public getOccasionName(slug: string, lang: string): string {
+    const key = (slug || '').toLowerCase().trim();
+    if (key === 'sale') {
       return lang === 'ko' ? '할인 상품' : 'Đang Giảm Giá';
     }
-    const occ = this.occasionsList().find(o => o.slug === slug);
-    if (!occ) return slug;
-    const translation = occ.translations?.find((t: any) => t.language_code === lang);
-    return translation ? translation.name : (occ.name || slug);
+    const occ = this.occasionsList().find(o => o.slug === slug || o.slug === key);
+    const translation = occ?.translations?.find((t: any) => t.language_code === lang);
+    if (translation?.name && !/^[a-z0-9_-]+$/i.test(translation.name)) {
+      return translation.name;
+    }
+    const dict = this.OCCASION_NAMES[key];
+    if (dict) {
+      return lang === 'ko' ? dict.ko : dict.vi;
+    }
+    return occ?.name || slug;
   }
 
-  public getOccasionDesc(slug: string, lang: string) {
-    if (slug === 'sale') {
+  public getOccasionDesc(slug: string, lang: string): string[] {
+    const key = (slug || '').toLowerCase().trim();
+    if (key === 'sale') {
       return lang === 'ko'
         ? ['특별 할인 혜택이 적용된 프리미엄 생화 컬렉션입니다. 2~4시간 내 신속 당일 배송!']
         : ['Khám phá các mẫu hoa tươi nghệ thuật đang có ưu đãi giảm giá tốt nhất hôm nay. Đặt hoa nhanh, giao tận tay người thương trong 2-4 giờ!'];
     }
-    const occ = this.occasionsList().find(o => o.slug === slug);
-    if (!occ) return [];
-    const translation = occ.translations?.find((t: any) => t.language_code === lang);
-    return translation?.description ? [translation.description] : [];
+    const occ = this.occasionsList().find(o => o.slug === slug || o.slug === key);
+    const translation = occ?.translations?.find((t: any) => t.language_code === lang);
+    if (translation?.description) {
+      return [translation.description];
+    }
+    const dict = this.OCCASION_NAMES[key];
+    if (dict) {
+      return [lang === 'ko' ? dict.descKo : dict.descVi];
+    }
+    return [];
   }
 
   public getOccasionIcon(slug: string) {

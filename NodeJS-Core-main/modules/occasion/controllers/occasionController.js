@@ -4,7 +4,7 @@ const responseUtils = require("utils/responseUtils");
 const occasionController = {
   index: async (req, res) => {
     try {
-      const lang = req.query.lang || "vi";
+      const lang = req.query.lang || null;
       const occasions = await occasionService.list(lang);
       return responseUtils.ok(res, occasions);
     } catch (err) {

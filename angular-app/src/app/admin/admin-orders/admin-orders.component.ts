@@ -109,6 +109,12 @@ export class AdminOrdersComponent implements OnInit {
 
   selectOrder(o: Order) {
     this.selected = o;
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      setTimeout(() => {
+        const el = document.getElementById('order-detail-card');
+        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 60);
+    }
   }
 
   closeSelected() {

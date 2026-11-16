@@ -1,11 +1,11 @@
 <div class="space-y-5">
-  <div class="flex justify-between items-center">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
     <div>
-      <h1 class="font-serif text-3xl text-[#2C1A2E]">Danh mục</h1>
-      <p class="text-sm text-[#7A6870] mt-0.5">{{ categories.length }} danh mục · {{ activeCount }} đang hoạt động</p>
+      <h1 class="font-serif text-2xl sm:text-3xl text-[#2C1A2E]">Danh mục</h1>
+      <p class="text-xs sm:text-sm text-[#7A6870] mt-0.5">{{ categories.length }} danh mục · {{ activeCount }} đang hoạt động</p>
     </div>
     <button (click)="toggleAdd()"
-            class="flex items-center gap-2 px-4 py-2.5 bg-[#8B4A5C] text-white text-sm font-medium rounded-xl hover:bg-[#7A3D4F] transition-colors">
+            class="flex items-center justify-center gap-2 px-4 py-2 bg-[#8B4A5C] text-white text-xs sm:text-sm font-medium rounded-xl hover:bg-[#7A3D4F] transition-colors self-start sm:self-auto cursor-pointer shadow-sm">
       <span>+</span> Thêm danh mục
     </button>
   </div>
@@ -35,20 +35,20 @@
     </div>
   </div>
 
-  <div class="bg-white rounded-2xl border border-[#EDE5DF] overflow-hidden">
+  <div class="bg-white rounded-2xl border border-[#EDE5DF] overflow-hidden shadow-sm">
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-[#F3ECE7]">
           <tr>
             <th *ngFor="let h of ['Tên danh mục', 'Slug', 'Thứ tự', 'Trạng thái', 'Thao tác']"
-                class="text-left px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
+                class="text-left px-3 sm:px-4 py-3 text-xs font-semibold text-[#7A6870] uppercase tracking-wide whitespace-nowrap">
               {{ h }}
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-[#EDE5DF]">
           <tr *ngFor="let c of categories" class="hover:bg-[#FAF7F2] transition-colors">
-            <td class="px-4 py-3">
+            <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
               <ng-container *ngIf="editId === c.id; else viewName">
                 <input [ngModel]="c.translations?.[0]?.name || c.name" (blur)="saveEditString(c.id, 'name', $any($event.target).value)"
                        class="text-sm border-b border-[#8B4A5C] focus:outline-none w-full" />
@@ -57,15 +57,15 @@
                 <div class="font-medium text-[#2C1A2E]">{{ c.translations?.[0]?.name || c.name }}</div>
               </ng-template>
             </td>
-            <td class="px-4 py-3 text-[#7A6870]">
+            <td class="px-3 sm:px-4 py-3 text-[#7A6870] whitespace-nowrap">
               <ng-container *ngIf="editId === c.id; else viewSlug">
                 <input [ngModel]="c.slug" (blur)="saveEditString(c.id, 'slug', $any($event.target).value)"
                        class="text-sm border-b border-[#8B4A5C] focus:outline-none w-full" />
               </ng-container>
               <ng-template #viewSlug>{{ c.slug }}</ng-template>
             </td>
-            <td class="px-4 py-3 text-[#7A6870]">{{ c.display_order || 0 }}</td>
-            <td class="px-4 py-3">
+            <td class="px-3 sm:px-4 py-3 text-[#7A6870] whitespace-nowrap">{{ c.display_order || 0 }}</td>
+            <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
               <button (click)="toggleActive(c.id)"
                       class="relative w-10 h-5 rounded-full transition-colors"
                       [ngClass]="c.is_active ? 'bg-[#7A9E7E]' : 'bg-[#DDD4CC]'">
@@ -73,7 +73,7 @@
                       [ngClass]="c.is_active ? 'left-5' : 'left-0.5'"></span>
               </button>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
               <div class="flex items-center gap-2">
                 <button (click)="setEditId(c.id)"
                         class="text-xs px-2.5 py-1 border border-[#DDD4CC] rounded-lg hover:border-[#8B4A5C] transition-colors">

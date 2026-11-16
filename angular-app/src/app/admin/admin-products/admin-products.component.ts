@@ -245,20 +245,73 @@ export class AdminProductsComponent implements OnInit {
     });
   }
 
+  // Sale Modal state
+  saleModalOpen = false;
+  saleProduct: any = null;
+  saleOriginalPrice: number | null = null;
+  isSavingSale = false;
+
+  openSaleModal(p: any) {
+    this.saleProduct = p;
+    this.saleOriginalPrice = p.originalPrice || Math.round(p.price * 1.25);
+    this.saleModalOpen = true;
+  }
+
+  closeSaleModal() {
+    this.saleModalOpen = false;
+    this.saleProduct = null;
+    this.saleOriginalPrice = null;
+  }
+
+  applyDiscountPreset(pct: number) {
+    if (!this.saleProduct) return;
+    this.saleOriginalPrice = Math.round(this.saleProduct.price / (1 - pct / 100));
+  }
+
+  saveSale() {
+    if (!this.saleProduct) return;
+    const p = this.saleProduct;
+    const newOrig = (!this.saleOriginalPrice || this.saleOriginalPrice <= p.price) ? null : this.saleOriginalPrice;
+    
+    this.isSavingSale = true;
+    this.productApi.updateProduct(p.id, { original_price: newOrig }).subscribe({
+      next: () => {
+        p.originalPrice = newOrig;
+        this.isSavingSale = false;
+        this.showToast(newOrig ? `Đã cài giảm giá -${this.getDiscountPercent(p.price, newOrig)}% cho "${p.nameVi}"` : `Đã huỷ giảm giá cho "${p.nameVi}"`);
+        this.closeSaleModal();
+      },
+      error: (err) => {
+        this.isSavingSale = false;
+        alert('Lỗi cập nhật giảm giá: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  removeSale() {
+    if (!this.saleProduct) return;
+    const p = this.saleProduct;
+    this.isSavingSale = true;
+    this.productApi.updateProduct(p.id, { original_price: null }).subscribe({
+      next: () => {
+        p.originalPrice = null;
+        this.isSavingSale = false;
+        this.showToast(`Đã gỡ bỏ giảm giá cho "${p.nameVi}"`);
+        this.closeSaleModal();
+      },
+      error: (err) => {
+        this.isSavingSale = false;
+        alert('Lỗi: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  onImgError(e: Event) {
+    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1680563094046-5d846e2c59d1?w=200&h=200&fit=crop';
+  }
+
   quickSetSale(p: any) {
-    const currentOrig = p.originalPrice || Math.round(p.price * 1.25);
-    const input = prompt(`Nhập giá gốc trước giảm (VND) cho "${p.nameVi}":\n(Giá bán hiện tại: ${this.fmt(p.price)}đ. Nhập 0 để huỷ giảm giá)`, currentOrig.toString());
-    if (input !== null) {
-      const cleaned = input.trim().replace(/[^0-9]/g, '');
-      const val = parseFloat(cleaned);
-      const newOrig = isNaN(val) || val <= 0 ? null : val;
-      this.productApi.updateProduct(p.id, { original_price: newOrig }).subscribe({
-        next: () => {
-          p.originalPrice = newOrig;
-          this.showToast(newOrig ? `Đã cài giảm giá cho "${p.nameVi}"` : `Đã huỷ giảm giá "${p.nameVi}"`);
-        }
-      });
-    }
+    this.openSaleModal(p);
   }
 
   toggleNewProdOccasion(slug: string) {

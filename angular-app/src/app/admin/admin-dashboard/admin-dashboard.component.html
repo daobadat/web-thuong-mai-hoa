@@ -1,8 +1,8 @@
 <div class="space-y-6" [ngClass]="isKo ? 'font-display-ko' : ''">
   <!-- Page Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl p-6 border border-[#EDE5DF] shadow-sm">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl p-4 sm:p-6 border border-[#EDE5DF] shadow-sm">
     <div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
         <h1 class="font-serif text-2xl md:text-3xl text-[#2C1A2E] font-bold">{{ t.title }}</h1>
         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {{ t.online }}
@@ -14,10 +14,10 @@
     </div>
 
     <!-- Header Actions -->
-    <div class="flex items-center gap-2.5">
+    <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
       <button (click)="refreshData()"
               [disabled]="isRefreshing"
-              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#FAF7F2] hover:bg-[#F3ECE7] text-[#2C1A2E] border border-[#DDD4CC] transition-all active:scale-95 disabled:opacity-50">
+              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#FAF7F2] hover:bg-[#F3ECE7] text-[#2C1A2E] border border-[#DDD4CC] transition-all active:scale-95 disabled:opacity-50 cursor-pointer">
         <svg class="w-3.5 h-3.5 text-[#8B4A5C]" [ngClass]="isRefreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
@@ -25,7 +25,7 @@
       </button>
 
       <a routerLink="/admin/analytics"
-         class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#8B4A5C] hover:bg-[#743B4B] text-white shadow-sm transition-all hover:shadow">
+         class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#8B4A5C] hover:bg-[#743B4B] text-white shadow-sm transition-all hover:shadow cursor-pointer">
         <span>{{ t.analyticsReport }}</span>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -295,7 +295,7 @@
       <div *ngIf="!loadingOrders && !ordersError" class="space-y-2.5">
         <div *ngFor="let o of recentOrders"
              routerLink="/admin/orders"
-             class="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#EDE5DF] cursor-pointer transition-all">
+             class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-2.5 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#EDE5DF] cursor-pointer transition-all">
           <div class="flex items-center gap-3 min-w-0">
             <!-- Avatar: Company vs Personal -->
             <div *ngIf="o.isCompany" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-base font-bold flex-shrink-0 shadow-xs border border-blue-200" [title]="t.enterpriseBadge">
@@ -383,7 +383,7 @@
       <!-- Products List -->
       <div *ngIf="!loadingProducts && !productsError" class="space-y-2.5">
         <div *ngFor="let p of lowStockProducts"
-             class="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#EDE5DF] transition-all">
+             class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 p-2 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#EDE5DF] transition-all">
           <div class="flex items-center gap-3 min-w-0">
             <!-- Product Thumbnail with Placeholder Fallback -->
             <img [src]="p.img"

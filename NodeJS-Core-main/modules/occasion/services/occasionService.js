@@ -1,17 +1,18 @@
 const { Occasion, OccasionTranslation } = require("models");
 
 const occasionService = {
-  list: async (lang = "vi") => {
+  list: async (lang = null) => {
+    const includeOptions = {
+      model: OccasionTranslation,
+      as: "translations",
+      required: false,
+    };
+    if (lang && lang !== "all") {
+      includeOptions.where = { language_code: lang };
+    }
     return await Occasion.findAll({
       where: { is_active: true },
-      include: [
-        {
-          model: OccasionTranslation,
-          as: "translations",
-          where: { language_code: lang },
-          required: false,
-        },
-      ],
+      include: [includeOptions],
     });
   },
 

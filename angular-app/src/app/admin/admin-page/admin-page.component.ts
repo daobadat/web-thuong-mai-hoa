@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { OrderApiService } from '../../core/services/order-api.service';
 import { AuthApiService } from '../../core/services/auth-api.service';
 import { LangService } from '../../core/services/lang.service';
@@ -14,8 +16,10 @@ import { LangService } from '../../core/services/lang.service';
 })
 export class AdminPageComponent implements OnInit, OnDestroy {
   collapsed = false;
+  mobileOpen = false;
   newOrdersCount = 0;
   private intervalId: any;
+  private routerSub?: Subscription;
 
   navItems = [
     { id: 'dashboard', icon: 'dashboard', link: '/admin/dashboard' },
@@ -35,6 +39,9 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      this.collapsed = true;
+    }
     this.checkNewOrders();
     // Poll new orders count every 30 seconds
     this.intervalId = setInterval(() => {
@@ -42,10 +49,27 @@ export class AdminPageComponent implements OnInit, OnDestroy {
     }, 30000);
   }
 
+  onNavClick() {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      this.collapsed = true;
+    }
+  }
+
   ngOnDestroy() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
+    }
+  }
+
+  toggleMobile() {
+    this.mobileOpen = !this.mobileOpen;
+  }
+
+  closeMobile() {
+    this.mobileOpen = false;
   }
 
   get t() {
@@ -59,6 +83,10 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
   toggleLanguage() {
     this.langService.toggleLang();
+  }
+
+  setLanguage(lang: 'vi' | 'ko') {
+    this.langService.setLang(lang);
   }
 
   checkNewOrders() {

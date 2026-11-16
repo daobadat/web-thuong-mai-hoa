@@ -95,6 +95,9 @@ const indexHtmlPath = path.join(angularDistPath, "index.html");
 if (fs.existsSync(indexHtmlPath)) {
   app.use(express.static(angularDistPath, { maxAge: isProd ? "1d" : 0, index: false }));
   app.get("*", (req, res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
     res.sendFile(indexHtmlPath);
   });
 } else {

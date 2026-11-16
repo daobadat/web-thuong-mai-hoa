@@ -50,8 +50,15 @@ export class NavbarComponent {
     return this.productService.getOccasionName(key, this.langService.currentLang());
   }
 
-  /** Tên rút gọn cho navbar — bỏ phần trong ngoặc và ngày tháng thừa */
+  /** Tên rút gọn cho navbar — ưu tiên shortKo/shortVi trong từ điển chuẩn */
   getOccasionShortName(key: string): string {
+    const isKo = this.langService.currentLang() === 'ko';
+    const slug = (key || '').toLowerCase().trim();
+    const dict = this.productService.OCCASION_NAMES[slug];
+    if (dict) {
+      return isKo ? dict.shortKo : dict.shortVi;
+    }
+
     const full = this.getOccasionName(key);
     // Bỏ phần trong ngoặc đơn: "(Valentine 14/2)", "(Chuseok)", ...
     let short = full.replace(/\s*\(.*?\)/g, '').trim();

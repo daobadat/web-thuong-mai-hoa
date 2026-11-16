@@ -1,46 +1,106 @@
-<div class="flex h-screen bg-[#FAF7F2] font-sans antialiased text-[#2C1A2E]" [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
-  <!-- Sidebar -->
-  <aside class="flex flex-col bg-[#2C1A2E] text-white transition-all duration-300 min-h-screen flex-shrink-0 z-20 shadow-xl border-r border-white/5"
-         [ngClass]="collapsed ? 'w-16' : 'w-60'">
+<div class="flex h-screen bg-[#FAF7F2] font-sans antialiased text-[#2C1A2E] overflow-hidden" [ngClass]="langService.currentLang() === 'ko' ? 'font-display-ko' : 'font-display-vi'">
+  <!-- Mobile Backdrop Overlay when sidebar is expanded on small screens -->
+  <div *ngIf="!collapsed"
+       (click)="toggleCollapse()"
+       class="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 md:hidden transition-opacity">
+  </div>
+
+  <!-- Sidebar: Collapsible on BOTH mobile & desktop -->
+  <aside class="flex flex-col bg-[#2C1A2E] text-white transition-all duration-300 min-h-screen flex-shrink-0 border-r border-white/5"
+         [ngClass]="[
+           collapsed ? 'w-14 sm:w-16 z-20 shadow-lg' : 'fixed inset-y-0 left-0 z-40 w-60 shadow-2xl md:static md:z-20 md:shadow-xl'
+         ]">
     <!-- Logo & Brand Header -->
-    <div class="flex items-center gap-3 px-4 py-4 border-b border-white/10" [ngClass]="collapsed ? 'justify-center px-2' : ''">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8B4A5C] to-rose-400 flex items-center justify-center text-white shadow-md flex-shrink-0">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21a9 9 0 01-9-9c0-3.5 2-6 4-7.5C8 8.5 9 10 12 10s4-1.5 5-5.5c2 1.5 4 4 4 7.5a9 9 0 01-9 9z"/>
-        </svg>
+    <div class="flex items-center gap-3 px-3 py-4 border-b border-white/10"
+         [ngClass]="collapsed ? 'justify-center px-1' : 'justify-between px-4'">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8B4A5C] to-rose-400 flex items-center justify-center text-white shadow-md flex-shrink-0 cursor-pointer"
+             (click)="toggleCollapse()"
+             [title]="collapsed ? t.expand : ''">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21a9 9 0 01-9-9c0-3.5 2-6 4-7.5C8 8.5 9 10 12 10s4-1.5 5-5.5c2 1.5 4 4 4 7.5a9 9 0 01-9 9z"/>
+          </svg>
+        </div>
+        <div *ngIf="!collapsed" class="min-w-0">
+          <div class="font-serif text-base font-bold text-white tracking-wide leading-tight truncate">{{ t.brand }}</div>
+          <div class="text-[11px] text-rose-200/70 font-medium tracking-wider uppercase">{{ t.panel }}</div>
+        </div>
       </div>
-      <div *ngIf="!collapsed" class="min-w-0">
-        <div class="font-serif text-base font-bold text-white tracking-wide leading-tight truncate">{{ t.brand }}</div>
-        <div class="text-[11px] text-rose-200/70 font-medium tracking-wider uppercase">{{ t.panel }}</div>
+
+      <!-- Close button on mobile when expanded -->
+      <button *ngIf="!collapsed"
+              (click)="toggleCollapse()"
+              class="md:hidden text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              title="Thu gọn">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Language Switcher in Sidebar (Segmented Dual-Toggle with Labels) -->
+    <div class="px-3 pt-3 pb-1" *ngIf="!collapsed">
+      <div class="flex items-center justify-between text-[11px] font-semibold text-rose-200/70 uppercase tracking-wider px-1 mb-1.5">
+        <span class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+          </svg>
+          <span>Ngôn ngữ · 언어</span>
+        </span>
+      </div>
+
+      <!-- Segmented Control Button Group -->
+      <div class="grid grid-cols-2 p-1 bg-white/10 rounded-xl border border-white/10 shadow-inner">
+        <!-- Tiếng Việt -->
+        <button (click)="setLanguage('vi')"
+                type="button"
+                class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                [ngClass]="langService.currentLang() === 'vi' 
+                  ? 'bg-gradient-to-r from-[#8B4A5C] to-[#743B4B] text-white shadow-sm ring-1 ring-white/20' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'">
+          <span class="text-sm leading-none">🇻🇳</span>
+          <span class="truncate">Tiếng Việt</span>
+        </button>
+
+        <!-- Tiếng Hàn -->
+        <button (click)="setLanguage('ko')"
+                type="button"
+                class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                [ngClass]="langService.currentLang() === 'ko' 
+                  ? 'bg-gradient-to-r from-[#8B4A5C] to-[#743B4B] text-white shadow-sm ring-1 ring-white/20' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'">
+          <span class="text-sm leading-none">🇰🇷</span>
+          <span class="truncate">한국어</span>
+        </button>
       </div>
     </div>
 
-    <!-- Language Switcher in Sidebar -->
-    <div class="px-3 pt-3 pb-1" *ngIf="!collapsed">
+    <!-- Language Toggle when Collapsed -->
+    <div class="px-2 pt-2 pb-1 flex justify-center" *ngIf="collapsed">
       <button (click)="toggleLanguage()"
-              class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white/90 text-xs font-semibold border border-white/10 transition-colors">
-        <span class="flex items-center gap-1.5">
-          <span>{{ langService.currentLang() === 'ko' ? '🇰🇷' : '🇻🇳' }}</span>
-          <span>{{ langService.currentLang() === 'ko' ? '한국어' : 'Tiếng Việt' }}</span>
-        </span>
-        <span class="text-[10px] text-rose-300 uppercase bg-white/10 px-1.5 py-0.5 rounded font-mono">
-          {{ langService.currentLang() === 'ko' ? 'KR' : 'VI' }}
+              type="button"
+              class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center transition-all cursor-pointer relative group text-sm shadow-sm"
+              [title]="langService.currentLang() === 'vi' ? 'Đang dùng Tiếng Việt (Bấm để chuyển sang 한국어 🇰🇷)' : '현재 한국어 (베트남어로 변경 🇻🇳)'">
+        <span>{{ langService.currentLang() === 'vi' ? '🇻🇳' : '🇰🇷' }}</span>
+        <span class="absolute -bottom-1 -right-1 text-[8px] font-mono font-bold px-1 bg-[#8B4A5C] text-white rounded-full leading-tight uppercase ring-1 ring-[#2C1A2E]">
+          {{ langService.currentLang() === 'vi' ? 'VI' : 'KR' }}
         </span>
       </button>
     </div>
     
     <!-- Navigation Links -->
-    <nav class="flex-1 py-3 space-y-1 px-2.5 overflow-y-auto">
+    <nav class="flex-1 py-3 space-y-1 px-1.5 sm:px-2.5 overflow-y-auto">
       <a *ngFor="let item of navItems"
          [routerLink]="item.link"
          routerLinkActive="active-nav-link"
          [routerLinkActiveOptions]="{exact: item.link === '/admin/dashboard'}"
-         class="sidebar-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 text-white/70 hover:bg-white/10 hover:text-white"
+         (click)="onNavClick()"
+         class="sidebar-nav-item relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 text-white/70 hover:bg-white/10 hover:text-white"
          [ngClass]="collapsed ? 'justify-center px-0' : ''"
          [title]="collapsed ? getNavLabel(item.id) : ''">
         
-        <!-- Icons -->
-        <span class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-white/80">
+        <!-- Icons with anchored badge -->
+        <span class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center text-white/80">
           <ng-container [ngSwitch]="item.id">
             <!-- Dashboard -->
             <svg *ngSwitchCase="'dashboard'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,22 +132,27 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
           </ng-container>
+
+          <!-- Collapsed Badge: ALWAYS visible right on the bag icon when collapsed! -->
+          <span *ngIf="collapsed && item.id === 'orders' && newOrdersCount > 0"
+                class="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-rose-500 text-white shadow-md ring-2 ring-[#2C1A2E] tabular-nums leading-none z-30 pointer-events-none">
+            {{ newOrdersCount }}
+          </span>
         </span>
 
-        <!-- Label -->
-        <span *ngIf="!collapsed" class="flex-1 font-medium text-sm">{{ getNavLabel(item.id) }}</span>
+        <!-- Label when expanded -->
+        <span *ngIf="!collapsed" class="flex-1 font-medium text-sm truncate">{{ getNavLabel(item.id) }}</span>
 
-        <!-- Badge for New Orders -->
-        <span *ngIf="item.id === 'orders' && newOrdersCount > 0"
-              class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-rose-500 text-white shadow-sm tabular-nums"
-              [ngClass]="collapsed ? 'absolute -top-1 -right-1 px-1.5 text-[10px]' : ''">
+        <!-- Badge when expanded -->
+        <span *ngIf="!collapsed && item.id === 'orders' && newOrdersCount > 0"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-rose-500 text-white shadow-sm tabular-nums ml-auto">
           {{ newOrdersCount }}
         </span>
       </a>
     </nav>
     
     <!-- Bottom User Profile & Actions Section -->
-    <div class="p-3 border-t border-white/10 space-y-2 bg-black/10">
+    <div class="p-2 sm:p-3 border-t border-white/10 space-y-2 bg-black/10">
       <!-- Store front link -->
       <a routerLink="/"
          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors text-xs font-medium"
@@ -99,9 +164,9 @@
         <span *ngIf="!collapsed">{{ t.storeFront }}</span>
       </a>
 
-      <!-- Collapse / Expand toggle -->
+      <!-- Collapse / Expand toggle button (WORKS ON ALL SCREENS) -->
       <button (click)="toggleCollapse()"
-              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors text-xs font-medium"
+              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors text-xs font-medium cursor-pointer"
               [ngClass]="collapsed ? 'justify-center px-0' : ''"
               [title]="collapsed ? t.expand : t.collapse">
         <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" [ngClass]="collapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +176,7 @@
       </button>
 
       <!-- User Card with Logout -->
-      <div class="pt-2 border-t border-white/10 flex items-center gap-3 px-1" [ngClass]="collapsed ? 'justify-center px-0' : ''">
+      <div class="pt-2 border-t border-white/10 flex items-center gap-2.5 px-1" [ngClass]="collapsed ? 'justify-center px-0' : ''">
         <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow">
           {{ (authApi.currentUser()?.full_name || 'Admin')[0].toUpperCase() }}
         </div>
@@ -123,8 +188,9 @@
             {{ authApi.currentUser()?.email || 'admin@flowershop.com' }}
           </div>
         </div>
-        <button (click)="logout()"
-                class="text-white/60 hover:text-rose-300 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+        <button *ngIf="!collapsed"
+                (click)="logout()"
+                class="text-white/60 hover:text-rose-300 p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 [title]="t.logout">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -135,7 +201,7 @@
   </aside>
 
   <!-- Main Content Area: Responsive & Balanced Width -->
-  <main class="flex-1 h-screen overflow-y-auto overflow-x-hidden p-6 md:p-8 2xl:p-10">
+  <main class="flex-1 h-screen overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-8 2xl:p-10 min-w-0">
     <div class="max-w-7xl 2xl:max-w-[1600px] w-full mx-auto">
       <router-outlet></router-outlet>
     </div>
