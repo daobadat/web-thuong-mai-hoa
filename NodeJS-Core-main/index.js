@@ -18,6 +18,8 @@ const logger = require("utils/logger");
 
 const app = express();
 app.disable("x-powered-by");
+// Bật trust proxy để Express nhận đúng IP thực của khách khi chạy sau reverse proxy / cPanel / Cloudflare
+app.set("trust proxy", 1);
 
 // Ghi log mọi request HTTP qua winston
 app.use(morgan("combined", { stream: { write: (message) => logger.info(message.trim()) } }));
@@ -36,10 +38,10 @@ app.use((req, res, next) => {
   return xss()(req, res, next);
 });
 
-// Rate limit: chống brute force, spam API (100 req / 15 min / IP)
+// Rate limit: chống brute force, spam API (nâng lên 1500 req / 15 min / IP để Admin và khách thao tác mượt mà)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many requests from this IP, please try again after 15 minutes" },
