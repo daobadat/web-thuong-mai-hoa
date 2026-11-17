@@ -31,8 +31,13 @@
 6. [CHƯƠNG 5: DANH MỤC API ENDPOINTS TOÀN DIỆN (RESTFUL API SPECIFICATION)](#chương-5-danh-mục-api-endpoints-toàn-diện-restful-api-specification)
 7. [CHƯƠNG 6: TÍCH HỢP BÊN THỨ BA (THIRD-PARTY INTEGRATIONS)](#chương-6-tích-hợp-bên-thứ-ba-third-party-integrations)
 8. [CHƯƠNG 7: AN TOÀN BẢO MẬT & VẬN HÀNH HỆ THỐNG (SECURITY & DEVOPS)](#chương-7-an-toàn-bảo-mật--vận-hành-hệ-thống-security--devops)
-9. [CHƯƠNG 8: HƯỚNG DẪN CÀI ĐẶT, CẤU HÌNH & TÀI KHOẢN THỬ NGHIỆM](#chương-8-hướng-dẫn-cài-đặt-cấu-hình--tài-khoản-thử-nghiệm)
-10. [CHƯƠNG 9: ĐÁNH GIÁ KẾT QUẢ ĐẠT ĐƯỢC & HƯỚNG PHÁT TRIỂN](#chương-9-đánh-giá-kết-quả-đạt-được--hướng-phát-triển)
+9. [CHƯƠNG 8: QUY TRÌNH TRIỂN KHAI VẬN HÀNH THỰC TẾ TRÊN CPANEL (HOSTING DEPLOYMENT: PHPMYADMIN & NODE.JS APP)](#chương-8-quy-trình-triển-khai-vận-hành-thực-tế-trên-cpanel-hosting-deployment-phpmyadmin--nodejs-app)
+   - 8.1. Kiến trúc Triển khai trên cPanel Hosting
+   - 8.2. Quản trị Cơ sở Dữ liệu với MySQL Databases & phpMyAdmin
+   - 8.3. Thiết lập & Vận hành Ứng dụng với "Setup Node.js App" trên cPanel
+   - 8.4. Cấu hình Reverse Proxy, Xử lý Rate Limit & Giám sát Hệ thống
+10. [CHƯƠNG 9: HƯỚNG DẪN CÀI ĐẶT LOCAL, CẤU HÌNH & TÀI KHOẢN THỬ NGHIỆM](#chương-9-hướng-dẫn-cài-đặt-local-cấu-hình--tài-khoản-thử-nghiệm)
+11. [CHƯƠNG 10: ĐÁNH GIÁ KẾT QUẢ ĐẠT ĐƯỢC & HƯỚNG PHÁT TRIỂN](#chương-10-đánh-giá-kết-quả-đạt-được--hướng-phát-triển)
 
 ---
 
@@ -697,9 +702,155 @@ Hệ thống sử dụng mô hình AI tiên tiến của Google (`gemini-3.8-fla
 
 ---
 
-## CHƯƠNG 8: HƯỚNG DẪN CÀI ĐẶT, CẤU HÌNH & TÀI KHOẢN THỬ NGHIỆM
+---
 
-### 8.1. Các bước cài đặt mã nguồn
+## CHƯƠNG 8: QUY TRÌNH TRIỂN KHAI VẬN HÀNH THỰC TẾ TRÊN CPANEL (HOSTING DEPLOYMENT: PHPMYADMIN & NODE.JS APP)
+
+Hệ thống **KFlower (KFlowerVN)** đã được đóng gói và triển khai vận hành thành công trên môi trường máy chủ lưu trữ chia sẻ (cPanel Shared Hosting / CloudLinux) tại tên miền chính thức `https://kflowervn.site`. Quá trình này khai thác tối đa hai công cụ cốt lõi trên cPanel là **MySQL Databases & phpMyAdmin** và **Setup Node.js App**.
+
+```mermaid
+flowchart LR
+    Client["Khách Hàng (Web Browser)"] -->|HTTPS / SSL| WebServer["Apache / Nginx Web Server (cPanel)"]
+    WebServer -->|Reverse Proxy / Passenger| NodeApp["Node.js 20.x Application (server.js)"]
+    
+    subgraph cPanelEnv["Môi Trường cPanel Hosting (/home/nhkflopj/)"]
+        NodeApp -->|Phục vụ Static SPA| PublicDir["/public/ (Angular Build Dist)"]
+        NodeApp -->|Xử lý API / Business Logic| CoreModules["/routes, /modules, /kernels"]
+        NodeApp -->|Ghi log theo ngày| LogDir["/logs/combined-*.log"]
+        NodeApp -->|Kết nối Localhost:3306| MySQLService[("MySQL Database Server")]
+        
+        phpMyAdmin["phpMyAdmin Interface"] -->|Quản trị dữ liệu, Import, Backup| MySQLService
+        NodeJSManager["Setup Node.js App"] -->|Cấu hình Node 20.x, Restart, NPM Install| NodeApp
+    end
+```
+
+### 8.1. Kiến trúc Triển khai trên cPanel Hosting
+* **Mô hình tích hợp nguyên khối (Full-stack Monolith Serving):**
+  - Toàn bộ mã nguồn giao diện Angular SPA sau khi build được đặt trong thư mục `public/` của dự án Backend (`/home/nhkflopj/NodeJS-Core-main/public/`).
+  - Web Server Apache/Nginx của cPanel đóng vai trò Reverse Proxy tiếp nhận mọi kết nối HTTPS qua cổng 443 và chuyển tiếp trực tiếp đến ứng dụng Node.js thông qua cơ chế Phusion Passenger.
+  - Node.js Express đóng vai trò máy chủ điều hướng trung tâm:
+    - Các yêu cầu bắt đầu bằng `/api/*` được định tuyến đến các Controller nghiệp vụ.
+    - Các yêu cầu truy cập tài liệu Swagger tại `/api-docs` hiển thị giao diện OpenAPI.
+    - Tất cả các yêu cầu còn lại (trang chủ, danh mục, giỏ hàng, checkout...) được phục vụ bởi middleware tĩnh (`express.static`) và cơ chế **SPA HTML5 Fallback Routing** (`res.sendFile("public/index.html")`), đảm bảo người dùng khi tải lại trang (F5) hoặc nhập URL trực tiếp không bao giờ gặp lỗi 404 Not Found.
+
+### 8.2. Quản trị Cơ sở Dữ liệu với MySQL Databases & phpMyAdmin
+Cơ sở dữ liệu được thiết lập và quản lý hoàn toàn thông qua giao diện đồ họa trực quan trên cPanel:
+
+1. **Khởi tạo Database & Phân quyền Người dùng (MySQL Databases):**
+   - Truy cập mục **MySQL Databases** trên bảng điều khiển cPanel.
+   - Tạo cơ sở dữ liệu vật lý mang tên: `nhkflopj_flower_shop`.
+   - Tạo người dùng cơ sở dữ liệu chuyên biệt: `nhkflopj_dat` (hoặc `nhkflopj_user`) với mật khẩu băm bảo mật cao.
+   - Gán quyền truy cập cho user vào database với đầy đủ quyền hạn **ALL PRIVILEGES** (Select, Insert, Update, Delete, Create, Drop, Alter, Index, References...).
+
+2. **Nạp Cấu trúc & Dữ liệu ban đầu qua phpMyAdmin:**
+   - Truy cập công cụ **phpMyAdmin** từ cPanel (tự động đăng nhập qua cơ chế SSO).
+   - Chọn database `nhkflopj_flower_shop` ở thanh danh mục bên trái.
+   - Chuyển sang tab **Import**, chọn file kịch bản DDL `thuong_mai_hoa.sql` từ máy tính và thực thi nạp dữ liệu.
+   - **Tính an toàn của file SQL:** Kịch bản SQL đã được cấu hình cờ `SET FOREIGN_KEY_CHECKS = 0;` và `DROP TABLE IF EXISTS`, cho phép nạp lại toàn bộ 31 bảng dữ liệu và dữ liệu ban đầu một cách an toàn (Idempotent) mà không bị lỗi ràng buộc khóa ngoại.
+
+3. **Kiểm soát Bảng mã Unicode & Chỉ mục (Collation & Indexes):**
+   - Đảm bảo toàn bộ các bảng và các trường chuỗi (`VARCHAR`, `TEXT`) đều sử dụng bảng mã chuẩn **`utf8mb4_unicode_ci`**. Điều này cực kỳ quan trọng để hệ thống hiển thị chính xác 100% tiếng Việt có dấu, ký tự tiếng Hàn (Hangul) của khách hàng nước ngoài và các biểu tượng emoji bông hoa.
+   - Kiểm tra trực quan danh sách các chỉ mục tối ưu hiệu năng: `idx_products_is_active` trên bảng `products` và `idx_product_translations_name` trên bảng `product_translations`.
+
+4. **Giám sát Dữ liệu Thực tế & Sao lưu (Backup & Monitoring):**
+   - Trong quá trình vận hành, quản trị viên sử dụng phpMyAdmin để theo dõi trực tiếp các đơn hàng mới phát sinh trong bảng `orders`, kiểm tra mã giao dịch ngân hàng trong `payment_transactions`, xem tin nhắn tư vấn trong `chatbot_conversations`.
+   - Sử dụng tính năng **Export** của phpMyAdmin để xuất file sao lưu định kỳ dạng nén `.sql.gz`, đảm bảo an toàn dữ liệu tuyệt đối cho cửa hàng hoa.
+
+### 8.3. Thiết lập & Vận hành Ứng dụng với "Setup Node.js App" trên cPanel
+cPanel cung cấp module **Setup Node.js App** (dựa trên CloudLinux Node.js Selector & Passenger) giúp quản trị tiến trình Node.js mà không cần can thiệp dòng lệnh máy chủ phức tạp:
+
+1. **Khai báo thông số Ứng dụng (Create Application):**
+   - **Node.js Version:** Chọn phiên bản **`20.x`** (khớp với khai báo `"engines": { "node": ">=20" }` trong file `package.json`).
+   - **Application Mode:** Chọn chế độ **`Production`** (tự động tắt stack trace lỗi nhạy cảm, tối ưu hóa bộ nhớ đệm và hiệu năng Express).
+   - **Application Root:** Khai báo đường dẫn tuyệt đối đến thư mục chứa mã nguồn backend trên hosting: `/home/nhkflopj/NodeJS-Core-main`.
+   - **Application URL:** Gắn với tên miền chính thức của website: `kflowervn.site`.
+   - **Application Startup File:** Khai báo file khởi chạy chính: **`server.js`**. Đây là entry point chứa logic khởi động HTTP server, tác vụ Cron Job dọn dẹp đơn hàng quá hạn 5 phút/lần và quy trình Graceful Shutdown an toàn.
+
+2. **Cấu hình Biến môi trường Production (`.env`):**
+   - Thông qua **cPanel File Manager**, quản trị viên tạo file cấu hình `.env` tại thư mục `/home/nhkflopj/NodeJS-Core-main/.env`:
+     ```env
+     DEBUG=false
+     NODE_ENV=production
+     DATABASE_ENV=production
+
+     # Kết nối Database cPanel
+     PROD_DB_HOSTNAME=localhost
+     PROD_DB_PORT=3306
+     PROD_DB_NAME=nhkflopj_flower_shop
+     PROD_DB_USERNAME=nhkflopj_dat
+     PROD_DB_PASSWORD=YOUR_STRONG_PASSWORD
+
+     # Cấu hình Domain & JWT
+     FRONTEND_URL=https://kflowervn.site
+     APP_BASE_URL=https://kflowervn.site
+     API_BASE_URL=https://kflowervn.site
+     JWT_SECRET_KEY=5bcd48da6f71070e031452ac8b5bb17a4eabd99f789ac98656a331978dfe7991
+
+     # Cổng thanh toán & Webhook
+     VIETQR_BANK_ID=MB
+     VIETQR_ACCOUNT_NO=0123456789
+     VIETQR_ACCOUNT_NAME=KFLOWERVN
+     WEBHOOK_API_KEY=YOUR_SEPAY_API_KEY
+     ORDER_TTL_MINUTES=15
+
+     MOMO_PARTNER_CODE=MOMOBKUN20180529
+     MOMO_ACCESS_KEY=klm05TvNBzhg7h7j
+     MOMO_SECRET_KEY=at67qH6mk8w5Y1nAyMoTKhpBoMmd11d6
+     MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+
+     VNPAY_TMN_CODE=C4C4934T
+     VNPAY_HASH_SECRET=REZSDWPLRYZTICSEGHBRIJDIYWNGQPHG
+     VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+     VNPAY_RETURN_URL=https://kflowervn.site/checkout/vnpay-return
+
+     # Trí tuệ nhân tạo & Email
+     GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+     GEMINI_MODEL=gemini-3.8-flash
+     SMTP_HOST=smtp.gmail.com
+     SMTP_PORT=465
+     SMTP_SECURE=true
+     SMTP_USER=your_email@gmail.com
+     SMTP_PASSWORD=your_app_password
+     EMAIL_FROM="Hoa Tươi KFlowerVN" <no-reply@kflowervn.site>
+     ADMIN_EMAIL=admin@flowershop.com
+     ```
+
+3. **Cài đặt Thư viện Phụ thuộc (Dependencies) qua cPanel:**
+   - Sau khi upload toàn bộ mã nguồn (đã loại bỏ thư mục `node_modules` để file zip gọn nhẹ), quản trị viên chỉ cần bấm nút **"Run NPM Install"** trên giao diện Setup Node.js App.
+   - cPanel tự động chạy lệnh `npm install` bên trong môi trường ảo biệt lập (`nodevenv`), tải về đầy đủ các gói `express`, `sequelize`, `mysql2`, `nodemailer`, `winston`, `axios`, `jsonwebtoken`...
+
+4. **Quản trị Vòng đời Ứng dụng (Lifecycle Management):**
+   - **Nút "Restart" (Khởi động lại):** Cho phép nạp lại mã nguồn mới hoặc biến môi trường mới mà không gây gián đoạn dịch vụ quá vài giây.
+   - **Nút "Stop" / "Start":** Dừng hoặc khởi chạy lại toàn bộ ứng dụng khi bảo trì hệ thống.
+   - **Lệnh Terminal (Virtual Environment CLI):** cPanel cung cấp sẵn câu lệnh để quản trị viên có thể vào Terminal/SSH và chạy trực tiếp các lệnh CLI:
+     ```bash
+     source /home/nhkflopj/nodevenv/NodeJS-Core-main/20/bin/activate && cd /home/nhkflopj/NodeJS-Core-main
+     ```
+
+### 8.4. Cấu hình Reverse Proxy, Xử lý Rate Limit & Giám sát Hệ thống
+
+Trong quá trình triển khai thực tế trên cPanel, hệ thống đã được tối ưu hóa đặc thù để thích ứng hoàn hảo với môi trường Web Server Reverse Proxy:
+
+1. **Xử lý IP thực qua Reverse Proxy (`app.set("trust proxy", 1)`):**
+   - **Vấn đề thực tế:** Khi chạy trên cPanel, ứng dụng Node.js nằm phía sau Reverse Proxy của Apache/Nginx. Mọi request gửi tới Express đều bị chuyển tiếp từ localhost (`127.0.0.1`).
+   - **Hậu quả nếu không xử lý:** Middleware giới hạn tần suất (`express-rate-limit`) sẽ coi toàn bộ khách hàng truy cập website đều có chung một địa chỉ IP `127.0.0.1`. Điều này dẫn đến tình trạng cạn kiệt số lượt truy cập chỉ sau vài phút và xuất hiện thông báo lỗi: *"Too many requests from this IP, please try again after 15 minutes"*.
+   - **Giải pháp triệt để:** Bổ sung cấu hình `app.set("trust proxy", 1);` ngay sau khi khởi tạo `const app = express();` trong file `index.js`. Lệnh này yêu cầu Express đọc IP thực của người dùng từ header `X-Forwarded-For` do cPanel chuyển tiếp tới, phân tách chính xác IP của từng người dùng riêng biệt.
+
+2. **Nâng ngưỡng Giới hạn Tần suất (Rate Limit Optimization):**
+   - Do website là ứng dụng Angular SPA (Single Page Application), mỗi thao tác chuyển trang hoặc mở modal cập nhật sản phẩm có thể phát sinh đồng thời nhiều API calls (tải danh mục, dịp lễ, giỏ hàng, thông báo...).
+   - Hệ thống đã điều chỉnh nâng ngưỡng giới hạn API trong `index.js` từ `100` lên **`1500` requests / 15 phút / IP**, đảm bảo các thao tác quản trị và mua hàng diễn ra hoàn toàn mượt mà mà vẫn ngăn chặn được các hành vi quét lỗ hổng hoặc tấn công brute-force.
+
+3. **Hệ thống Giám sát & Quản lý Nhật ký (Logging) trên cPanel:**
+   - Quản trị viên có thể mở trực tiếp **cPanel File Manager** và truy cập thư mục `/home/nhkflopj/NodeJS-Core-main/logs/`:
+     - `combined-YYYY-MM-DD.log`: Theo dõi toàn bộ lưu lượng truy cập HTTP thời gian thực (địa chỉ IP thực, phương thức `GET`/`POST`, đường dẫn API, mã phản hồi `200`/`404`, thời gian phản hồi ms).
+     - `error-YYYY-MM-DD.log`: Bắt các ngoại lệ lỗi hệ thống hoặc lỗi kết nối database để xử lý kịp thời.
+     - `stderr.log` (tạo bởi cPanel): Giám sát chi tiết quá trình khởi động tiến trình Node.js và thông báo của Cron Job dọn dẹp đơn hàng.
+
+---
+
+## CHƯƠNG 9: HƯỚNG DẪN CÀI ĐẶT LOCAL, CẤU HÌNH & TÀI KHOẢN THỬ NGHIỆM
+
+### 9.1. Các bước cài đặt mã nguồn
 ```bash
 # 1. Di chuyển vào thư mục dự án
 cd NodeJS-Core-main
@@ -708,7 +859,7 @@ cd NodeJS-Core-main
 npm install
 ```
 
-### 8.2. Thiết lập cấu hình môi trường (`.env`)
+### 9.2. Thiết lập cấu hình môi trường Local (`.env`)
 Tạo file `.env` tại thư mục gốc `NodeJS-Core-main/.env` với các tham số mẫu:
 ```env
 # Cấu hình máy chủ
@@ -765,7 +916,7 @@ GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 ```
 
-### 8.3. Khởi tạo Cơ sở Dữ liệu & Dữ liệu mẫu (Migrations & Seeders)
+### 9.3. Khởi tạo Cơ sở Dữ liệu & Dữ liệu mẫu (Migrations & Seeders)
 ```bash
 # 1. Chạy toàn bộ 37 file migration tạo bảng và chỉ mục
 npx sequelize-cli db:migrate
@@ -786,7 +937,7 @@ npx sequelize-cli db:migrate:undo:all
 npx sequelize-cli db:seed:undo:all
 ```
 
-### 8.4. Khởi chạy ứng dụng
+### 9.4. Khởi chạy ứng dụng
 ```bash
 # Chạy ở chế độ thông thường (Production mode)
 npm run start
@@ -798,7 +949,7 @@ npm run dev
 * **Giao diện Web Khách hàng & Quản trị:** `http://localhost:3000`
 * **Tài liệu trực quan Swagger API Docs:** `http://localhost:3000/api-docs`
 
-### 8.5. Danh mục Tài khoản Thử nghiệm (Demo Accounts)
+### 9.5. Danh mục Tài khoản Thử nghiệm (Demo Accounts)
 
 Tất cả tài khoản thử nghiệm được tạo sẵn đều dùng mật khẩu chung: `123456`
 
@@ -811,16 +962,16 @@ Tất cả tài khoản thử nghiệm được tạo sẵn đều dùng mật k
 
 ---
 
-## CHƯƠNG 9: ĐÁNH GIÁ KẾT QUẢ ĐẠT ĐƯỢC & HƯỚNG PHÁT TRIỂN
+## CHƯƠNG 10: ĐÁNH GIÁ KẾT QUẢ ĐẠT ĐƯỢC & HƯỚNG PHÁT TRIỂN
 
-### 9.1. Đánh giá Ưu điểm Nổi bật của Dự án
+### 10.1. Đánh giá Ưu điểm Nổi bật của Dự án
 1. **Mức độ hoàn thiện cao:** Xây dựng trọn vẹn cả Backend RESTful API, Frontend Angular SPA và Cơ sở dữ liệu chuẩn hóa, sẵn sàng đưa vào vận hành thực tế tại tên miền `https://kflowervn.site`.
 2. **Nghiệp vụ chuyên sâu cho ngành hoa:** Đáp ứng đầy đủ các bài toán thực tiễn phức tạp như giao hàng hỏa tốc trong ngày, chọn khung giờ giao, thông điệp thiệp đính kèm, người nhận khác người đặt, giỏ hàng session ẩn danh và đa ngôn ngữ 3 nước (Việt - Anh - Hàn).
 3. **Ứng dụng công nghệ hiện đại:** Tích hợp mô hình ngôn ngữ lớn Google Gemini AI với kỹ thuật Dynamic Catalog Context độc đáo, đem lại trải nghiệm mua sắm thông minh và mới lạ cho người dùng.
 4. **Giải pháp thanh toán không dùng tiền mặt toàn diện:** Hỗ trợ đầy đủ các kênh thanh toán phổ biến nhất tại Việt Nam (VietQR ngân hàng, ví MoMo, cổng VNPay) với quy trình tự động hóa xác nhận đơn hàng qua Webhook.
 5. **Kiến trúc phần mềm chuẩn mực:** Phân chia tầng Controller - Service - Validation - Model rõ ràng, kiểm soát chặt chẽ an toàn bảo mật (Rate Limit, Helmet, XSS, RBAC) và ghi log chuyên nghiệp qua Winston.
 
-### 9.2. Hướng phát triển và Mở rộng trong tương lai
+### 10.2. Hướng phát triển và Mở rộng trong tương lai
 1. **Thông báo Thời gian thực (Real-time Notifications):** Tích hợp Socket.io để nhân viên nhận thông báo âm thanh tức thì ngay khi có đơn hàng mới phát sinh và khách hàng theo dõi vị trí shipper trên bản đồ trực tiếp.
 2. **AI Recommendation thông minh nâng cao:** Ứng dụng bảng `product_embeddings` kết hợp thuật toán Vector Similarity Search để gợi ý hoa tương tự về mặt thẩm mỹ hoặc phong cách cắm hoa dựa trên ảnh người dùng tải lên.
 3. **Ứng dụng Di động (Mobile App):** Phát triển thêm phiên bản ứng dụng di động cho cả hai hệ điều hành iOS và Android sử dụng React Native hoặc Flutter, kế thừa 100% hệ thống RESTful API hiện tại.
