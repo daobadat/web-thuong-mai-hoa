@@ -127,12 +127,37 @@ const userService = {
     const offset = (Number(page) - 1) * Number(limit);
     const { count, rows } = await User.findAndCountAll({
       where,
-      attributes: { exclude: ["password_hash"] },
+      attributes: {
+        include: [
+          [
+            User.sequelize.literal(`(
+              SELECT COUNT(*) FROM user_oauth_accounts WHERE user_oauth_accounts.user_id = User.id AND user_oauth_accounts.provider = 'google'
+            )`),
+            "google_oauth_count",
+          ],
+          [
+            User.sequelize.literal("CASE WHEN password_hash IS NULL THEN 1 ELSE 0 END"),
+            "has_no_password",
+          ],
+        ],
+        exclude: ["password_hash"],
+      },
       order: [["created_at", "DESC"]],
       limit: Number(limit),
       offset,
     });
-    return { total: count, page: Number(page), limit: Number(limit), data: rows };
+
+    const data = rows.map((u) => {
+      const item = u.toJSON ? u.toJSON() : u;
+      const isGoogle = Number(item.google_oauth_count) > 0 || item.has_no_password === 1;
+      return {
+        ...item,
+        auth_provider: isGoogle ? "google" : "local",
+        is_google: isGoogle,
+      };
+    });
+
+    return { total: count, page: Number(page), limit: Number(limit), data };
   },
 
   findById: async (id) => {

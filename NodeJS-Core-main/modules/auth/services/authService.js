@@ -213,6 +213,22 @@ const authService = {
     const token = jwtUtils.sign(user.id, user.role);
     const refreshToken = jwtUtils.signRefreshToken(user.id, user.role);
 
+    // Ghi nhận liên kết tài khoản Google OAuth nếu chưa có
+    try {
+      const { sequelize } = require("models");
+      const [existingOAuth] = await sequelize.query(
+        "SELECT id FROM user_oauth_accounts WHERE user_id = :userId AND provider = 'google'",
+        { replacements: { userId: user.id } }
+      );
+      if (!existingOAuth || existingOAuth.length === 0) {
+        const crypto = require("crypto");
+        await sequelize.query(
+          "INSERT INTO user_oauth_accounts (id, user_id, provider, provider_user_id, created_at) VALUES (:id, :userId, 'google', :providerUserId, NOW())",
+          { replacements: { id: crypto.randomUUID(), userId: user.id, providerUserId: String(googleUser.googleId || googleUser.sub || user.email) } }
+        );
+      }
+    } catch (_) {}
+
     return {
       user: {
         id: user.id,

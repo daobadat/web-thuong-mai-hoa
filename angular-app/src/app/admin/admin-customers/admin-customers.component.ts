@@ -50,7 +50,8 @@ export class AdminCustomersComponent implements OnInit {
           city: 'N/A', // Not directly on user model
           orders: 0, // Would need order aggregation
           totalSpent: 0,
-          lastOrder: 'N/A'
+          lastOrder: 'N/A',
+          isGoogle: c.is_google || c.auth_provider === 'google' || (!c.has_password && c.email?.endsWith('@gmail.com'))
         }));
       }
     });
@@ -59,6 +60,18 @@ export class AdminCustomersComponent implements OnInit {
   get filteredCustomers() {
     const q = this.search.toLowerCase();
     return this.customers.filter(c => !q || (c.name || '').toLowerCase().includes(q) || (c.phone || '').includes(q));
+  }
+
+  get totalCustomers() {
+    return this.customers.length;
+  }
+
+  get totalCustomerRole() {
+    return this.customers.filter(c => c.role === 'customer').length;
+  }
+
+  get totalGoogle() {
+    return this.customers.filter(c => c.isGoogle || c.is_google || c.auth_provider === 'google').length;
   }
 
   get totalKorean() {
