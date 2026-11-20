@@ -795,7 +795,7 @@ cPanel cung cấp module **Setup Node.js App** (dựa trên CloudLinux Node.js S
 
      MOMO_PARTNER_CODE=MOMOBKUN20180529
      MOMO_ACCESS_KEY=klm05TvNBzhg7h7j
-     MOMO_SECRET_KEY=at67qH6mk8w5Y1nAyMoTKhpBoMmd11d6
+     MOMO_SECRET_KEY=at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
      MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
 
      VNPAY_TMN_CODE=C4C4934T
@@ -889,7 +889,7 @@ ORDER_TTL_MINUTES=15
 # Cổng thanh toán MoMo Sandbox
 MOMO_PARTNER_CODE=MOMOBKUN20180529
 MOMO_ACCESS_KEY=klm05TvNBzhg7h7j
-MOMO_SECRET_KEY=at67qH6mk8w5Y1nAyMoTKhpBoMmd11d6
+MOMO_SECRET_KEY=at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
 MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
 
 # Cổng thanh toán VNPay Sandbox
