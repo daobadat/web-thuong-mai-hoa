@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthApiService, AuthUser } from '../../core/services/auth-api.service';
 import { UserApiService, UserAddress } from '../../core/services/user-api.service';
 import { OrderApiService, Order } from '../../core/services/order-api.service';
@@ -9,14 +10,14 @@ import { LangService } from '../../core/services/lang.service';
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.css'
 })
 export class UserProfileComponent implements OnInit {
   user: AuthUser | null = null;
   activeTab: 'profile' | 'addresses' | 'orders' | 'security' = 'profile';
-  
+
   // Profile Form
   formData = {
     full_name: '',
@@ -48,7 +49,10 @@ export class UserProfileComponent implements OnInit {
   addresses: UserAddress[] = [];
 
   // Orders
-  orders: Order[] = [];
+  orders: any[] = [];
+  orderFilter: string = 'all';
+  expandedOrderId: string | number | null = null;
+  loadingOrders = false;
 
   // States
   isSaving = false;
@@ -59,8 +63,9 @@ export class UserProfileComponent implements OnInit {
     public authApi: AuthApiService,
     private userApi: UserApiService,
     private orderApi: OrderApiService,
-    public langService: LangService
-  ) {}
+    public langService: LangService,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit() {
     this.user = this.authApi.currentUser();
@@ -71,13 +76,21 @@ export class UserProfileComponent implements OnInit {
       this.formData.avatar_url = this.user.avatar_url || '';
       this.avatarPreview = this.user.avatar_url || null;
     }
-    
+
     // Check URL hash for tab (e.g. #orders)
     const hash = window.location.hash.replace('#', '');
     if (['profile', 'addresses', 'orders', 'security'].includes(hash)) {
       this.activeTab = hash as any;
     }
-    
+
+    // Check query params (e.g. ?tab=orders)
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] && ['profile', 'addresses', 'orders', 'security'].includes(params['tab'])) {
+        this.activeTab = params['tab'] as any;
+        this.loadTabData();
+      }
+    });
+
     this.loadTabData();
   }
 
@@ -247,11 +260,11 @@ export class UserProfileComponent implements OnInit {
       this.errorMessage = this.langService.currentLang() === 'vi' ? 'Vui lòng điền đủ thông tin bắt buộc' : '필수 정보를 모두 입력해주세요';
       return;
     }
-    
+
     this.isSaving = true;
     this.errorMessage = '';
-    
-    const request$ = this.editingAddressId 
+
+    const request$ = this.editingAddressId
       ? this.userApi.updateAddress(this.editingAddressId, this.addressData)
       : this.userApi.addAddress(this.addressData);
 
@@ -278,12 +291,146 @@ export class UserProfileComponent implements OnInit {
     }
   }
 
-  // --- Orders Logic ---
+  // --- Orders & Tracking Logic ---
   loadOrders() {
+    this.loadingOrders = true;
     this.orderApi.getMyOrders().subscribe({
-      next: (res) => {
-        this.orders = res.data;
+      next: (res: any) => {
+        this.loadingOrders = false;
+        const list = res.data?.orders || (Array.isArray(res.data) ? res.data : []);
+        this.orders = list;
+        // Mặc định mở đơn hàng đầu tiên để xem ngay tiến trình
+        if (this.orders.length > 0 && !this.expandedOrderId) {
+          this.expandedOrderId = this.orders[0].id;
+        }
+      },
+      error: () => {
+        this.loadingOrders = false;
       }
     });
+  }
+
+  get filteredOrders(): any[] {
+    if (this.orderFilter === 'all') return this.orders;
+    if (this.orderFilter === 'pending') return this.orders.filter(o => o.status === 'pending');
+    if (this.orderFilter === 'processing') return this.orders.filter(o => o.status === 'confirmed' || o.status === 'processing');
+    if (this.orderFilter === 'shipping') return this.orders.filter(o => o.status === 'out_for_delivery' || o.status === 'shipping' || o.status === 'ready_for_delivery');
+    if (this.orderFilter === 'delivered') return this.orders.filter(o => o.status === 'delivered');
+    if (this.orderFilter === 'cancelled') return this.orders.filter(o => o.status === 'cancelled');
+    return this.orders;
+  }
+
+  setOrderFilter(f: string) {
+    this.orderFilter = f;
+  }
+
+  toggleOrderDetails(orderId: any) {
+    this.expandedOrderId = this.expandedOrderId === orderId ? null : orderId;
+  }
+
+  /**
+   * Tính bước tiến trình đơn hàng (1 -> 4)
+   * 1: Đã tiếp nhận đơn
+   * 2: Chuẩn bị & Cắm hoa tươi
+   * 3: Đang giao hoa
+   * 4: Giao hoa thành công
+   * 0: Đã hủy
+   */
+  getOrderStep(status: string): number {
+    switch (status) {
+      case 'pending': return 1;
+      case 'confirmed':
+      case 'processing': return 2;
+      case 'ready_for_delivery':
+      case 'out_for_delivery':
+      case 'shipping': return 3;
+      case 'delivered': return 4;
+      case 'cancelled': return 0;
+      default: return 1;
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    const isVi = this.langService.currentLang() === 'vi';
+    switch (status) {
+      case 'pending': return isVi ? 'Chờ xác nhận' : '접수 대기';
+      case 'confirmed': return isVi ? 'Đã xác nhận' : '주문 확인';
+      case 'processing': return isVi ? 'Đang chuẩn bị & Cắm hoa' : '꽃 제작 중';
+      case 'ready_for_delivery': return isVi ? 'Sẵn sàng giao' : '배송 준비';
+      case 'out_for_delivery':
+      case 'shipping': return isVi ? 'Đang giao hoa' : '배송 중';
+      case 'delivered': return isVi ? 'Giao thành công' : '배송 완료';
+      case 'cancelled': return isVi ? 'Đã hủy' : '주문 취소';
+      default: return status;
+    }
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'confirmed':
+      case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'ready_for_delivery':
+      case 'out_for_delivery':
+      case 'shipping': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'delivered': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'cancelled': return 'bg-rose-100 text-rose-800 border-rose-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  }
+
+  getPaymentMethodName(method: string): string {
+    const isVi = this.langService.currentLang() === 'vi';
+    switch (method) {
+      case 'bank_transfer': return isVi ? 'Chuyển khoản (VietQR)' : '계좌이체 (VietQR)';
+      case 'momo': return 'Ví MoMo';
+      case 'vnpay':
+      case 'zalopay': return 'VNPay';
+      case 'cod': return isVi ? 'Thanh toán khi nhận (COD)' : '착불 (COD)';
+      default: return method || (isVi ? 'Chuyển khoản' : '계좌이체');
+    }
+  }
+
+  getDeliveryTimeFormatted(order: any): string {
+    const isVi = this.langService.currentLang() === 'vi';
+    const rawDate = order.scheduled_delivery_at || order.delivery_date;
+    if (!rawDate) {
+      return isVi ? 'Giao tiêu chuẩn (2 - 4 giờ)' : '표준 배송 (2~4시간)';
+    }
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return String(rawDate);
+      return d.toLocaleDateString(isVi ? 'vi-VN' : 'ko-KR', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      });
+    } catch (_) {
+      return String(rawDate);
+    }
+  }
+
+  formatPrice(n: any): string {
+    const val = Number(n) || 0;
+    return new Intl.NumberFormat('vi-VN').format(Math.round(val));
+  }
+
+  /** Lấy timestamp cho từng bước từ statusHistory nếu có */
+  getStepTime(order: any, stepNum: number): string {
+    if (!order.statusHistory || !Array.isArray(order.statusHistory)) return '';
+    const statusMap: Record<number, string[]> = {
+      1: ['pending', 'created'],
+      2: ['confirmed', 'processing'],
+      3: ['ready_for_delivery', 'out_for_delivery', 'shipping'],
+      4: ['delivered']
+    };
+    const targetStatuses = statusMap[stepNum] || [];
+    const record = order.statusHistory.find((h: any) => targetStatuses.includes(h.status));
+    if (record && record.created_at) {
+      const d = new Date(record.created_at);
+      return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+    return '';
   }
 }

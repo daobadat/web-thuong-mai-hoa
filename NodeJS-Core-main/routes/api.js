@@ -173,8 +173,11 @@ router.group("/cart", middlewares([optionalAuthenticated]), (router) => {
 });
 
 // =====================================================================
-// ORDER ROUTES - /orders (yêu cầu đăng nhập)
+// ORDER ROUTES - /orders
 // =====================================================================
+// Public: Tra cứu tiến độ đơn hàng theo mã đơn hoặc số điện thoại (không cần login)
+router.get("/orders/track/:keyword", orderController.track);
+
 router.group("/orders", middlewares([authenticated]), (router) => {
   // Admin / Staff: Danh sách toàn bộ đơn hàng
   router.get("/", middlewares([role("admin", "staff")]), orderController.index);

@@ -92,4 +92,9 @@ export class OrderApiService {
   getPaymentStatus(orderNumber: string): Observable<any> {
     return this.api.get<any>(`/payments/status/${orderNumber}`);
   }
+
+  /** Tra cứu công khai tiến trình giao hàng theo mã đơn hoặc số điện thoại */
+  trackOrder(keyword: string): Observable<OrderDetailResponse> {
+    return this.api.get<OrderDetailResponse>(`/orders/track/${encodeURIComponent(keyword)}`);
+  }
 }

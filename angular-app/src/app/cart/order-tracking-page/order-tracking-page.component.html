@@ -1,63 +1,243 @@
-<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-  <div class="text-center space-y-2">
-    <h1 class="text-3xl font-serif font-bold text-gray-900">Tra Cứu Tiến Độ Giao Hoa</h1>
-    <p class="text-sm text-gray-500">Nhập mã đơn hàng hoặc số điện thoại để kiểm tra trạng thái</p>
-  </div>
-
-  <div class="bg-white p-4 sm:p-6 rounded-3xl border border-rose-100 shadow-sm">
-    <div class="flex flex-col sm:flex-row gap-3">
-      <input type="text" [(ngModel)]="orderCode" placeholder="Nhập mã đơn hàng (VD: #HTSG-98234)" class="flex-1 px-4 py-3 bg-rose-50/50 border border-rose-200 rounded-xl text-sm font-semibold focus:outline-none">
-      <button (click)="searchOrder()" class="px-6 py-3 bg-[#7A2838] hover:bg-[#5C2129] text-white font-bold rounded-xl text-sm shadow transition-colors flex items-center justify-center gap-2">
-        <i class="ri-search-2-line"></i>
-        <span>Tra Cứu</span>
-      </button>
-    </div>
-  </div>
-
-  <div *ngIf="orderFound" class="bg-white p-6 sm:p-8 rounded-3xl border border-rose-100 shadow-sm space-y-8">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-rose-100 pb-6 gap-4">
-      <div>
-        <span class="px-3 py-1 bg-rose-100 text-[#7A2838] text-xs font-bold rounded-full">Đơn hàng {{ orderCode }}</span>
-        <h2 class="text-xl font-serif font-bold text-gray-900 mt-2">Người Nhận: Nguyễn Thùy Linh</h2>
-        <p class="text-xs text-gray-500 mt-0.5"><i class="ri-map-pin-line text-[#7A2838]"></i> Tầng 12, Tòa nhà Bitexco, Q.1, TP.HCM</p>
-      </div>
-      <div class="text-left sm:text-right">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-          Đang Giao Hàng
-        </span>
-      </div>
+<main class="min-h-screen bg-[#FEFCFA] py-12">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    
+    <!-- Title Header -->
+    <div class="text-center space-y-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-[#6E2A34] uppercase tracking-wider">
+        🌸 KFlower Express
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-serif font-bold text-[#2B2A26]">
+        {{ langService.currentLang() === 'vi' ? 'Theo Dõi Tiến Độ Giao Hoa' : '실시간 꽃 배송 조회' }}
+      </h1>
+      <p class="text-sm text-[#7A7163] max-w-lg mx-auto">
+        {{ langService.currentLang() === 'vi' ? 'Nhập mã đơn hàng (VD: FLW-1732... hoặc ORD-...) hoặc số điện thoại để kiểm tra tiến trình cắm hoa và giao hoa thực tế.' : '주문번호 또는 전화번호를 입력하여 실시간 제작 및 배송 현황을 확인하세요.' }}
+      </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-full bg-[#7A2838] text-white flex items-center justify-center font-bold text-sm shadow"><i class="ri-check-line text-lg"></i></div>
-        <div>
-          <h4 class="font-bold text-sm text-gray-900">1. Đã Tiếp Nhận</h4>
-          <p class="text-xs text-gray-500">09:15</p>
+    <!-- Search Input Box -->
+    <div class="bg-white p-4 sm:p-6 rounded-3xl border border-[#E4D9C8] shadow-sm">
+      <form (submit)="searchOrder()" class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            [(ngModel)]="orderCode" 
+            name="orderCode"
+            placeholder="{{ langService.currentLang() === 'vi' ? 'Nhập mã đơn hàng hoặc số điện thoại đặt hoa...' : '주문번호 또는 전화번호 입력...' }}" 
+            class="w-full pl-11 pr-4 py-3.5 bg-[#FBF6EF] border border-[#E4D9C8] rounded-2xl text-sm font-semibold text-[#2B2A26] placeholder-[#7A7163] focus:outline-none focus:border-[#6E2A34] focus:ring-1 focus:ring-[#6E2A34]"
+          />
+          <svg class="w-5 h-5 text-[#7A7163] absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-full bg-[#7A2838] text-white flex items-center justify-center font-bold text-sm shadow"><i class="ri-check-line text-lg"></i></div>
-        <div>
-          <h4 class="font-bold text-sm text-gray-900">2. Chọn Hoa Tươi</h4>
-          <p class="text-xs text-gray-500">09:30</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-full bg-[#7A2838] text-white flex items-center justify-center font-bold text-sm shadow"><i class="ri-check-line text-lg"></i></div>
-        <div>
-          <h4 class="font-bold text-sm text-gray-900">3. Nghệ Nhân Cắm Hoa</h4>
-          <p class="text-xs text-gray-500">10:10</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow animate-bounce"><i class="ri-truck-line text-lg"></i></div>
-        <div>
-          <h4 class="font-bold text-sm text-emerald-600">4. Đang Giao</h4>
-          <p class="text-xs text-gray-500">10:45</p>
-        </div>
+        <button 
+          type="submit" 
+          [disabled]="loading"
+          class="px-8 py-3.5 bg-[#6E2A34] hover:bg-[#5C2129] text-white font-bold rounded-2xl text-sm shadow transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+          <svg *ngIf="loading" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="4" class="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" class="opacity-75"></path></svg>
+          <span *ngIf="!loading">{{ langService.currentLang() === 'vi' ? 'Tra Cứu' : '조회하기' }}</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-12 text-[#7A7163] space-y-3">
+      <div class="w-8 h-8 border-3 border-[#6E2A34] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <p class="text-sm font-medium">{{ langService.currentLang() === 'vi' ? 'Đang tìm kiếm thông tin đơn hoa...' : '주문 정보를 조회 중입니다...' }}</p>
+    </div>
+
+    <!-- Not Found State -->
+    <div *ngIf="hasSearched && !loading && notFound" class="bg-white p-8 rounded-3xl border border-rose-200 text-center space-y-4 shadow-sm animate-fade-in">
+      <div class="text-5xl">🔍</div>
+      <h3 class="text-xl font-bold font-serif text-[#2B2A26]">
+        {{ langService.currentLang() === 'vi' ? 'Không tìm thấy đơn hàng' : '주문 정보를 찾을 수 없습니다' }}
+      </h3>
+      <p class="text-sm text-[#7A7163] max-w-md mx-auto">
+        {{ langService.currentLang() === 'vi' ? 'Vui lòng kiểm tra lại mã đơn hàng hoặc số điện thoại người nhận. Nếu bạn vừa đặt hoa, hệ thống có thể cần 1-2 phút để cập nhật.' : '입력하신 주문번호 또는 전화번호를 다시 확인해주세요.' }}
+      </p>
+      <div class="pt-2">
+        <a routerLink="/profile" [queryParams]="{tab: 'orders'}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#F4EDE3] text-[#6E2A34] font-bold rounded-xl hover:bg-[#E4D9C8] transition-colors text-sm">
+          <span>{{ langService.currentLang() === 'vi' ? 'Xem trong danh sách Đơn hàng của tôi' : '내 주문 목록에서 확인' }}</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </a>
       </div>
     </div>
+
+    <!-- Order Result Found -->
+    <div *ngIf="!loading && order" class="bg-white rounded-3xl border border-[#E4D9C8] shadow-sm overflow-hidden animate-fade-in-up">
+      
+      <!-- Top Status Banner -->
+      <div class="bg-[#FBF6EF] px-6 py-5 border-b border-[#E4D9C8] flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-semibold text-[#7A7163] uppercase tracking-wider">{{ langService.currentLang() === 'vi' ? 'Đơn hàng' : '주문번호' }}</span>
+          <h2 class="text-xl sm:text-2xl font-mono font-bold text-[#6E2A34]">
+            #{{ order.order_number || order.id }}
+          </h2>
+          <p class="text-xs text-[#7A7163] mt-0.5">
+            {{ langService.currentLang() === 'vi' ? 'Ngày đặt:' : '주문일시:' }} {{ order.created_at | date:'dd/MM/yyyy HH:mm' }}
+          </p>
+        </div>
+
+        <div class="text-right flex flex-col items-end gap-1">
+          <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase shadow-2xs"
+            [ngClass]="{
+              'bg-amber-100 text-amber-800 border border-amber-200': order.status === 'pending',
+              'bg-blue-100 text-blue-800 border border-blue-200': order.status === 'confirmed' || order.status === 'processing',
+              'bg-purple-100 text-purple-800 border border-purple-200': order.status === 'ready_for_delivery' || order.status === 'out_for_delivery' || order.status === 'shipping',
+              'bg-emerald-100 text-emerald-800 border border-emerald-200': order.status === 'delivered',
+              'bg-rose-100 text-rose-800 border border-rose-200': order.status === 'cancelled'
+            }">
+            <span *ngIf="order.status !== 'delivered' && order.status !== 'cancelled'" class="w-2 h-2 rounded-full bg-current animate-ping"></span>
+            {{ getStatusLabel(order.status) }}
+          </span>
+          <span class="text-xs text-[#7A7163]">
+            {{ order.payment_status === 'paid' ? (langService.currentLang() === 'vi' ? '✓ Đã thanh toán' : '✓ 결제완료') : (langService.currentLang() === 'vi' ? '⏳ Thanh toán khi nhận (hoặc chờ chuyển khoản)' : '⏳ 미결제') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Live Delivery Stepper -->
+      <div *ngIf="order.status !== 'cancelled'" class="p-6 sm:p-8 bg-gradient-to-b from-white to-[#FEFCFA] border-b border-[#E4D9C8]">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#7A7163]">
+              {{ langService.currentLang() === 'vi' ? 'Tiến trình chuẩn bị & giao hoa' : '주문 및 배송 진행 상황' }}
+            </h4>
+            <p class="text-sm font-semibold text-[#2B2A26] mt-0.5">
+              {{ langService.currentLang() === 'vi' ? 'Dự kiến giao:' : '배송 예정일:' }} <span class="text-[#6E2A34] font-bold">{{ getDeliveryDate(order) }}</span>
+            </p>
+          </div>
+          <div class="hidden sm:block text-xs font-semibold text-[#6E2A34] bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+            🌸 Cam kết hoa tươi 100%
+          </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 text-center pt-2 pb-2">
+          
+          <!-- Bước 1 -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all"
+                 [ngClass]="getOrderStep(order.status) >= 1 ? 'bg-[#6E2A34] text-white ring-4 ring-rose-100' : 'bg-gray-200 text-gray-500'">
+              <svg *ngIf="getOrderStep(order.status) > 1" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              <span *ngIf="getOrderStep(order.status) === 1">1</span>
+            </div>
+            <h5 class="text-xs font-bold mt-3 text-[#2B2A26]">{{ langService.currentLang() === 'vi' ? 'Đã Tiếp Nhận' : '주문 접수' }}</h5>
+            <p class="text-[11px] text-[#7A7163] mt-0.5">{{ order.created_at | date:'HH:mm' }}</p>
+          </div>
+
+          <!-- Bước 2 -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all"
+                 [ngClass]="getOrderStep(order.status) >= 2 ? 'bg-[#6E2A34] text-white ring-4 ring-rose-100' : 'bg-gray-100 border border-gray-300 text-gray-400'">
+              <svg *ngIf="getOrderStep(order.status) > 2" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              <span *ngIf="getOrderStep(order.status) === 2" class="animate-pulse">🌸</span>
+              <span *ngIf="getOrderStep(order.status) < 2">2</span>
+            </div>
+            <h5 class="text-xs font-bold mt-3" [ngClass]="getOrderStep(order.status) >= 2 ? 'text-[#2B2A26]' : 'text-gray-400'">
+              {{ langService.currentLang() === 'vi' ? 'Cắm Hoa Tươi' : '꽃 제작' }}
+            </h5>
+            <p *ngIf="getOrderStep(order.status) === 2" class="text-[10px] text-blue-600 font-bold mt-0.5 animate-pulse">
+              {{ langService.currentLang() === 'vi' ? 'Đang chuẩn bị' : '제작 중' }}
+            </p>
+          </div>
+
+          <!-- Bước 3 -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all"
+                 [ngClass]="getOrderStep(order.status) >= 3 ? 'bg-[#6E2A34] text-white ring-4 ring-rose-100' : 'bg-gray-100 border border-gray-300 text-gray-400'">
+              <svg *ngIf="getOrderStep(order.status) > 3" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              <svg *ngIf="getOrderStep(order.status) === 3" class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+              <span *ngIf="getOrderStep(order.status) < 3">3</span>
+            </div>
+            <h5 class="text-xs font-bold mt-3" [ngClass]="getOrderStep(order.status) >= 3 ? 'text-purple-700' : 'text-gray-400'">
+              {{ langService.currentLang() === 'vi' ? 'Đang Vận Chuyển' : '배송 중' }}
+            </h5>
+            <p *ngIf="getOrderStep(order.status) === 3" class="text-[10px] text-purple-600 font-bold mt-0.5 animate-pulse">
+              {{ langService.currentLang() === 'vi' ? 'Shipper đang giao' : '배송 기사 출발' }}
+            </p>
+          </div>
+
+          <!-- Bước 4 -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all"
+                 [ngClass]="getOrderStep(order.status) >= 4 ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-gray-100 border border-gray-300 text-gray-400'">
+              <svg *ngIf="getOrderStep(order.status) >= 4" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+              <span *ngIf="getOrderStep(order.status) < 4">4</span>
+            </div>
+            <h5 class="text-xs font-bold mt-3" [ngClass]="getOrderStep(order.status) >= 4 ? 'text-emerald-700' : 'text-gray-400'">
+              {{ langService.currentLang() === 'vi' ? 'Giao Thành Công' : '배송 완료' }}
+            </h5>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recipient & Delivery Info -->
+      <div class="p-6 sm:p-8 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-[#FBF6EF] rounded-2xl border border-[#E4D9C8]">
+          <div class="space-y-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#7A7163]">{{ langService.currentLang() === 'vi' ? 'Người nhận hoa' : '수령인 정보' }}</span>
+            <p class="font-bold text-[#2B2A26] text-base">{{ order.recipient_name }}</p>
+            <p class="text-sm text-[#7A7163]">📞 {{ order.recipient_phone }}</p>
+            <p class="text-sm text-[#7A7163] flex items-start gap-1 mt-1">
+              <svg class="w-4 h-4 text-[#6E2A34] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span>{{ order.delivery_address }}</span>
+            </p>
+          </div>
+
+          <div class="space-y-1.5 md:border-l md:border-[#E4D9C8] md:pl-5">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#7A7163]">{{ langService.currentLang() === 'vi' ? 'Lịch giao & Thiệp' : '배송 및 메시지' }}</span>
+            <p class="text-sm">
+              <strong>{{ langService.currentLang() === 'vi' ? 'Ngày giờ giao:' : '배송 예정:' }}</strong> {{ getDeliveryDate(order) }}
+            </p>
+            <div *ngIf="order.card_message" class="mt-2 p-3 bg-white border border-rose-100 rounded-xl text-xs italic text-[#6E2A34] shadow-2xs">
+              <strong>💌 {{ langService.currentLang() === 'vi' ? 'Lời nhắn thiệp:' : '카드 메시지:' }}</strong> "{{ order.card_message }}"
+            </div>
+          </div>
+        </div>
+
+        <!-- Products in Order -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#7A7163] mb-3">
+            {{ langService.currentLang() === 'vi' ? 'Sản phẩm trong đơn hàng' : '주문 상품 목록' }}
+          </h4>
+          <div class="border border-[#E4D9C8] rounded-2xl divide-y divide-[#E4D9C8] overflow-hidden">
+            <div *ngFor="let item of order.items" class="p-4 flex items-center justify-between gap-4 bg-white">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-xl">
+                  🌸
+                </div>
+                <div>
+                  <h5 class="font-bold text-sm text-[#2B2A26]">{{ item.product_name_snapshot || item.product?.translations?.[0]?.name || 'Bó hoa tươi KFlower' }}</h5>
+                  <p class="text-xs text-[#7A7163]">
+                    {{ formatPrice(item.unit_price) }}đ × {{ item.quantity }}
+                  </p>
+                </div>
+              </div>
+              <div class="font-bold text-sm text-[#6E2A34]">
+                {{ formatPrice(item.subtotal || (item.unit_price * item.quantity)) }}đ
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary & Actions -->
+        <div class="pt-4 border-t border-[#E4D9C8] flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs text-[#7A7163]">{{ langService.currentLang() === 'vi' ? 'Tổng thanh toán:' : '총 결제 금액:' }}</span>
+            <div class="text-2xl font-bold font-serif text-[#6E2A34]">{{ formatPrice(order.total_amount) }}đ</div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <a routerLink="/profile" [queryParams]="{tab: 'orders'}" class="px-5 py-3 bg-[#F4EDE3] text-[#6E2A34] font-bold rounded-xl text-sm hover:bg-[#E4D9C8] transition-colors">
+              {{ langService.currentLang() === 'vi' ? 'Về Đơn hàng của tôi' : '내 주문 목록으로' }}
+            </a>
+            <a routerLink="/shop" class="px-6 py-3 bg-[#6E2A34] text-white font-bold rounded-xl text-sm hover:bg-[#5C2129] shadow transition-colors">
+              {{ langService.currentLang() === 'vi' ? 'Tiếp tục mua sắm' : '쇼핑 계속하기' }}
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 </main>

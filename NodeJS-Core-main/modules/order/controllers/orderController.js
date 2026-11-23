@@ -34,6 +34,16 @@ const orderController = {
     }
   },
 
+  track: async (req, res) => {
+    try {
+      const order = await orderService.trackOrder(req.params.keyword);
+      if (!order) return responseUtils.notFound(res, "Không tìm thấy đơn hàng");
+      return responseUtils.ok(res, order);
+    } catch (err) {
+      return responseUtils.error(res, err.message);
+    }
+  },
+
   show: async (req, res) => {
     try {
       const userId = req.user.role === "admin" || req.user.role === "staff" ? null : req.user.userId;

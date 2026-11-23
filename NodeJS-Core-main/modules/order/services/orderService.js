@@ -1,4 +1,4 @@
-const { Order, OrderItem, OrderStatusHistory, Cart, CartItem, Product, ProductTranslation, ProductVariant, Coupon, User, DeliveryTimeSlot, sequelize } = require("models");
+const { Order, OrderItem, OrderStatusHistory, Cart, CartItem, Product, ProductTranslation, ProductImage, ProductVariant, Coupon, User, DeliveryTimeSlot, sequelize } = require("models");
 const notificationService = require("modules/notification/services/notificationService");
 const paymentService = require("modules/payment/services/paymentService");
 const emailUtils = require("utils/emailUtils");
@@ -205,7 +205,7 @@ const orderService = {
       if (transaction && !transaction.finished) {
         try {
           await transaction.rollback();
-        } catch (_) {}
+        } catch (_) { }
       }
       throw err;
     }
@@ -218,7 +218,7 @@ const orderService = {
         "Đặt hàng thành công",
         `Đơn hàng #${orderNumber} đã được đặt thành công. Tổng tiền: ${total_amount.toLocaleString()} VND`
       );
-    } catch (_) {}
+    } catch (_) { }
 
     let responseData;
     try {
@@ -244,27 +244,50 @@ const orderService = {
         if (u) customerEmail = u.email;
       }
       if (customerEmail && emailUtils.sendOrderConfirmation) {
-        emailUtils.sendOrderConfirmation(customerEmail, responseData).catch(() => {});
+        emailUtils.sendOrderConfirmation(customerEmail, responseData).catch(() => { });
       }
-    } catch (_) {}
+    } catch (_) { }
 
     return responseData;
   },
 
   listUserOrders: async (userId, query = {}) => {
     const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
+    const limit = parseInt(query.limit) || 20;
     const offset = (page - 1) * limit;
 
     const whereClause = { user_id: userId };
-    if (query.status) whereClause.status = query.status;
+    if (query.status && query.status !== "all") whereClause.status = query.status;
 
     const { count, rows } = await Order.findAndCountAll({
       where: whereClause,
-      include: [{ model: OrderItem, as: "items" }],
-      order: [["created_at", "DESC"]],
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          include: [
+            {
+              model: Product,
+              as: "product",
+              include: [
+                { model: ProductTranslation, as: "translations" },
+                { model: ProductImage, as: "images" },
+              ],
+            },
+          ],
+        },
+        {
+          model: OrderStatusHistory,
+          as: "statusHistory",
+        },
+      ],
+      order: [
+        ["created_at", "DESC"],
+        [{ model: OrderStatusHistory, as: "statusHistory" }, "created_at", "ASC"],
+      ],
       limit,
       offset,
+      distinct: true,
     });
 
     return {
@@ -274,6 +297,46 @@ const orderService = {
       totalPages: Math.ceil(count / limit),
       orders: rows,
     };
+  },
+
+  trackOrder: async (keyword) => {
+    if (!keyword) return null;
+    const cleanKw = String(keyword).trim().replace(/^#/, "");
+    const { Op } = require("sequelize");
+
+    return await Order.findOne({
+      where: {
+        [Op.or]: [
+          { order_number: cleanKw },
+          { order_number: `#${cleanKw}` },
+          { id: cleanKw },
+          { recipient_phone: cleanKw },
+        ],
+      },
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          include: [
+            {
+              model: Product,
+              as: "product",
+              include: [
+                { model: ProductTranslation, as: "translations" },
+                { model: ProductImage, as: "images" },
+              ],
+            },
+          ],
+        },
+        {
+          model: OrderStatusHistory,
+          as: "statusHistory",
+        },
+      ],
+      order: [
+        [{ model: OrderStatusHistory, as: "statusHistory" }, "created_at", "ASC"],
+      ],
+    });
   },
 
   listAllOrders: async (query = {}) => {
@@ -382,7 +445,7 @@ const orderService = {
           statusMessages[targetStatus]
         );
       }
-    } catch (_) {}
+    } catch (_) { }
 
     return orderService.getOrderById(orderId);
   },
