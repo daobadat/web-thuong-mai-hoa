@@ -113,7 +113,7 @@ const userService = {
   },
 
   // ── Admin management ──────────────────────────────────────────────────
-  listAll: async (query = {}) => {
+  listAll: async (query = {}, caller = {}) => {
     const { page = 1, limit = 20, search } = query;
     const where = {};
     if (search) {
@@ -147,9 +147,17 @@ const userService = {
       offset,
     });
 
+    const isStaffCaller = caller && caller.role !== 'admin';
+
     const data = rows.map((u) => {
       const item = u.toJSON ? u.toJSON() : u;
       const isGoogle = Number(item.google_oauth_count) > 0 || item.has_no_password === 1;
+
+      // Nếu tài khoản nhân viên vào xem, không hiện email của quản trị viên (admin)
+      if (isStaffCaller && item.role === 'admin') {
+        item.email = '****** (Bảo mật)';
+      }
+
       return {
         ...item,
         auth_provider: isGoogle ? "google" : "local",
@@ -173,9 +181,9 @@ const userService = {
   createUser: async (data, caller = {}) => {
     const bcrypt = require("bcryptjs");
 
-    // Staff cannot create admin users
-    if (caller.role !== 'admin' && data.role === 'admin') {
-      const error = new Error("Nhân viên không có quyền tạo tài khoản quản trị viên");
+    // Nhân viên chỉ được tạo tài khoản khách hàng, không được tạo admin hoặc staff
+    if (caller.role !== 'admin' && data.role && data.role !== 'customer') {
+      const error = new Error("Nhân viên chỉ có quyền tạo tài khoản khách hàng");
       error.statusCode = 403;
       throw error;
     }
@@ -192,7 +200,7 @@ const userService = {
       email:      data.email,
       full_name:  data.full_name || "",
       phone:      data.phone || "",
-      role:       data.role || "customer",
+      role:       caller.role === 'admin' ? (data.role || "customer") : "customer",
       password_hash,
     });
     const result = user.toJSON();
@@ -208,23 +216,24 @@ const userService = {
       throw error;
     }
 
-    // Staff cannot edit admin users
-    if (caller.role !== 'admin' && user.role === 'admin') {
-      const error = new Error("Nhân viên không có quyền chỉnh sửa tài khoản quản trị viên");
+    // Nhân viên chỉ được chỉnh sửa thông tin khách hàng, không được sửa admin hoặc nhân viên khác
+    if (caller.role !== 'admin' && user.role !== 'customer') {
+      const error = new Error("Nhân viên chỉ có quyền xem và chỉnh sửa thông tin khách hàng");
       error.statusCode = 403;
       throw error;
     }
 
-    // Staff cannot promote anyone to admin
-    if (caller.role !== 'admin' && data.role === 'admin') {
-      const error = new Error("Nhân viên không có quyền gán vai trò quản trị viên");
+    // Chỉ có quản trị viên mới được phép chỉnh sửa vai trò
+    if (caller.role !== 'admin' && data.role !== undefined && data.role !== user.role) {
+      const error = new Error("Chỉ có quản trị viên mới được phép chỉnh sửa vai trò");
       error.statusCode = 403;
       throw error;
     }
 
     if (data.full_name !== undefined) user.full_name = data.full_name;
     if (data.phone     !== undefined) user.phone     = data.phone;
-    if (data.role      !== undefined) user.role      = data.role;
+    if (caller.role === 'admin' && data.role !== undefined) user.role = data.role;
+    if (caller.role === 'admin' && data.email !== undefined) user.email = data.email;
     await user.save();
     const result = user.toJSON();
     delete result.password_hash;
@@ -239,9 +248,9 @@ const userService = {
       throw error;
     }
 
-    // Staff cannot delete admin users
-    if (caller.role !== 'admin' && user.role === 'admin') {
-      const error = new Error("Nhân viên không có quyền xóa tài khoản quản trị viên");
+    // Nhân viên chỉ được xóa tài khoản khách hàng, không được xóa quản trị viên hoặc nhân viên
+    if (caller.role !== 'admin' && user.role !== 'customer') {
+      const error = new Error("Nhân viên chỉ có quyền xóa tài khoản khách hàng");
       error.statusCode = 403;
       throw error;
     }

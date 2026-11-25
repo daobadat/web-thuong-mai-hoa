@@ -10,7 +10,7 @@ export class AdminGuard implements CanActivate {
   router = inject(Router);
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    if (this.authApi.isLoggedIn() && this.authApi.isAdmin()) {
+    if (this.authApi.isLoggedIn() && this.authApi.isStaff()) {
       return true;
     }
     

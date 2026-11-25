@@ -133,13 +133,13 @@
                 </svg>
                 {{ langService.currentLang() === 'vi' ? 'Đơn hàng của tôi' : '내 주문' }}
               </a>
-              <a *ngIf="authApi.isAdmin()" routerLink="/admin" (click)="userOpen = false"
+              <a *ngIf="authApi.isStaff()" routerLink="/admin" (click)="userOpen = false"
                 class="w-full text-left px-4 py-2.5 text-sm text-[#6E2A34] font-bold bg-[#FBF6EF] hover:bg-[#F4EDE3] transition-colors flex items-center gap-2.5 cursor-pointer border-t border-[#E4D9C8]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Quản trị Admin
+                {{ authApi.isAdmin() ? 'Quản trị Admin' : 'Trang quản lý' }}
               </a>
             </div>
             <div class="border-t border-[#E4D9C8]">

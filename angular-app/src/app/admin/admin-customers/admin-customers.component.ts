@@ -34,6 +34,10 @@ export class AdminCustomersComponent implements OnInit {
     return this.authApi.currentUser()?.role === 'admin';
   }
 
+  get isStaff() {
+    return this.authApi.currentUser()?.role === 'staff';
+  }
+
   ngOnInit() {
     this.loadCustomers();
   }
@@ -59,7 +63,12 @@ export class AdminCustomersComponent implements OnInit {
 
   get filteredCustomers() {
     const q = this.search.toLowerCase();
-    return this.customers.filter(c => !q || (c.name || '').toLowerCase().includes(q) || (c.phone || '').includes(q));
+    return this.customers.filter(c => {
+      const matchName = (c.name || '').toLowerCase().includes(q);
+      const matchPhone = (c.phone || '').includes(q);
+      const matchEmail = (!this.isAdmin && c.role === 'admin') ? false : (c.email || '').toLowerCase().includes(q);
+      return !q || matchName || matchPhone || matchEmail;
+    });
   }
 
   get totalCustomers() {
@@ -92,6 +101,7 @@ export class AdminCustomersComponent implements OnInit {
 
   addCustomer() {
     if (!this.newCustomer.full_name || !this.newCustomer.email) return;
+    if (!this.isAdmin) this.newCustomer.role = 'customer';
     this.userApi.createUser(this.newCustomer).subscribe({
       next: () => {
         this.showAdd = false;
@@ -103,10 +113,20 @@ export class AdminCustomersComponent implements OnInit {
   }
 
   setEditId(id: number) {
+    const target = this.customers.find(c => c.id === id);
+    if (!this.isAdmin && target && target.role !== 'customer') {
+      alert('Nhân viên chỉ có quyền chỉnh sửa thông tin khách hàng!');
+      return;
+    }
     this.editId = this.editId === id ? null : id;
   }
 
   saveEditString(id: number, field: string, value: string) {
+    if (field === 'role' && !this.isAdmin) {
+      alert('Chỉ có quản trị viên mới được phép chỉnh sửa vai trò!');
+      return;
+    }
+
     // Map template field to backend field
     let backendField = field;
     if (field === 'name') backendField = 'full_name';
@@ -121,6 +141,11 @@ export class AdminCustomersComponent implements OnInit {
   }
 
   deleteCustomer(id: number) {
+    const target = this.customers.find(c => c.id === id);
+    if (!this.isAdmin && target && target.role !== 'customer') {
+      alert('Nhân viên chỉ có quyền xóa tài khoản khách hàng!');
+      return;
+    }
     if(confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
       this.userApi.deleteUser(id).subscribe({
         next: () => this.loadCustomers(),

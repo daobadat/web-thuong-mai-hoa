@@ -91,7 +91,7 @@ export class LoginPageComponent implements OnInit, AfterViewInit {
       next: () => {
         this.loading = false;
         const target = (this.returnUrl && !this.returnUrl.startsWith('/auth')) ? this.returnUrl : '/';
-        if (this.authApi.isAdmin()) {
+        if (this.authApi.isStaff()) {
           window.location.href = '/admin';
         } else {
           window.location.href = target;
@@ -128,7 +128,7 @@ export class LoginPageComponent implements OnInit, AfterViewInit {
       next: () => {
         this.loading = false;
         const target = (this.returnUrl && !this.returnUrl.startsWith('/auth')) ? this.returnUrl : '/';
-        if (this.authApi.isAdmin()) {
+        if (this.authApi.isStaff()) {
           window.location.href = '/admin';
         } else {
           window.location.href = target;

@@ -250,7 +250,7 @@ router.group("/chat", (router) => {
 // =====================================================================
 // ADMIN ANALYTICS - /admin/stats
 // =====================================================================
-router.group("/admin", middlewares([authenticated, role("admin")]), (router) => {
+router.group("/admin", middlewares([authenticated, role("admin", "staff")]), (router) => {
   router.get("/stats", analyticsController.getStats);
 });
 

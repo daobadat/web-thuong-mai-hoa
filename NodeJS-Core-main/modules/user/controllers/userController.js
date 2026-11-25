@@ -64,7 +64,7 @@ const userController = {
   // ── Admin management ──────────────────────────────────────────────────
   index: async (req, res) => {
     try {
-      const result = await userService.listAll(req.query);
+      const result = await userService.listAll(req.query, req.user);
       return responseUtils.ok(res, result);
     } catch (err) {
       return responseUtils.error(res, err.message);
